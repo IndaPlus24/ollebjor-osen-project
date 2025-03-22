@@ -1,0 +1,9 @@
+[submodule "vendor/bgfx.cmake"]
+	path = vendor/bgfx.cmake
+	url = https://github.com/bkaradzic/bgfx.cmake.git
+[submodule "vendor/glfw"]
+	path = vendor/glfw
+	url = https://github.com/glfw/glfw
+[submodule "vendor/JoltPhysics"]
+	path = vendor/JoltPhysics
+	url = https://github.com/jrouwe/JoltPhysics.git
