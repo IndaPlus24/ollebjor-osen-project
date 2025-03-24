@@ -14,11 +14,11 @@ include_directories(${INCLUDE_DIR})
 include_directories(${VENDOR_DIR}/bgfx.cmake/bx/include)
 include_directories(${VENDOR_DIR}/bgfx.cmake/bimg/include)
 include_directories(${VENDOR_DIR}/bgfx.cmake/bgfx/include)
-include_directories(${VENDOR_DIR}/glfw/include)
+include_directories(${VENDOR_DIR}/SDL/include)
 include_directories(${VENDOR_DIR}/JoltPhysics)
 
-# Add GLFW
-add_subdirectory(${VENDOR_DIR}/glfw)
+# Add SDL
+add_subdirectory(${VENDOR_DIR}/SDL EXCLUDE_FROM_ALL)
 
 # Add bgfx
 add_subdirectory(${VENDOR_DIR}/bgfx.cmake)
@@ -30,7 +30,7 @@ add_subdirectory(${VENDOR_DIR}/JoltPhysics/build)
 file(GLOB_RECURSE SRC_FILES ${SRC_DIR}/*.cpp)
 add_executable(MyProject ${SRC_FILES})
 target_include_directories(MyProject PUBLIC ${INCLUDE_DIR})
-target_link_libraries(MyProject PRIVATE bgfx glfw Jolt)
+target_link_libraries(MyProject PRIVATE bgfx SDL2-static Jolt)
 
 # Platform-specific settings
 if(WIN32)
