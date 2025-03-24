@@ -11,6 +11,7 @@ set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 
 # Add include directories
 include_directories(${INCLUDE_DIR})
+include_directories(${INCLUDE_DIR}/glm)
 include_directories(${VENDOR_DIR}/bgfx.cmake/bx/include)
 include_directories(${VENDOR_DIR}/bgfx.cmake/bimg/include)
 include_directories(${VENDOR_DIR}/bgfx.cmake/bgfx/include)
@@ -26,11 +27,14 @@ add_subdirectory(${VENDOR_DIR}/bgfx.cmake)
 # Add JoltPhysics
 add_subdirectory(${VENDOR_DIR}/JoltPhysics/build)
 
+# Add glm
+add_subdirectory(${VENDOR_DIR}/glm)
+
 # Add main project executable
 file(GLOB_RECURSE SRC_FILES ${SRC_DIR}/*.cpp)
 add_executable(MyProject ${SRC_FILES})
 target_include_directories(MyProject PUBLIC ${INCLUDE_DIR})
-target_link_libraries(MyProject PRIVATE bgfx SDL2-static Jolt)
+target_link_libraries(MyProject PRIVATE bgfx glm SDL2-static Jolt)
 
 # Platform-specific settings
 if(WIN32)

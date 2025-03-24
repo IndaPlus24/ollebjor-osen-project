@@ -8,6 +8,7 @@
 #include <bgfx/platform.h>
 #include "logo.h"
 #include <Jolt/Jolt.h>
+#include <glm/glm.hpp>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
