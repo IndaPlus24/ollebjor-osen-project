@@ -4,7 +4,7 @@
 [submodule "vendor/SDL"]
 	path = vendor/SDL
 	url = https://github.com/libsdl-org/SDL.git
-	branch = SD2
+	branch = SDL2
 [submodule "vendor/JoltPhysics"]
 	path = vendor/JoltPhysics
 	url = https://github.com/jrouwe/JoltPhysics.git
