@@ -3,6 +3,7 @@ project(MyProject LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_DEBUG_POSTFIX "-Debug")
 
 # Set paths
 set(VENDOR_DIR ${CMAKE_SOURCE_DIR}/vendor)
@@ -32,21 +33,26 @@ add_subdirectory(${VENDOR_DIR}/glm)
 
 # Add main project executable
 file(GLOB_RECURSE SRC_FILES ${SRC_DIR}/*.cpp)
-add_executable(MyProject ${SRC_FILES})
-target_include_directories(MyProject PUBLIC ${INCLUDE_DIR})
-target_link_libraries(MyProject PRIVATE bgfx glm SDL2-static Jolt)
 
 # Platform-specific settings
 if(WIN32)
+    add_executable(MyProject WIN32 ${SRC_FILES})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /Zc:preprocessor")
     target_compile_definitions(MyProject PRIVATE "_CRT_SECURE_NO_WARNINGS")
 elseif(APPLE)
+    add_executable(MyProject ${SRC_FILES})
     find_library(COCOA_FRAMEWORK Cocoa)
     find_library(IOKIT_FRAMEWORK IOKit)
     find_library(COREVIDEO_FRAMEWORK CoreVideo)
     target_link_libraries(MyProject PRIVATE ${COCOA_FRAMEWORK} ${IOKIT_FRAMEWORK} ${COREVIDEO_FRAMEWORK})
 elseif(UNIX)
+    add_executable(MyProject ${SRC_FILES})
     target_link_libraries(MyProject PRIVATE pthread dl)
 endif()
+
+target_include_directories(MyProject PUBLIC ${INCLUDE_DIR})
+target_link_libraries(MyProject PRIVATE bgfx glm SDL2main SDL2-static Jolt)
+set_target_properties(MyProject PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
 # Set output directories
 set_target_properties(MyProject PROPERTIES
