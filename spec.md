@@ -8,12 +8,12 @@
 > ACTION: <`short-description`>
 
 Where ACTION is:
-- FEAT - New feature
-- FIX - Fixed something
-- DOCS - Updated documentation
-- REF - Refactored code
-- ADD - Added something new that is not a feature
-- MISC - Miscellanous 
+- Feat - New feature
+- Fix - Fixed something
+- Docs - Updated documentation
+- Ref - Refactored code
+- Add - Added something new that is not a feature
+- Misc - Miscellanous 
 
 #### Issues
 Use tags to categorize the issue, and use a deFEscriptive but short title. And then a longer, more in-depth description if needed.
