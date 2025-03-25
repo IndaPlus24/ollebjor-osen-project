@@ -16,7 +16,7 @@ Where ACTION is:
 - MISC - Miscellanous 
 
 #### Issues
-Use tags to categorize the issue, and use a descriptive but short title. And then a longer, more in-depth description if needed.
+Use tags to categorize the issue, and use a deFEscriptive but short title. And then a longer, more in-depth description if needed.
 
 Otherwise, fall back to commit convention.
 
@@ -41,18 +41,50 @@ Use commit convention as title. And then tag the relevant issues this merge solv
     - Define behaviour
 
 #### Feasability
+This project is quite feasable. Executing lua code from C++ is easy. Integrating lua with the graphics and physics library will be the difficult part. We will need to learn and figure out a lot which may also contribute to difficulties. However, seeing as our MVP is quite simple we hope to finish this project fine.
 
 
 ### Who
+- Olle
+    - Integrating Lua
+    - Physics engine (jolt)
+- Oskar
+    - Graphics library (bgfx)
+    - CMake
+    - Program architecture
 
-MVP Code
+## MVP
+
+This is the features of a small "game" made
+* Input - Apply force to the sphere
+* Static plane
+* RigidBody sphere
+
+### Additional
+
+
+### Lua Code
 
 ```lua
 
 local Window = game:Get("Window")
 Window.title = "MVP game"
 
-local spherePosition = Vector3.zero
+local sphere = Primitive.new(Sphere) -- Default spawn position is (0,0,0)
+sphere.BodyType = Enum.BodyType.RigidBody
+sphere.Color = Rgb.new(255, 0, 0)
+
+local planePosition = Vector3.new(0, -10, 0)
+local plane = Primitive.new(Plane, planePosition) -- Primitive allows for optional default position as second argument
+plane.Color = Rgb.new(0, 100, 100)
+
+local Keyboard = game:Get("Keyboard")
+
+Keyboard.KeyDown:Connect(function(key)
+    if key == Enum.KeyCode.Space then
+        print("Space Pressed!")
+        sphere:ApplyImpulse(Vector3.new(0, 100, 0))
+    end
+end)
 
 ```
-
