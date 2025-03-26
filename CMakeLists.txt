@@ -9,6 +9,7 @@ set(CMAKE_DEBUG_POSTFIX "-Debug")
 set(VENDOR_DIR ${CMAKE_SOURCE_DIR}/vendor)
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
+set(SHADER_DIR ${CMAKE_SOURCE_DIR}/shaders)
 
 # Add include directories
 include_directories(${INCLUDE_DIR})
@@ -31,22 +32,42 @@ add_subdirectory(${VENDOR_DIR}/JoltPhysics/build)
 # Add glm
 add_subdirectory(${VENDOR_DIR}/glm)
 
+# Compile shaders
+include_directories(${SHADER_DIR}/include/generated)
+set(BGFX_SHADER_INCLUDE_PATH ${SHADER_DIR}/include)
+file(GLOB_RECURSE SHADER_FILES_VS shaders/vs_*.sc)
+file(GLOB_RECURSE SHADER_FILES_FS shaders/fs_*.sc)
+bgfx_compile_shaders(
+    TYPE VERTEX
+    SHADERS ${SHADER_FILES_VS}
+    VARYING_DEF ${SHADER_DIR}/varying.def.sc
+    OUTPUT_DIR ${SHADER_DIR}/include/generated
+    AS_HEADERS
+)
+bgfx_compile_shaders(
+    TYPE FRAGMENT
+    SHADERS ${SHADER_FILES_FS}
+    VARYING_DEF ${SHADER_DIR}/varying.def.sc
+    OUTPUT_DIR ${SHADER_DIR}/include/generated
+    AS_HEADERS
+)
+
 # Add main project executable
 file(GLOB_RECURSE SRC_FILES ${SRC_DIR}/*.cpp)
 
 # Platform-specific settings
 if(WIN32)
-    add_executable(Loonar WIN32 ${SRC_FILES})
+    add_executable(Loonar WIN32 ${SRC_FILES} ${SHADER_FILES_VS} ${SHADER_FILES_FS})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /Zc:preprocessor")
     target_compile_definitions(Loonar PRIVATE "_CRT_SECURE_NO_WARNINGS")
 elseif(APPLE)
-    add_executable(Loonar ${SRC_FILES})
+    add_executable(Loonar ${SRC_FILES} ${SHADER_FILES_VS} ${SHADER_FILES_FS})
     find_library(COCOA_FRAMEWORK Cocoa)
     find_library(IOKIT_FRAMEWORK IOKit)
     find_library(COREVIDEO_FRAMEWORK CoreVideo)
     target_link_libraries(Loonar PRIVATE ${COCOA_FRAMEWORK} ${IOKIT_FRAMEWORK} ${COREVIDEO_FRAMEWORK})
 elseif(UNIX)
-    add_executable(Loonar ${SRC_FILES})
+    add_executable(Loonar ${SRC_FILES} ${SHADER_FILES_VS} ${SHADER_FILES_FS})
     target_link_libraries(Loonar PRIVATE pthread dl)
 endif()
 
