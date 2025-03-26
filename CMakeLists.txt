@@ -9,6 +9,7 @@ set(CMAKE_DEBUG_POSTFIX "-Debug")
 set(VENDOR_DIR ${CMAKE_SOURCE_DIR}/vendor)
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
+set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
 
 # Add include directories
 include_directories(${INCLUDE_DIR})
@@ -18,6 +19,7 @@ include_directories(${VENDOR_DIR}/bgfx.cmake/bimg/include)
 include_directories(${VENDOR_DIR}/bgfx.cmake/bgfx/include)
 include_directories(${VENDOR_DIR}/SDL/include)
 include_directories(${VENDOR_DIR}/JoltPhysics)
+include_directories(${EXTERNAL_DIR})
 
 # Add SDL
 add_subdirectory(${VENDOR_DIR}/SDL EXCLUDE_FROM_ALL)
