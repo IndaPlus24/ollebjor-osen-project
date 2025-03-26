@@ -31,6 +31,8 @@ add_subdirectory(${VENDOR_DIR}/JoltPhysics/build)
 # Add glm
 add_subdirectory(${VENDOR_DIR}/glm)
 
+# Add Lua
+add_subdirectory(${VENDOR_DIR}/Lua)
 # Add main project executable
 file(GLOB_RECURSE SRC_FILES ${SRC_DIR}/*.cpp)
 
@@ -51,7 +53,7 @@ elseif(UNIX)
 endif()
 
 target_include_directories(Loonar PUBLIC ${INCLUDE_DIR})
-target_link_libraries(Loonar PRIVATE bgfx glm SDL2main SDL2-static Jolt)
+target_link_libraries(Loonar PRIVATE bgfx glm SDL2main SDL2-static Jolt lua_static)
 set_target_properties(Loonar PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
 # Set output directories
