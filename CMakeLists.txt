@@ -10,6 +10,7 @@ set(VENDOR_DIR ${CMAKE_SOURCE_DIR}/vendor)
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 set(SHADER_DIR ${CMAKE_SOURCE_DIR}/shaders)
+set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
 
 # Add include directories
 include_directories(${INCLUDE_DIR})
@@ -19,6 +20,7 @@ include_directories(${VENDOR_DIR}/bgfx.cmake/bimg/include)
 include_directories(${VENDOR_DIR}/bgfx.cmake/bgfx/include)
 include_directories(${VENDOR_DIR}/SDL/include)
 include_directories(${VENDOR_DIR}/JoltPhysics)
+include_directories(${EXTERNAL_DIR}/Lua/lua-5.4.7/include)
 
 # Add SDL
 add_subdirectory(${VENDOR_DIR}/SDL EXCLUDE_FROM_ALL)
@@ -31,6 +33,9 @@ add_subdirectory(${VENDOR_DIR}/JoltPhysics/build)
 
 # Add glm
 add_subdirectory(${VENDOR_DIR}/glm)
+
+# Add Lua
+add_subdirectory(${VENDOR_DIR}/Lua)
 
 # Compile shaders
 include_directories(${SHADER_DIR}/include/generated)
@@ -72,7 +77,7 @@ elseif(UNIX)
 endif()
 
 target_include_directories(Loonar PUBLIC ${INCLUDE_DIR})
-target_link_libraries(Loonar PRIVATE bgfx glm SDL2main SDL2-static Jolt)
+target_link_libraries(Loonar PRIVATE bgfx glm SDL2main SDL2-static Jolt lua_static)
 set_target_properties(Loonar PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
 # Set output directories
