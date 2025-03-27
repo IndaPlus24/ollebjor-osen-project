@@ -44,8 +44,13 @@ class Primitive {
         this->position = position;
         transform = glm::translate(glm::mat4(1.0f), position);
     }
+    inline void AddPosition(glm::vec3 position) {
+        this->position += position;
+        transform = glm::translate(transform, position);
+    }
 
     void SetRotation(glm::vec3 rotation);
+    void AddRotation(glm::vec3 rotation);
 
     inline void SetSize(glm::vec3 size) {
         this->size = size;

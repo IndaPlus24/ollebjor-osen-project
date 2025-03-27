@@ -109,6 +109,13 @@ void Primitive::SetRotation(glm::vec3 rotation) {
     QuaternionRotate(transform, glm::vec3(0.0f, 0.0f, 1.0f), rotation.z);
 }
 
+void Primitive::AddRotation(glm::vec3 rotation) {
+    this->rotation += rotation;
+    QuaternionRotate(transform, glm::vec3(1.0f, 0.0f, 0.0f), rotation.x);
+    QuaternionRotate(transform, glm::vec3(0.0f, 1.0f, 0.0f), rotation.y);
+    QuaternionRotate(transform, glm::vec3(0.0f, 0.0f, 1.0f), rotation.z);
+}
+
 void Primitive::GetPrimitiveTypeData(const bgfx::Memory*& vertMem,
                                      const bgfx::Memory*& indiMem,
                                      PrimitiveType type) {

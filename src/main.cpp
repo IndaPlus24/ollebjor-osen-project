@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
             for (auto& primitive : primitives) {
                 primitive.SetVertexBuffer();
                 primitive.SetIndexBuffer();
-                primitive.SetRotation({90.0f, 0.0f, 0.0f});
+                primitive.AddRotation({1.0f, 1.0f, 0.0f});
                 primitive.ApplyTransform();
                 bgfx::submit(0, renderer.GetProgramHandle());
             }
