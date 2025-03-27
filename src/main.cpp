@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
             PrimitiveType::Sphere, renderer.GetVertexLayout(), 0xffff0000,
             glm::vec3(0.0f, 1.5f, 0.0f), glm::vec3(0.0f), glm::vec3(0.75f));
 
-        std::cout << "Main loop started" << std::endl;
+        bx::debugPrintf("Main loop started\n");
         uint32_t counter = 0;
         while (!core.IsQuit()) {
             core.EventLoop();

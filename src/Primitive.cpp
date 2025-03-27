@@ -17,12 +17,11 @@ Primitive::Primitive(PrimitiveType type, bgfx::VertexLayout& layout,
     vbh = bgfx::createVertexBuffer(verticesMem, layout);
     ibh = bgfx::createIndexBuffer(indicesMem);
     if (vbh.idx == bgfx::kInvalidHandle || ibh.idx == bgfx::kInvalidHandle) {
-        std::cout << "Failed to create primitive: Type: " << (int)type
-                  << " vbh: " << vbh.idx << " ibh: " << ibh.idx << std::endl;
+        bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %d",
+                        type, vbh.idx, ibh.idx);
     } else {
-        std::cout << "Primitive created: Type: " << (int)type
-                  << " vbh: " << vbh.idx << " ibh: " << ibh.idx
-                  << " Color: " << std::hex << abgr << std::dec << std::endl;
+        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d Color: %d",
+                        type, vbh.idx, ibh.idx, abgr);
     }
 
     SetPosition(position);
@@ -38,11 +37,11 @@ Primitive::Primitive(bgfx::VertexLayout& layout)
     vbh = bgfx::createVertexBuffer(verticesMem, layout);
     ibh = bgfx::createIndexBuffer(indicesMem);
     if (vbh.idx == bgfx::kInvalidHandle || ibh.idx == bgfx::kInvalidHandle) {
-        std::cout << "Failed to create primitive: Type: " << (int)type
-                  << " vbh: " << vbh.idx << " ibh: " << ibh.idx << std::endl;
+        bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %d",
+                        type, vbh.idx, ibh.idx);
     } else {
-        std::cout << "Primitive created: Type: " << (int)type
-                  << " vbh: " << vbh.idx << " ibh: " << ibh.idx << std::endl;
+        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d Color: %d",
+                        type, vbh.idx, ibh.idx, abgr);
     }
 
     SetPosition(position);
@@ -65,8 +64,8 @@ Primitive::Primitive(Primitive&& other) noexcept {
     other.ibh.idx = bgfx::kInvalidHandle;
     other.verticesMem = nullptr;
     other.indicesMem = nullptr;
-    std::cout << "Primitive moved: Type: " << (int)type << " vbh: " << vbh.idx
-              << " ibh: " << ibh.idx << std::endl;
+    bx::debugPrintf("Primitive moved: Type: %d vbh: %d ibh: %d", type, vbh.idx,
+                    ibh.idx);
 }
 
 Primitive::~Primitive() {
@@ -79,12 +78,12 @@ Primitive::~Primitive() {
         bgfx::destroy(ibh);
     }
     if (isInvalidIBH || isInvalidVBH) {
-        std::cout << "Empty Primitive destroy: Type: " << (int)type
-                  << " vbh: " << vbh.idx << " ibh: " << ibh.idx << std::endl;
+        bx::debugPrintf("Empty Primitive destroy: Type: %d vbh: %d ibh: %d",
+                        type, vbh.idx, ibh.idx);
         return;
     }
-    std::cout << "Primitive destroyed: Type: " << (int)type
-              << " vbh: " << vbh.idx << " ibh: " << ibh.idx << std::endl;
+    bx::debugPrintf("Primitive destroyed: Type: %d vbh: %d ibh: %d", type,
+                    vbh.idx, ibh.idx);
 }
 
 // From: https://stackoverflow.com/a/66054048
