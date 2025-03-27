@@ -36,6 +36,10 @@ void test4(int x, int y) {
 }
 
 int main(int argc, char** argv) {
+
+    const double FIXED_TIMESTEP = 1.0f / 60.0f;
+    uint64_t accumulator = 0;
+
     Core core = Core();
     core.Init();
     core.SetKeyEventCallback(
@@ -62,11 +66,17 @@ int main(int argc, char** argv) {
             glm::vec3(0.0f, 1.5f, 0.0f), glm::vec3(0.0f), glm::vec3(0.75f));
 
         bx::debugPrintf("Main loop started\n");
-        uint32_t counter = 0;
         while (!core.IsQuit()) {
             core.EventLoop();
 
             renderer.UpdateWindowSize();
+
+            accumulator += core.GetDeltaTime();
+
+            while (accumulator >= FIXED_TIMESTEP) {
+                // FIXED TIMESTEP UPDATE for physics here
+                accumulator -= FIXED_TIMESTEP;
+            }
 
             // This dummy draw call is here to make sure that view 0 is cleared
             // if no other draw calls are submitted to view 0.
@@ -94,7 +104,6 @@ int main(int argc, char** argv) {
 
             // Advance to next frame. Process submitted rendering primitives.
             bgfx::frame();
-            counter++;
         }
     }
 
