@@ -46,3 +46,10 @@ void Core::KeyDownEvent(SDL_Keycode key) {
 
     }
 }
+
+double Core::GetDeltaTime() {
+    now = bx::getHPCounter();
+    double deltaTime = double(now - lastTime) / double(freq);
+    lastTime = now;
+    return deltaTime;
+}
