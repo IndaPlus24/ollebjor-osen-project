@@ -3,6 +3,7 @@
 #include <bgfx/platform.h>
 #include "bx/math.h"
 #include <Jolt/Jolt.h>
+#include <functional>
 #include <glm/glm.hpp>
 #include <iostream>
 #include <vector>
@@ -12,9 +13,41 @@
 #include "Renderer.hpp"
 #include "Primitive.hpp"
 
+void test(Keycode key, KeyState state) {
+    if (state == KeyState::Pressed)
+        std::cout << "Key pressed: " << (int)key << std::endl;
+    else
+        std::cout << "Key released: " << (int)key << std::endl;
+}
+
+void test2(int x, int y, int xrel, int yrel) {
+    std::cout << "Mouse: x: " << x << " y: " << y << " xrel: " << xrel
+              << " yrel: " << yrel << std::endl;
+}
+
+void test3(int x, int y, MouseButton button, KeyState state) {
+    std::cout << "Mouse button: x: " << x << " y: " << y
+              << " button: " << (int)button << " state: " << (int)state
+              << std::endl;
+}
+
+void test4(int x, int y) {
+    std::cout << "Mouse wheel: x: " << x << " y: " << y << std::endl;
+}
+
 int main(int argc, char** argv) {
     Core core = Core();
     core.Init();
+    core.SetKeyEventCallback(
+        std::bind(test, std::placeholders::_1, std::placeholders::_2));
+    core.SetMouseMoveEventCallback(
+        std::bind(test2, std::placeholders::_1, std::placeholders::_2,
+                  std::placeholders::_3, std::placeholders::_4));
+    core.SetMouseButtonEventCallback(
+        std::bind(test3, std::placeholders::_1, std::placeholders::_2,
+                  std::placeholders::_3, std::placeholders::_4));
+    core.SetMouseWheelEventCallback(
+        std::bind(test4, std::placeholders::_1, std::placeholders::_2));
 
     Renderer renderer = Renderer("Hello World", 1280, 720);
     renderer.Init();
