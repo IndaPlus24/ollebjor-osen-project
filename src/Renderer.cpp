@@ -82,27 +82,6 @@ bool Renderer::Init() {
         .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
         .end();
 
-    const Vertex vertices[] = {
-        {{-1.0f, 1.0f, 1.0f}, 0xff000000},   {{1.0f, 1.0f, 1.0f}, 0xff0000ff},
-        {{-1.0f, -1.0f, 1.0f}, 0xff00ff00},  {{1.0f, -1.0f, 1.0f}, 0xff00ffff},
-        {{-1.0f, 1.0f, -1.0f}, 0xffff0000},  {{1.0f, 1.0f, -1.0f}, 0xffff00ff},
-        {{-1.0f, -1.0f, -1.0f}, 0xffffff00}, {{1.0f, -1.0f, -1.0f}, 0xffffffff},
-    };
-
-    const uint16_t indices[] = {
-        0, 1, 2, 1, 3, 2, 4, 6, 5, 5, 6, 7, 0, 2, 4, 4, 2, 6,
-        1, 5, 3, 5, 7, 3, 0, 4, 1, 4, 5, 1, 2, 3, 6, 6, 3, 7,
-    };
-
-    indicesMem = bgfx::alloc(36 * sizeof(uint16_t));
-    memcpy(indicesMem->data, indices, 36 * sizeof(uint16_t));
-
-    verticesMem = bgfx::alloc(8 * sizeof(Vertex));
-    memcpy(verticesMem->data, vertices, 8 * sizeof(Vertex));
-
-    vbh = bgfx::createVertexBuffer(verticesMem, layout);
-    ibh = bgfx::createIndexBuffer(indicesMem);
-
     const bgfx::EmbeddedShader vertexShader = BGFX_EMBEDDED_SHADER(vs_cubes);
     const bgfx::EmbeddedShader fragmentShader = BGFX_EMBEDDED_SHADER(fs_cubes);
 
@@ -117,8 +96,6 @@ bool Renderer::Init() {
 }
 bool Renderer::Shutdown() {
 
-    bgfx::destroy(vbh);
-    bgfx::destroy(ibh);
     bgfx::destroy(program);
 
     bgfx::shutdown();

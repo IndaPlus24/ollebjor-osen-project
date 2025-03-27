@@ -22,8 +22,8 @@ int main(int argc, char** argv) {
     renderer.SetViewClear();
     {
         std::vector<Primitive> primitives;
-        primitives.emplace_back(PrimitiveType::Cube,
-                                renderer.GetVertexLayout(), 0xff0000ff);
+        primitives.emplace_back(PrimitiveType::Cube, renderer.GetVertexLayout(),
+                                0xff0000ff);
         primitives.emplace_back(
             PrimitiveType::Sphere, renderer.GetVertexLayout(), 0xffff0000,
             glm::vec3(0.0f, 1.5f, 0.0f), glm::vec3(0.0f), glm::vec3(0.75f));

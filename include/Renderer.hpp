@@ -13,11 +13,7 @@ class Renderer {
     uint32_t width, height;
     std::string title;
     bgfx::VertexLayout layout;
-    bgfx::VertexBufferHandle vbh;
-    bgfx::IndexBufferHandle ibh;
     bgfx::ProgramHandle program;
-    const bgfx::Memory* indicesMem;
-    const bgfx::Memory* verticesMem;
 
   public:
     Renderer(std::string title, int width, int height);
@@ -34,8 +30,6 @@ class Renderer {
         w = width;
         h = height;
     }
-    inline bgfx::VertexBufferHandle& GetVertexBufferHandle() { return vbh; }
-    inline bgfx::IndexBufferHandle& GetIndexBufferHandle() { return ibh; }
     inline bgfx::ProgramHandle& GetProgramHandle() { return program; }
     inline bgfx::VertexLayout& GetVertexLayout() { return layout; }
 
