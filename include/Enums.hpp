@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
 
 enum class PrimitiveType {
@@ -7,7 +8,6 @@ enum class PrimitiveType {
     Plane,
     Sphere
 };
-
 
 enum class Keycode {
     UNKNOWN = SDLK_UNKNOWN,
@@ -77,4 +77,17 @@ enum class Keycode {
     U = SDLK_u,
     V = SDLK_v,
     W = SDLK_w,
+};
+
+enum class KeyState {
+    Pressed = SDL_PRESSED,
+    Release = SDL_RELEASED
+};
+
+enum class MouseButton {
+    Left = SDL_BUTTON_LEFT,
+    Middle = SDL_BUTTON_MIDDLE,
+    Right = SDL_BUTTON_RIGHT,
+    X1 = SDL_BUTTON_X1,
+    X2 = SDL_BUTTON_X2
 };

@@ -1,7 +1,9 @@
 #pragma once 
 
+#include "Enums.hpp"
 #include "bx/timer.h"
 #include <SDL_events.h>
+#include <functional>
 
 class Core {
 private:
@@ -11,6 +13,11 @@ private:
     int64_t lastTime = bx::getHPCounter();
     int64_t now = bx::getHPCounter();
     int64_t freq = bx::getHPFrequency();
+
+    std::function<void(Keycode, KeyState)> keyEventCallback;
+    std::function<void(int, int, int, int)> mouseMoveEventCallback;
+    std::function<void(int, int, MouseButton, KeyState)> mouseButtonEventCallback;
+    std::function<void(int, int)> mouseWheelEventCallback;
     
 public:
     Core();
@@ -26,8 +33,12 @@ public:
     bool Init();
     bool Shutdown();
 
+    void SetKeyEventCallback(std::function<void(Keycode, KeyState)> callback);
+    void SetMouseMoveEventCallback(std::function<void(int, int, int, int)> callback);
+    void SetMouseButtonEventCallback(std::function<void(int, int, MouseButton, KeyState)> callback);
+    void SetMouseWheelEventCallback(std::function<void(int, int)> callback);
+
     void EventLoop();
-    void KeyDownEvent(SDL_Keycode key);
     double GetDeltaTime();
     
 };

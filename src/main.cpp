@@ -3,6 +3,7 @@
 #include <bgfx/platform.h>
 #include "bx/math.h"
 #include <Jolt/Jolt.h>
+#include <functional>
 #include <glm/glm.hpp>
 #include <iostream>
 #include <vector>
@@ -12,9 +13,45 @@
 #include "Renderer.hpp"
 #include "Primitive.hpp"
 
+void test(Keycode key, KeyState state) {
+    if (state == KeyState::Pressed)
+        std::cout << "Key pressed: " << (int)key << std::endl;
+    else
+        std::cout << "Key released: " << (int)key << std::endl;
+}
+
+void test2(int x, int y, int xrel, int yrel) {
+    std::cout << "Mouse: x: " << x << " y: " << y << " xrel: " << xrel
+              << " yrel: " << yrel << std::endl;
+}
+
+void test3(int x, int y, MouseButton button, KeyState state) {
+    std::cout << "Mouse button: x: " << x << " y: " << y
+              << " button: " << (int)button << " state: " << (int)state
+              << std::endl;
+}
+
+void test4(int x, int y) {
+    std::cout << "Mouse wheel: x: " << x << " y: " << y << std::endl;
+}
+
 int main(int argc, char** argv) {
+
+    const double FIXED_TIMESTEP = 1.0f / 60.0f;
+    uint64_t accumulator = 0;
+
     Core core = Core();
     core.Init();
+    core.SetKeyEventCallback(
+        std::bind(test, std::placeholders::_1, std::placeholders::_2));
+    core.SetMouseMoveEventCallback(
+        std::bind(test2, std::placeholders::_1, std::placeholders::_2,
+                  std::placeholders::_3, std::placeholders::_4));
+    core.SetMouseButtonEventCallback(
+        std::bind(test3, std::placeholders::_1, std::placeholders::_2,
+                  std::placeholders::_3, std::placeholders::_4));
+    core.SetMouseWheelEventCallback(
+        std::bind(test4, std::placeholders::_1, std::placeholders::_2));
 
     Renderer renderer = Renderer("Hello World", 1280, 720);
     renderer.Init();
@@ -28,12 +65,18 @@ int main(int argc, char** argv) {
             PrimitiveType::Sphere, renderer.GetVertexLayout(), 0xffff0000,
             glm::vec3(0.0f, 1.5f, 0.0f), glm::vec3(0.0f), glm::vec3(0.75f));
 
-        std::cout << "Main loop started" << std::endl;
-        uint32_t counter = 0;
+        bx::debugPrintf("Main loop started\n");
         while (!core.IsQuit()) {
             core.EventLoop();
 
             renderer.UpdateWindowSize();
+
+            accumulator += core.GetDeltaTime();
+
+            while (accumulator >= FIXED_TIMESTEP) {
+                // FIXED TIMESTEP UPDATE for physics here
+                accumulator -= FIXED_TIMESTEP;
+            }
 
             // This dummy draw call is here to make sure that view 0 is cleared
             // if no other draw calls are submitted to view 0.
@@ -61,7 +104,6 @@ int main(int argc, char** argv) {
 
             // Advance to next frame. Process submitted rendering primitives.
             bgfx::frame();
-            counter++;
         }
     }
 

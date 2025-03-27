@@ -35,4 +35,5 @@ class Renderer {
 
     void SetViewClear();
     bool UpdateWindowSize();
+    void SetTitle(std::string title);
 };

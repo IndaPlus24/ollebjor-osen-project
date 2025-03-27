@@ -103,6 +103,11 @@ bool Renderer::Shutdown() {
     return true;
 }
 
+void Renderer::SetTitle(std::string title) {
+    this->title = title;
+    SDL_SetWindowTitle(window, title.c_str());
+}
+
 void Renderer::SetViewClear() {
     bgfx::setViewClear(clearView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH,
                        0x443355FF, 1.0f, 0);
