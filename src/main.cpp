@@ -23,13 +23,10 @@ int main(int argc, char** argv) {
     {
         std::vector<Primitive> primitives;
         primitives.emplace_back(PrimitiveType::Cube,
-                                renderer.GetVertexLayout());
+                                renderer.GetVertexLayout(), 0xff0000ff);
         primitives.emplace_back(
-            PrimitiveType::Sphere, renderer.GetVertexLayout(),
+            PrimitiveType::Sphere, renderer.GetVertexLayout(), 0xffff0000,
             glm::vec3(0.0f, 1.5f, 0.0f), glm::vec3(0.0f), glm::vec3(0.75f));
-        primitives.push_back(Primitive(
-            PrimitiveType::Plane, renderer.GetVertexLayout(),
-            glm::vec3(0.0f, -2.0f, 0.0f), glm::vec3(0.0f), glm::vec3(5.0f)));
 
         std::cout << "Main loop started" << std::endl;
         uint32_t counter = 0;

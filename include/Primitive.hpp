@@ -14,12 +14,14 @@ class Primitive {
     glm::vec3 rotation;
     glm::vec3 size;
     glm::mat4 transform;
+    uint32_t abgr;
 
     void GetPrimitiveTypeData(const bgfx::Memory* &vertMem,
-                              const bgfx::Memory* &indiMem, PrimitiveType type);
+                              const bgfx::Memory* &indiMem, PrimitiveType type, uint32_t abgr = 0xffffff);
 
   public:
     Primitive(PrimitiveType type, bgfx::VertexLayout& layout,
+              uint32_t abgr = 0xffffff,
               glm::vec3 position = glm::vec3(0.0f),
               glm::vec3 rotation = glm::vec3(0.0f),
               glm::vec3 size = glm::vec3(1.0f));
