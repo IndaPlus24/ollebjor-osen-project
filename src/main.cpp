@@ -66,6 +66,7 @@ int main(int argc, char** argv) {
         bx::debugPrintf("Main loop started\n");
         while (!core.IsQuit()) {
             core.EventLoop();
+            core.CallKeyboardEvent();
 
             renderer.UpdateWindowSize();
 
