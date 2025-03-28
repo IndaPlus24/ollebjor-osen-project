@@ -1,6 +1,13 @@
-print("Hello from lua!!!!!")
-print("Before lua change game name: " .. game_name)
-game_name = "test yo"
-print("After change: " .. game_name)
+print("Lua execution started")
 
-print("bye from lua")
+
+local primitive = Primitive.new("Cube")
+-- local color = primitive.color
+-- print("Color: " .. color)
+
+-- local position = primitive.position
+-- print("Position: " .. position)
+
+print("Primitive name: " .. primitive.name)
+
+print("Lua executed successfully")
