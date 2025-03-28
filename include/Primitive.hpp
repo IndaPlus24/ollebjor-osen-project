@@ -16,6 +16,9 @@ class Primitive {
     glm::mat4 transform;
     uint32_t abgr;
 
+    bgfx::DynamicVertexBufferHandle vbh;
+    bgfx::IndexBufferHandle ibh;
+
     void GetPrimitiveTypeData(const bgfx::Memory* &vertMem,
                               const bgfx::Memory* &indiMem, PrimitiveType type, uint32_t abgr = 0xffffff);
 
@@ -32,15 +35,12 @@ class Primitive {
     Primitive& operator=(const Primitive&) = default;
     ~Primitive();
 
-    bgfx::VertexBufferHandle vbh;
-    bgfx::IndexBufferHandle ibh;
-    const bgfx::Memory* verticesMem;
-    const bgfx::Memory* indicesMem;
-
     inline void SetVertexBuffer() { bgfx::setVertexBuffer(0, vbh); }
     inline void SetIndexBuffer() { bgfx::setIndexBuffer(ibh); }
 
     inline void ApplyTransform() { bgfx::setTransform(&transform[0][0]); }
+
+    void SetColor(uint32_t abgr);
 
     inline void SetPosition(glm::vec3 position) {
         this->position = position;

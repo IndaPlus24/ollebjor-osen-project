@@ -3,18 +3,20 @@
 #include "Enums.hpp"
 #include "bgfx/bgfx.h"
 #include "bx/bx.h"
+#include "bx/debug.h"
 #include "glm/fwd.hpp"
 #include "glm/gtc/quaternion.hpp"
-#include <iostream>
 
 Primitive::Primitive(PrimitiveType type, bgfx::VertexLayout& layout,
                      uint32_t abgr, glm::vec3 position, glm::vec3 rotation,
                      glm::vec3 size)
     : type(type), abgr(abgr), position(position), rotation(rotation),
       size(size) {
+    const bgfx::Memory* verticesMem = nullptr;
+    const bgfx::Memory* indicesMem = nullptr;
     GetPrimitiveTypeData(verticesMem, indicesMem, type, abgr);
 
-    vbh = bgfx::createVertexBuffer(verticesMem, layout);
+    vbh = bgfx::createDynamicVertexBuffer(verticesMem, layout);
     ibh = bgfx::createIndexBuffer(indicesMem);
     if (vbh.idx == bgfx::kInvalidHandle || ibh.idx == bgfx::kInvalidHandle) {
         bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %d",
@@ -32,15 +34,17 @@ Primitive::Primitive(PrimitiveType type, bgfx::VertexLayout& layout,
 Primitive::Primitive(bgfx::VertexLayout& layout)
     : type(PrimitiveType::Cube), position(glm::vec3(0.0f)),
       rotation(glm::vec3(0.0f)), size(glm::vec3(1.0f)) {
+    const bgfx::Memory* verticesMem = nullptr;
+    const bgfx::Memory* indicesMem = nullptr;
     GetPrimitiveTypeData(verticesMem, indicesMem, PrimitiveType::Cube);
 
-    vbh = bgfx::createVertexBuffer(verticesMem, layout);
+    vbh = bgfx::createDynamicVertexBuffer(verticesMem, layout);
     ibh = bgfx::createIndexBuffer(indicesMem);
     if (vbh.idx == bgfx::kInvalidHandle || ibh.idx == bgfx::kInvalidHandle) {
-        bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %d",
+        bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %x",
                         type, vbh.idx, ibh.idx);
     } else {
-        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d Color: %d",
+        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d Color: %x",
                         type, vbh.idx, ibh.idx, abgr);
     }
 
@@ -57,13 +61,9 @@ Primitive::Primitive(Primitive&& other) noexcept {
     size = other.size;
     vbh = other.vbh;
     ibh = other.ibh;
-    verticesMem = other.verticesMem;
-    indicesMem = other.indicesMem;
     transform = other.transform;
     other.vbh.idx = bgfx::kInvalidHandle;
     other.ibh.idx = bgfx::kInvalidHandle;
-    other.verticesMem = nullptr;
-    other.indicesMem = nullptr;
     bx::debugPrintf("Primitive moved: Type: %d vbh: %d ibh: %d", type, vbh.idx,
                     ibh.idx);
 }
@@ -84,6 +84,34 @@ Primitive::~Primitive() {
     }
     bx::debugPrintf("Primitive destroyed: Type: %d vbh: %d ibh: %d", type,
                     vbh.idx, ibh.idx);
+}
+
+void Primitive::SetColor(uint32_t abgr) {
+    if (abgr == this->abgr) {
+        return;
+    }
+    bx::debugPrintf(
+        "Primitive color changed: Type: %d vbh: %d ibh: %d Color: %x", type,
+        vbh.idx, ibh.idx, abgr);
+    const bgfx::Memory* verticesMem = nullptr;
+    switch (type) {
+    case PrimitiveType::Cube: {
+        PrimitiveCube cube(abgr);
+        verticesMem = bgfx::copy(cube.vertices, sizeof(cube.vertices));
+    } break;
+    case PrimitiveType::Plane: {
+        PrimitiveQuad quad(abgr);
+        verticesMem = bgfx::copy(quad.vertices, sizeof(quad.vertices));
+    } break;
+    case PrimitiveType::Sphere: {
+        PrimitiveIcosphere sphere(abgr);
+        verticesMem = bgfx::copy(sphere.vertices, sizeof(sphere.vertices));
+    } break;
+    default:
+        return;
+    }
+    this->abgr = abgr;
+    bgfx::update(vbh, 0, verticesMem);
 }
 
 // From: https://stackoverflow.com/a/66054048
@@ -125,24 +153,18 @@ void Primitive::GetPrimitiveTypeData(const bgfx::Memory*& vertMem,
     switch (type) {
     case PrimitiveType::Cube: {
         PrimitiveCube cube(abgr);
-        vertMem = bgfx::alloc(8 * sizeof(Vertex));
-        indiMem = bgfx::alloc(36 * sizeof(uint16_t));
-        memcpy(vertMem->data, cube.vertices, 8 * sizeof(Vertex));
-        memcpy(indiMem->data, cube.indices, 36 * sizeof(uint16_t));
+        vertMem = bgfx::copy(cube.vertices, sizeof(cube.vertices));
+        indiMem = bgfx::copy(cube.indices, sizeof(cube.indices));
     } break;
     case PrimitiveType::Plane: {
         PrimitiveQuad quad(abgr);
-        vertMem = bgfx::alloc(4 * sizeof(Vertex));
-        indiMem = bgfx::alloc(6 * sizeof(uint16_t));
-        memcpy(vertMem->data, quad.vertices, 4 * sizeof(Vertex));
-        memcpy(indiMem->data, quad.indices, 6 * sizeof(uint16_t));
+        vertMem = bgfx::copy(quad.vertices, sizeof(quad.vertices));
+        indiMem = bgfx::copy(quad.indices, sizeof(quad.indices));
     } break;
     case PrimitiveType::Sphere: {
         PrimitiveIcosphere sphere(abgr);
-        vertMem = bgfx::alloc(12 * sizeof(Vertex));
-        indiMem = bgfx::alloc(59 * sizeof(uint16_t));
-        memcpy(vertMem->data, sphere.vertices, 12 * sizeof(Vertex));
-        memcpy(indiMem->data, sphere.indices, 59 * sizeof(uint16_t));
+        vertMem = bgfx::copy(sphere.vertices, sizeof(sphere.vertices));
+        indiMem = bgfx::copy(sphere.indices, sizeof(sphere.indices));
     } break;
     }
     BX_ASSERT(vertMem->data != nullptr, "Vertex Memory is null");
