@@ -20,7 +20,7 @@ include_directories(${VENDOR_DIR}/bgfx.cmake/bimg/include)
 include_directories(${VENDOR_DIR}/bgfx.cmake/bgfx/include)
 include_directories(${VENDOR_DIR}/SDL/include)
 include_directories(${VENDOR_DIR}/JoltPhysics)
-include_directories(${EXTERNAL_DIR}/Lua/lua-5.4.7/include)
+include_directories(${VENDOR_DIR}/Lua/lua-5.4.7/include)
 
 # Add SDL
 add_subdirectory(${VENDOR_DIR}/SDL EXCLUDE_FROM_ALL)
