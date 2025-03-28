@@ -13,6 +13,8 @@
 #include "Renderer.hpp"
 #include "Primitive.hpp"
 
+#include "Lua.hpp"
+
 void test(Keycode key, KeyState state) {
     if (state == KeyState::Pressed)
         std::cout << "Key pressed: " << (int)key << std::endl;
@@ -39,6 +41,10 @@ int main(int argc, char** argv) {
 
     const double FIXED_TIMESTEP = 1.0f / 60.0f;
     uint64_t accumulator = 0;
+
+    Lua lua;
+    lua.Init();
+    lua.Run("scripts/test.lua");
 
     Core core = Core();
     core.Init();
