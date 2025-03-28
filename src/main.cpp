@@ -57,13 +57,11 @@ int main(int argc, char** argv) {
     renderer.Init();
 
     renderer.SetViewClear();
+    uint32_t counter = 0;
     {
         std::vector<Primitive> primitives;
-        primitives.emplace_back(PrimitiveType::Cube, renderer.GetVertexLayout(),
-                                0xff0000ff);
-        primitives.emplace_back(
-            PrimitiveType::Sphere, renderer.GetVertexLayout(), 0xffff0000,
-            glm::vec3(0.0f, 1.5f, 0.0f), glm::vec3(0.0f), glm::vec3(0.75f));
+        primitives.push_back(Primitive(PrimitiveType::Cube,
+                                       renderer.GetVertexLayout(), 0xff0000ff));
 
         bx::debugPrintf("Main loop started\n");
         while (!core.IsQuit()) {
@@ -99,11 +97,19 @@ int main(int argc, char** argv) {
                 primitive.SetIndexBuffer();
                 primitive.AddRotation({1.0f, 1.0f, 0.0f});
                 primitive.ApplyTransform();
+                if (counter == 30) {
+                    primitive.SetColor(0xff00ff00);
+                } else if (counter == 60) {
+                    primitive.SetColor(0xff0000ff);
+                    counter = 0;
+                }
+
                 bgfx::submit(0, renderer.GetProgramHandle());
             }
 
             // Advance to next frame. Process submitted rendering primitives.
             bgfx::frame();
+            counter++;
         }
     }
 
