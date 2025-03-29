@@ -1,17 +1,17 @@
 
-#include <bgfx/bgfx.h>
-#include <bgfx/platform.h>
-#include "bx/math.h"
 #include <Jolt/Jolt.h>
+#include <bgfx/bgfx.h>
+#include "bx/math.h"
 #include <functional>
 #include <glm/glm.hpp>
 #include <iostream>
 #include <vector>
-
 #include "Enums.hpp"
+
 #include "Core.hpp"
 #include "Renderer.hpp"
 #include "Primitive.hpp"
+#include "PhysicsCore.hpp"
 
 void test(Keycode key, KeyState state) {
     if (state == KeyState::Pressed)
@@ -39,6 +39,11 @@ int main(int argc, char** argv) {
 
     const double FIXED_TIMESTEP = 1.0f / 60.0f;
     uint64_t accumulator = 0;
+    bx::debugPrintf("Starting application\n");
+
+    PhysicsCore physicsCore = PhysicsCore();
+    physicsCore.Init();
+    physicsCore.GetSystem().SetGravity(JPH::Vec3(0.0f, -9.81f, 0.0f));
 
     Core core = Core();
     core.Init();
@@ -60,8 +65,14 @@ int main(int argc, char** argv) {
     uint32_t counter = 0;
     {
         std::vector<Primitive> primitives;
-        primitives.push_back(Primitive(PrimitiveType::Cube,
-                                       renderer.GetVertexLayout(), 0xff0000ff));
+        primitives.emplace_back(PrimitiveType::Cube,
+        renderer.GetVertexLayout(),
+                                physicsCore.GetSystem().GetBodyInterface(),
+                                0xff0000ff);
+        primitives.emplace_back(
+            PrimitiveType::Sphere, renderer.GetVertexLayout(),
+            physicsCore.GetSystem().GetBodyInterface(), 0xffff0000,
+            glm::vec3(0.0f, 1.5f, 0.0f), glm::vec3(0.0f), glm::vec3(0.75f));
 
         bx::debugPrintf("Main loop started\n");
         while (!core.IsQuit()) {
@@ -73,7 +84,7 @@ int main(int argc, char** argv) {
             accumulator += core.GetDeltaTime();
 
             while (accumulator >= FIXED_TIMESTEP) {
-                // FIXED TIMESTEP UPDATE for physics here
+                physicsCore.Update(FIXED_TIMESTEP);
                 accumulator -= FIXED_TIMESTEP;
             }
 
@@ -89,7 +100,8 @@ int main(int argc, char** argv) {
             float view[16];
             bx::mtxLookAt(view, eye, at);
             float proj[16];
-            bx::mtxProj(proj, 60.0f, float(width) / float(height), 0.1f, 100.0f,
+            bx::mtxProj(proj, 60.0f, float(width) / float(height), 0.1f,
+            100.0f,
                         bgfx::getCaps()->homogeneousDepth);
             bgfx::setViewTransform(0, view, proj);
 
@@ -114,6 +126,7 @@ int main(int argc, char** argv) {
         }
     }
 
+    physicsCore.Shutdown();
     renderer.Shutdown();
     core.Shutdown();
     return 0;

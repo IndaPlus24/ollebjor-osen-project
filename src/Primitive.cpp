@@ -1,4 +1,9 @@
 #include "Primitive.hpp"
+#include "Jolt/Math/Vec3.h"
+#include "Jolt/Physics/Body/BodyCreationSettings.h"
+#include "Jolt/Physics/Body/BodyInterface.h"
+#include "Jolt/Physics/Body/MotionType.h"
+#include "Jolt/Physics/Collision/Shape/SphereShape.h"
 #include "PrimitiveDefinitions.hpp"
 #include "Enums.hpp"
 #include "bgfx/bgfx.h"
@@ -8,8 +13,8 @@
 #include "glm/gtc/quaternion.hpp"
 
 Primitive::Primitive(PrimitiveType type, bgfx::VertexLayout& layout,
-                     uint32_t abgr, glm::vec3 position, glm::vec3 rotation,
-                     glm::vec3 size)
+                     JPH::BodyInterface& BodyInterface, uint32_t abgr,
+                     glm::vec3 position, glm::vec3 rotation, glm::vec3 size)
     : type(type), abgr(abgr), position(position), rotation(rotation),
       size(size) {
     const bgfx::Memory* verticesMem = nullptr;
@@ -29,6 +34,14 @@ Primitive::Primitive(PrimitiveType type, bgfx::VertexLayout& layout,
     SetPosition(position);
     SetRotation(rotation);
     SetSize(size);
+
+    shape = new JPH::SphereShape(size.x);
+
+    JPH::Vec3 jPosition(position.x, position.y, position.z);
+    JPH::BodyCreationSettings bodySettings(
+        shape, jPosition, JPH::Quat::sIdentity(), JPH::EMotionType::Dynamic, 0);
+
+    bodyID = BodyInterface.CreateAndAddBody(bodySettings, JPH::EActivation::Activate);
 }
 
 Primitive::Primitive(bgfx::VertexLayout& layout)
@@ -62,8 +75,10 @@ Primitive::Primitive(Primitive&& other) noexcept {
     vbh = other.vbh;
     ibh = other.ibh;
     transform = other.transform;
+    bodyID = other.bodyID;
     other.vbh.idx = bgfx::kInvalidHandle;
     other.ibh.idx = bgfx::kInvalidHandle;
+    other.bodyID = JPH::BodyID();
     bx::debugPrintf("Primitive moved: Type: %d vbh: %d ibh: %d", type, vbh.idx,
                     ibh.idx);
 }

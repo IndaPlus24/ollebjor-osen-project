@@ -1,6 +1,12 @@
 #pragma once
 
 #include "Enums.hpp"
+#include "Jolt/Jolt.h"
+#include "Jolt/Core/Reference.h"
+#include "Jolt/Physics/Body/Body.h"
+#include "Jolt/Physics/Body/BodyID.h"
+#include "Jolt/Physics/Body/BodyInterface.h"
+#include "Jolt/Physics/Collision/Shape/Shape.h"
 #include "bgfx/bgfx.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/matrix_transform.hpp"
@@ -19,11 +25,15 @@ class Primitive {
     bgfx::DynamicVertexBufferHandle vbh;
     bgfx::IndexBufferHandle ibh;
 
+    JPH::BodyID bodyID;
+    JPH::Ref<JPH::Shape> shape;
+
     void GetPrimitiveTypeData(const bgfx::Memory* &vertMem,
                               const bgfx::Memory* &indiMem, PrimitiveType type, uint32_t abgr = 0xffffff);
 
   public:
     Primitive(PrimitiveType type, bgfx::VertexLayout& layout,
+              JPH::BodyInterface& bodyInterface,
               uint32_t abgr = 0xffffff,
               glm::vec3 position = glm::vec3(0.0f),
               glm::vec3 rotation = glm::vec3(0.0f),
