@@ -1,9 +1,8 @@
 #include "Primitive.hpp"
 #include "Jolt/Math/Vec3.h"
-#include "Jolt/Physics/Body/BodyCreationSettings.h"
+#include "Jolt/Physics/Body/BodyID.h"
 #include "Jolt/Physics/Body/BodyInterface.h"
-#include "Jolt/Physics/Body/MotionType.h"
-#include "Jolt/Physics/Collision/Shape/SphereShape.h"
+#include "PhysicsCore.hpp"
 #include "PrimitiveDefinitions.hpp"
 #include "Enums.hpp"
 #include "bgfx/bgfx.h"
@@ -11,45 +10,17 @@
 #include "bx/debug.h"
 #include "glm/fwd.hpp"
 #include "glm/gtc/quaternion.hpp"
+#include "glm/trigonometric.hpp"
 
-Primitive::Primitive(PrimitiveType type, bgfx::VertexLayout& layout,
-                     JPH::BodyInterface& BodyInterface, uint32_t abgr,
-                     glm::vec3 position, glm::vec3 rotation, glm::vec3 size)
+Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
+                     PhysicsCore& physicsCore, bgfx::VertexLayout& layout,
+                     uint32_t abgr, glm::vec3 position, glm::vec3 rotation,
+                     glm::vec3 size)
     : type(type), abgr(abgr), position(position), rotation(rotation),
-      size(size) {
+      size(size), bodyType(bodyType) {
     const bgfx::Memory* verticesMem = nullptr;
     const bgfx::Memory* indicesMem = nullptr;
     GetPrimitiveTypeData(verticesMem, indicesMem, type, abgr);
-
-    vbh = bgfx::createDynamicVertexBuffer(verticesMem, layout);
-    ibh = bgfx::createIndexBuffer(indicesMem);
-    if (vbh.idx == bgfx::kInvalidHandle || ibh.idx == bgfx::kInvalidHandle) {
-        bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %d",
-                        type, vbh.idx, ibh.idx);
-    } else {
-        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d Color: %d",
-                        type, vbh.idx, ibh.idx, abgr);
-    }
-
-    SetPosition(position);
-    SetRotation(rotation);
-    SetSize(size);
-
-    shape = new JPH::SphereShape(size.x);
-
-    JPH::Vec3 jPosition(position.x, position.y, position.z);
-    JPH::BodyCreationSettings bodySettings(
-        shape, jPosition, JPH::Quat::sIdentity(), JPH::EMotionType::Dynamic, 0);
-
-    bodyID = BodyInterface.CreateAndAddBody(bodySettings, JPH::EActivation::Activate);
-}
-
-Primitive::Primitive(bgfx::VertexLayout& layout)
-    : type(PrimitiveType::Cube), position(glm::vec3(0.0f)),
-      rotation(glm::vec3(0.0f)), size(glm::vec3(1.0f)) {
-    const bgfx::Memory* verticesMem = nullptr;
-    const bgfx::Memory* indicesMem = nullptr;
-    GetPrimitiveTypeData(verticesMem, indicesMem, PrimitiveType::Cube);
 
     vbh = bgfx::createDynamicVertexBuffer(verticesMem, layout);
     ibh = bgfx::createIndexBuffer(indicesMem);
@@ -64,10 +35,49 @@ Primitive::Primitive(bgfx::VertexLayout& layout)
     SetPosition(position);
     SetRotation(rotation);
     SetSize(size);
+
+    // setup physics
+    bodyInterface = &physicsCore.GetBodyInterface();
+
+    JPH::Vec3 joltPosition(position.x, position.y, position.z);
+    JPH::Vec3 joltSize(size.x, size.y, size.z);
+    switch (bodyType) {
+    case RigidBodyType::Static: {
+        glm::vec3 normal = glm::vec3(0.0f, 1.0f, 0.0f);
+        glm::vec3 rotatedNormal = glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x),
+                                              glm::vec3(1.0f, 0.0f, 0.0f)) *
+                                  glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y),
+                                              glm::vec3(0.0f, 1.0f, 0.0f)) *
+                                  glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z),
+                                              glm::vec3(0.0f, 0.0f, 1.0f)) *
+                                  glm::vec4(normal, 1.0f);
+        JPH::Vec3 joltNormal(rotatedNormal.x, rotatedNormal.y, rotatedNormal.z);
+        bodyID = physicsCore.AddStaticPlane(joltPosition, joltNormal);
+        bx::debugPrintf("Static Plane created: Type: %d vbh: %d ibh: %d", type,
+                        vbh.idx, ibh.idx);
+
+    } break;
+    case RigidBodyType::Dynamic: {
+        switch (type) {
+        case PrimitiveType::Cube: {
+            bodyID = physicsCore.AddDynamicBox(joltPosition, joltSize, 1.0f);
+            bx::debugPrintf("Dynamic Cube created: Type: %d vbh: %d ibh: %d",
+                            type, vbh.idx, ibh.idx);
+        } break;
+        case PrimitiveType::Sphere: {
+            bodyID =
+                physicsCore.AddDynamicSphere(size.x * 1.96, joltPosition, 1.0f);
+            bx::debugPrintf("Dynamic Sphere created: Type: %d vbh: %d ibh: %d",
+                            type, vbh.idx, ibh.idx);
+        } break;
+        }
+    }
+    }
 }
 
 Primitive::Primitive(Primitive&& other) noexcept {
     type = other.type;
+    bodyType = other.bodyType;
     position = other.position;
     rotation = other.rotation;
     abgr = other.abgr;
@@ -75,10 +85,13 @@ Primitive::Primitive(Primitive&& other) noexcept {
     vbh = other.vbh;
     ibh = other.ibh;
     transform = other.transform;
+    bodyInterface = other.bodyInterface;
     bodyID = other.bodyID;
     other.vbh.idx = bgfx::kInvalidHandle;
     other.ibh.idx = bgfx::kInvalidHandle;
+    other.bodyInterface = nullptr;
     other.bodyID = JPH::BodyID();
+    other.bodyType = RigidBodyType::Static;
     bx::debugPrintf("Primitive moved: Type: %d vbh: %d ibh: %d", type, vbh.idx,
                     ibh.idx);
 }
@@ -86,13 +99,18 @@ Primitive::Primitive(Primitive&& other) noexcept {
 Primitive::~Primitive() {
     bool isInvalidVBH = vbh.idx == bgfx::kInvalidHandle;
     bool isInvalidIBH = ibh.idx == bgfx::kInvalidHandle;
+    bool isInvalidBodyID = bodyID == JPH::BodyID();
     if (!isInvalidVBH) {
         bgfx::destroy(vbh);
     }
     if (!isInvalidIBH) {
         bgfx::destroy(ibh);
     }
-    if (isInvalidIBH || isInvalidVBH) {
+    if (!isInvalidBodyID) {
+        bodyInterface->RemoveBody(bodyID);
+        bodyInterface->DestroyBody(bodyID);
+    }
+    if (isInvalidIBH && isInvalidVBH && isInvalidBodyID) {
         bx::debugPrintf("Empty Primitive destroy: Type: %d vbh: %d ibh: %d",
                         type, vbh.idx, ibh.idx);
         return;
@@ -129,10 +147,29 @@ void Primitive::SetColor(uint32_t abgr) {
     bgfx::update(vbh, 0, verticesMem);
 }
 
+void Primitive::SetPhysicsPosition(glm::vec3 position,
+                                   JPH::EActivation activation) {
+    if (this->position == position) {
+        return;
+    }
+    this->position = position;
+    transform = glm::translate(glm::mat4(1.0f), position);
+    if (bodyInterface) {
+        bodyInterface->SetPosition(bodyID, ToJPH(position), activation);
+    }
+}
+
+void Primitive::AddImpulse(glm::vec3 impulse) {
+    if (bodyInterface) {
+        bodyInterface->AddImpulse(bodyID, ToJPH(impulse));
+    }
+}
+
 // From: https://stackoverflow.com/a/66054048
 // Now with the quaternion transform you rotate any vector or compound it with
 // another transformation matrix
-void QuaternionRotate(glm::mat4& result, const glm::vec3& axis, float angle) {
+void Primitive::QuaternionRotate(glm::mat4& result, const glm::vec3& axis,
+                                 float angle) {
     float angleRad = glm::radians(angle);
     const auto& axisNorm = glm::normalize(axis);
 
