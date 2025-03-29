@@ -29,7 +29,7 @@ add_subdirectory(${VENDOR_DIR}/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(${VENDOR_DIR}/bgfx.cmake)
 
 # Add JoltPhysics
-add_subdirectory(${VENDOR_DIR}/JoltPhysics/build)
+add_subdirectory(${VENDOR_DIR}/JoltPhysics/Build)
 
 # Add glm
 add_subdirectory(${VENDOR_DIR}/glm)

@@ -91,7 +91,7 @@ void Primitive::SetColor(uint32_t abgr) {
         return;
     }
     bx::debugPrintf(
-        "Primitive color changed: Type: %d vbh: %d ibh: %d Color: %x", type,
+        "Primitive color changed: Type: %d vbh: %d ibh: %d Color: %x\n", type,
         vbh.idx, ibh.idx, abgr);
     const bgfx::Memory* verticesMem = nullptr;
     switch (type) {
