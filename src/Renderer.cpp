@@ -78,7 +78,7 @@ bool Renderer::Init() {
         SDL_Quit();
         return false;
     }
-    uint64_t state = 0 | BGFX_STATE_DEFAULT | BGFX_STATE_PT_TRISTRIP;
+    uint64_t state = 0 | BGFX_STATE_DEFAULT;
     // bgfx::setDebug(BGFX_DEBUG_STATS);
 
     layout.begin()

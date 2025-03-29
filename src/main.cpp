@@ -1,67 +1,62 @@
 
-#include <bgfx/bgfx.h>
-#include <bgfx/platform.h>
-#include "bx/math.h"
 #include <Jolt/Jolt.h>
+#include <bgfx/bgfx.h>
+#include "bx/debug.h"
+#include "bx/math.h"
 #include <functional>
 #include <glm/glm.hpp>
-#include <iostream>
 #include <vector>
-
 #include "Enums.hpp"
+
 #include "Core.hpp"
 #include "Renderer.hpp"
 #include "Primitive.hpp"
+#include "PhysicsCore.hpp"
+#include "utils.hpp"
 
-void test(Keycode key, KeyState state) {
-    if (state == KeyState::Pressed)
-        std::cout << "Key pressed: " << (int)key << std::endl;
-    else
-        std::cout << "Key released: " << (int)key << std::endl;
-}
-
-void test2(int x, int y, int xrel, int yrel) {
-    std::cout << "Mouse: x: " << x << " y: " << y << " xrel: " << xrel
-              << " yrel: " << yrel << std::endl;
-}
-
-void test3(int x, int y, MouseButton button, KeyState state) {
-    std::cout << "Mouse button: x: " << x << " y: " << y
-              << " button: " << (int)button << " state: " << (int)state
-              << std::endl;
-}
-
-void test4(int x, int y) {
-    std::cout << "Mouse wheel: x: " << x << " y: " << y << std::endl;
+void KeyEvent(Keycode key, KeyState state, std::vector<Primitive>& primitives) {
+    bx::debugPrintf("Key event: %d, %d\n", key, state);
+    if (state == KeyState::Release && key == Keycode::SPACE) {
+        primitives[0].SetPhysicsPosition(glm::vec3{1.0f, 4.1f, 0.0f});
+        primitives[1].SetPhysicsPosition(glm::vec3{0.0f, 2.0f, 0.0f});
+    } else if (state == KeyState::Release && key == Keycode::W) {
+        primitives[1].AddImpulse({-1.0f, 10.0f, 0.0f});
+        bx::debugPrintf("Added impules\n");
+    }
 }
 
 int main(int argc, char** argv) {
 
     const double FIXED_TIMESTEP = 1.0f / 60.0f;
-    uint64_t accumulator = 0;
+    double accumulator = 0;
+    bx::debugPrintf("Starting application\n");
+
+    PhysicsCore physicsCore = PhysicsCore();
+    physicsCore.Initialize();
 
     Core core = Core();
     core.Init();
-    core.SetKeyEventCallback(
-        std::bind(test, std::placeholders::_1, std::placeholders::_2));
-    core.SetMouseMoveEventCallback(
-        std::bind(test2, std::placeholders::_1, std::placeholders::_2,
-                  std::placeholders::_3, std::placeholders::_4));
-    core.SetMouseButtonEventCallback(
-        std::bind(test3, std::placeholders::_1, std::placeholders::_2,
-                  std::placeholders::_3, std::placeholders::_4));
-    core.SetMouseWheelEventCallback(
-        std::bind(test4, std::placeholders::_1, std::placeholders::_2));
 
     Renderer renderer = Renderer("Hello World", 1280, 720);
     renderer.Init();
 
     renderer.SetViewClear();
-    uint32_t counter = 0;
     {
         std::vector<Primitive> primitives;
-        primitives.push_back(Primitive(PrimitiveType::Cube,
-                                       renderer.GetVertexLayout(), 0xff0000ff));
+        primitives.emplace_back(PrimitiveType::Sphere, RigidBodyType::Dynamic,
+                                physicsCore, renderer.GetVertexLayout(),
+                                0xff0055ff, glm::vec3{0.7f, 2.1f, 0.0f});
+        primitives.emplace_back(PrimitiveType::Cube, RigidBodyType::Dynamic,
+                                physicsCore, renderer.GetVertexLayout(),
+                                0xff0000ff, glm::vec3{0.0f, 0.0f, 0.0f});
+        primitives.emplace_back(PrimitiveType::Plane, RigidBodyType::Static,
+                                physicsCore, renderer.GetVertexLayout(),
+                                0xffffffff, glm::vec3{0.0f, -2.5f, 0.0f},
+                                glm::vec3{0.0f, 0.0f, 0.0f},
+                                glm::vec3{10.0f, 1.0f, 10.0f});
+        core.SetKeyEventCallback(std::bind(KeyEvent, std::placeholders::_1,
+                                           std::placeholders::_2,
+                                           std::ref(primitives)));
 
         bx::debugPrintf("Main loop started\n");
         while (!core.IsQuit()) {
@@ -73,7 +68,18 @@ int main(int argc, char** argv) {
             accumulator += core.GetDeltaTime();
 
             while (accumulator >= FIXED_TIMESTEP) {
-                // FIXED TIMESTEP UPDATE for physics here
+                physicsCore.Update(FIXED_TIMESTEP);
+                for (auto& primitive : primitives) {
+                    if (primitive.GetBodyType() == RigidBodyType::Static) {
+                        continue;
+                    }
+                    // Update the position of the primitive based on the physics
+                    // simulation
+                    auto transform =
+                        physicsCore.GetBodyInterface().GetWorldTransform(
+                            primitive.GetBodyID());
+                    primitive.SetTransform(ToGLM(transform));
+                }
                 accumulator -= FIXED_TIMESTEP;
             }
 
@@ -85,7 +91,7 @@ int main(int argc, char** argv) {
             renderer.GetWindowSize(width, height);
 
             const bx::Vec3 at = {0.0f, 0.0f, 0.0f};
-            const bx::Vec3 eye = {0.0f, 0.0f, -6.0f};
+            const bx::Vec3 eye = {-6.0f, 0.0f, -6.0f};
             float view[16];
             bx::mtxLookAt(view, eye, at);
             float proj[16];
@@ -96,24 +102,16 @@ int main(int argc, char** argv) {
             for (auto& primitive : primitives) {
                 primitive.SetVertexBuffer();
                 primitive.SetIndexBuffer();
-                primitive.AddRotation({1.0f, 1.0f, 0.0f});
                 primitive.ApplyTransform();
-                if (counter == 30) {
-                    primitive.SetColor(0xff00ff00);
-                } else if (counter == 60) {
-                    primitive.SetColor(0xff0000ff);
-                    counter = 0;
-                }
-
                 bgfx::submit(0, renderer.GetProgramHandle());
             }
 
             // Advance to next frame. Process submitted rendering primitives.
             bgfx::frame();
-            counter++;
         }
     }
 
+    physicsCore.Shutdown();
     renderer.Shutdown();
     core.Shutdown();
     return 0;
