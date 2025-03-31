@@ -4,6 +4,48 @@
 #include "Lua.hpp"
 #include "PrimitiveLua.hpp"
 
+const float Lua::Version = 0.1f;
+
+namespace{
+    int luaGetVersion(lua_State* L) {
+        lua_pushnumber(L, Lua::Version);
+        return 1;
+    }
+}
+namespace{
+    int luaPrintOverride(lua_State* L) {
+        int n = lua_gettop(L); // number of arguments
+        std::cout << "[Lua]: ";
+        for (int i = 1; i <= n; i++) {
+            std::cout << luaL_tolstring(L, i, nullptr) << "";
+        }
+        std::cout << std::endl;
+        return 0;
+    }
+}
+
+const luaL_Reg Lua::overrides[] = {
+    {"print", luaPrintOverride},
+    {nullptr, nullptr}
+};
+
+void Lua::overrideLuaLibFunctions() const {
+    lua_getglobal(L, "_G");
+    luaL_setfuncs(L, overrides, 0);
+    lua_pop(L, 1);
+}
+
+void Lua::registerGlobalFunction(lua_CFunction func, std::string luaFName) const {
+    lua_pushcfunction(L, func);
+    lua_setglobal(L, luaFName.c_str());
+}
+
+void Lua::RegisterLuaClass(LuaClass& luaClass) const {
+    lua_createtable(L, 0, luaClass.luaMethods().size() - 1); // Create a new table that is pushed onto stack
+    luaL_setfuncs(L, luaClass.luaMethods().data(), 0); // Register all methods in the array to the table
+    lua_setglobal(L, luaClass.luaName().c_str()); // Consume the top of the stack and make it a global
+}
+
 Lua::Lua() {
     L = luaL_newstate();
 }
@@ -41,10 +83,11 @@ std::string Lua::GetGlobal(std::string name) const {
 }
 
 void Lua::Init() {
-
-    //TODO: Prepend output from lua with "[Lua]:"
     luaL_openlibs(L);
-    InitializePrimitives();
+    registerGlobalFunction(luaGetVersion, "Version");
+    overrideLuaLibFunctions();
+    
+    //InitializePrimitives();
 
     return;
 }
@@ -56,18 +99,30 @@ void Lua::pcall(int nargs, int nresults, int errfunc) const {
     }
 }
 
-void Lua::InitializePrimitives() {
+int Lua::InitializePrimitives() {
+    std::string METATABLE_NAME = "Primitive.Metatable";
+
+    std::vector<luaL_Reg> REGS = {
+    };
+
     // Register the Primitive class in Lua
-    luaaa::LuaClass<PrimitiveLua> primitive(L, "Primitive");
-    primitive.ctor<std::string>();
-    // primitive.fun("setColor", &PrimitiveLua::SetColor);
-    // primitive.fun("setPosition", &PrimitiveLua::SetPosition);
-    // primitive.fun("getColor", &PrimitiveLua::GetColor);
-    // primitive.fun("getPosition", &PrimitiveLua::GetPosition);
-    primitive.fun("getName", &PrimitiveLua::GetName);
-    primitive.get("name", &PrimitiveLua::GetName);
-    // primitive.set("color", &PrimitiveLua::SetColor);
-    // primitive.get("color", &PrimitiveLua::GetColor);
-    // primitive.set("position", &PrimitiveLua::SetPosition);
-    // primitive.get("position", &PrimitiveLua::GetPosition);
+    glm::vec3* vector3 = new glm::vec3();
+    glm::vec3** userdata = reinterpret_cast<glm::vec3**>(
+        lua_newuserdatauv(L, sizeof(glm::vec3*), 0));
+    *userdata = vector3;
+    int type = luaL_getmetatable(
+        L, METATABLE_NAME.c_str());
+    if (type == LUA_TNIL)
+    {
+        lua_pop(L, 1);
+        luaL_newmetatable(L, METATABLE_NAME.c_str());
+        lua_pushvalue(L, -1);
+        lua_setfield(L, -2, "__index");
+        luaL_setfuncs(L, REGS.data(), 0);
+    }
+
+    lua_setmetatable(L, 1);
+
+    return 1;
+
 }
