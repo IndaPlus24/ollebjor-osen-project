@@ -12,4 +12,9 @@ print("Lua execution started")
 
 print("Version: " .. Version())
 
+local p = Primitive.new()
+Primitive.SetPosition(p, 1, 2, 3)
+
+print (Primitive.GetPosition(p))
+
 print("Lua executed successfully")
