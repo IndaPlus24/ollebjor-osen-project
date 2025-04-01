@@ -9,6 +9,9 @@ class Core {
 private:
     SDL_Event event;
     bool quit = false;
+    const uint8_t* keyboardState = nullptr;
+    uint8_t* lastKeyboardState = nullptr;
+    bool keyboardActive = false;
 
     int64_t lastTime = bx::getHPCounter();
     int64_t now = bx::getHPCounter();
@@ -40,5 +43,6 @@ public:
 
     void EventLoop();
     double GetDeltaTime();
+    void CallKeyboardEvent();
     
 };

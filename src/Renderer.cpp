@@ -1,13 +1,11 @@
 #include "Renderer.hpp"
 #include "SDL_syswm.h"
 #include "SDL_video.h"
-#include "Vertex.hpp"
 #include "bgfx/bgfx.h"
 #include "bgfx/platform.h"
 #include "bgfx/defines.h"
 #include <iostream>
 
-#include <bgfx/embedded_shader.h>
 #include <glsl/vs_cubes.sc.bin.h>
 #include <essl/vs_cubes.sc.bin.h>
 #include <spirv/vs_cubes.sc.bin.h>
@@ -53,12 +51,21 @@ bool Renderer::Init() {
     }
 
 #if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
-    init.platformData.ndt = wmInfo.info.x11.display;
-    init.platformData.nwh = (void*)(uintptr_t)wmInfo.info.x11.window;
+    if (wmInfo.subsystem == SDL_SYSWM_WAYLAND) {
+        init.platformData.type = bgfx::NativeWindowHandleType::Wayland;
+        init.platformData.ndt = wmInfo.info.wl.display;
+        init.platformData.nwh = wmInfo.info.wl.surface;
+    } else {
+        init.platformData.type = bgfx::NativeWindowHandleType::Default;
+        init.platformData.ndt = wmInfo.info.x11.display;
+        init.platformData.nwh = (void*)(uintptr_t)wmInfo.info.x11.window;
+    }
+    init.type = bgfx::RendererType::Vulkan;
 #elif BX_PLATFORM_WINDOWS
     init.platformData.nwh = wmInfo.info.win.window;
 #elif BX_PLATFORM_OSX
     init.platformData.nwh = wmInfo.info.cocoa.window;
+    init.type = bgfx::RendererType::Metal;
 #endif
 
     int width, height;
@@ -71,10 +78,7 @@ bool Renderer::Init() {
         SDL_Quit();
         return false;
     }
-    uint64_t state = 0 | BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
-                     BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS |
-                     BGFX_STATE_MSAA | BGFX_STATE_PT_TRISTRIP;
-    bgfx::setState(state);
+    uint64_t state = 0 | BGFX_STATE_DEFAULT;
     // bgfx::setDebug(BGFX_DEBUG_STATS);
 
     layout.begin()
@@ -82,15 +86,44 @@ bool Renderer::Init() {
         .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
         .end();
 
-    const bgfx::EmbeddedShader vertexShader = BGFX_EMBEDDED_SHADER(vs_cubes);
-    const bgfx::EmbeddedShader fragmentShader = BGFX_EMBEDDED_SHADER(fs_cubes);
-
+#if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
     program = bgfx::createProgram(
-        bgfx::createEmbeddedShader(&vertexShader, bgfx::getRendererType(),
-                                   "vs_cubes"),
-        bgfx::createEmbeddedShader(&fragmentShader, bgfx::getRendererType(),
-                                   "fs_cubes"),
+        bgfx::createShader(bgfx::copy(vs_cubes_spv, sizeof(vs_cubes_spv))),
+        bgfx::createShader(bgfx::copy(fs_cubes_spv, sizeof(fs_cubes_spv))),
         true);
+#elif BX_PLATFORM_WINDOWS
+    if (bgfx::getRendererType() == bgfx::RendererType::Direct3D11) {
+        program = bgfx::createProgram(
+            bgfx::createShader(
+                bgfx::copy(vs_cubes_dx11, sizeof(vs_cubes_dx11))),
+            bgfx::createShader(
+                bgfx::copy(fs_cubes_dx11, sizeof(fs_cubes_dx11))),
+            true);
+    } else if (bgfx::getRendererType() == bgfx::RendererType::Vulkan) {
+        program = bgfx::createProgram(
+            bgfx::createShader(bgfx::copy(vs_cubes_spv, sizeof(vs_cubes_spv))),
+            bgfx::createShader(bgfx::copy(fs_cubes_spv, sizeof(fs_cubes_spv))),
+            true);
+    } else {
+        program = bgfx::createProgram(
+            bgfx::createShader(
+                bgfx::copy(vs_cubes_glsl, sizeof(vs_cubes_glsl))),
+            bgfx::createShader(
+                bgfx::copy(fs_cubes_glsl, sizeof(fs_cubes_glsl))),
+            true);
+    }
+#elif BX_PLATFORM_OSX
+    program = bgfx::createProgram(
+        bgfx::createShader(bgfx::copy(vs_cubes_mtl, sizeof(vs_cubes_mtl))),
+        bgfx::createShader(bgfx::copy(fs_cubes_mtl, sizeof(vs_cubes_mtl))),
+        true);
+#endif
+    if (program.idx == bgfx::kInvalidHandle) {
+        std::cerr << "Failed to create shaders" << std::endl;
+        bgfx::shutdown();
+        SDL_DestroyWindow(window);
+        return false;
+    }
 
     return true;
 }

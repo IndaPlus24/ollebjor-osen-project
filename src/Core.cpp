@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include "Enums.hpp"
+#include "SDL_keyboard.h"
 #include <iostream>
 
 Core::Core() {}
@@ -13,9 +14,14 @@ bool Core::Init() {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return false;
     }
+    lastKeyboardState = new uint8_t[SDL_NUM_SCANCODES];
     return true;
 }
 bool Core::Shutdown() {
+    if (lastKeyboardState != nullptr) {
+        delete[] lastKeyboardState;
+        lastKeyboardState = nullptr;
+    }
     SDL_Quit();
     return true;
 }
@@ -23,12 +29,20 @@ void Core::EventLoop() {
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
         case SDL_EventType::SDL_KEYUP:
-        case SDL_EventType::SDL_KEYDOWN:
-            if (keyEventCallback == nullptr) {
+            memcpy(lastKeyboardState, keyboardState,
+                   SDL_NUM_SCANCODES * sizeof(uint8_t));
+            keyboardState = SDL_GetKeyboardState(nullptr);
+            keyboardActive = false;
+            if (keyEventCallback == nullptr)
                 break;
-            }
-            keyEventCallback((Keycode)event.key.keysym.sym,
-                             (KeyState)event.key.state);
+            keyEventCallback((Keycode)event.key.keysym.scancode,
+                             KeyState::Release);
+            break;
+        case SDL_EventType::SDL_KEYDOWN:
+            if (event.key.repeat == 1)
+                break;
+            keyboardState = SDL_GetKeyboardState(nullptr);
+            keyboardActive = true;
             break;
         case SDL_EventType::SDL_MOUSEMOTION:
             if (mouseMoveEventCallback == nullptr) {
@@ -61,6 +75,18 @@ void Core::EventLoop() {
     }
 }
 
+void Core::CallKeyboardEvent() {
+    if (keyboardState == nullptr || keyEventCallback == nullptr ||
+        !keyboardActive) {
+        return;
+    }
+    for (int i = 0; i < SDL_NUM_SCANCODES; ++i) {
+        if (keyboardState[i] == 1 && lastKeyboardState[i] == 0) {
+            keyEventCallback((Keycode)i, KeyState::Pressed);
+        }
+    }
+}
+
 void Core::SetKeyEventCallback(
     std::function<void(Keycode, KeyState)> callback) {
     keyEventCallback = callback;
@@ -76,8 +102,7 @@ void Core::SetMouseButtonEventCallback(
     mouseButtonEventCallback = callback;
 }
 
-void Core::SetMouseWheelEventCallback(
-    std::function<void(int, int)> callback) {
+void Core::SetMouseWheelEventCallback(std::function<void(int, int)> callback) {
     mouseWheelEventCallback = callback;
 }
 
