@@ -1,4 +1,3 @@
-#include <array>
 #include <cstdlib>
 #include <lua.hpp>
 #include <iostream>
@@ -6,8 +5,6 @@
 #include "LuaCore.hpp"
 #include "PrimitiveLua.hpp"
 #include "lauxlib.h"
-#include "LuaClass.hpp"
-#include "lua.h"
 
 const float LuaCore::Version = 0.1f;
 
@@ -44,10 +41,13 @@ void LuaCore::registerGlobalFunction(lua_CFunction func,
     lua_setglobal(L, luaFName.c_str());
 }
 
-void LuaCore::RegisterLuaClass(std::string name, const luaL_Reg methods[], size_t methodCount) const {
+void LuaCore::RegisterLuaClass(std::string name, const luaL_Reg methods[],
+                               size_t methodCount) const {
     lua_createtable(L, 0, methodCount); // Create table
-    luaL_setfuncs(L, methods, 0); // Register all methods in the array to the table
-    lua_setglobal(L, name.c_str()); // Consume the top of the stack and make it a global
+    luaL_setfuncs(L, methods,
+                  0); // Register all methods in the array to the table
+    lua_setglobal(
+        L, name.c_str()); // Consume the top of the stack and make it a global
 }
 
 void LuaCore::Run(std::string script) const {
@@ -80,7 +80,8 @@ void LuaCore::Init() {
     luaL_openlibs(L);
     registerGlobalFunction(luaGetVersion, "Version");
     overrideLuaLibFunctions();
-    RegisterLuaClass("Primitive", PrimitiveLua::methods, PRIMITIVE_METHOD_COUNT + 1);
+    RegisterLuaClass("Primitive", PrimitiveLua::methods,
+                     PRIMITIVE_METHOD_COUNT + 1);
     // InitializePrimitives();
 }
 

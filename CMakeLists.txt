@@ -65,7 +65,6 @@ file(GLOB_RECURSE SRC_FILES ${SRC_DIR}/*.cpp)
 # Platform-specific settings
 if(WIN32)
     add_executable(Loonar ${SRC_FILES} ${SHADER_FILES_VS} ${SHADER_FILES_FS})
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /Zc:preprocessor")
     target_compile_definitions(Loonar PRIVATE "_CRT_SECURE_NO_WARNINGS")
 elseif(APPLE)
     add_executable(Loonar ${SRC_FILES} ${SHADER_FILES_VS} ${SHADER_FILES_FS})

@@ -1,10 +1,6 @@
 #include "PrimitiveLua.hpp"
-#include "LuaClass.hpp"
-#include "bx/debug.h"
-#include "glm/fwd.hpp"
 #include "lua.h"
 #include <lua.hpp>
-#include <iostream>
 #include <glm/glm.hpp>
 
 PrimitiveLua::PrimitiveLua(const std::string& name) : name(name) {
@@ -30,7 +26,7 @@ int luaSetPosition(lua_State* L) {
 namespace {
 int luaGetPosition(lua_State* L) {
     PrimitiveLua* i = (PrimitiveLua*)lua_touserdata(L, 1);
-    
+
     const glm::vec3& pos = i->GetPosition();
     lua_pushnumber(L, pos.x);
     lua_pushnumber(L, pos.y);

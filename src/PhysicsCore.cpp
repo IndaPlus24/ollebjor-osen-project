@@ -18,7 +18,6 @@
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/ObjectLayer.h>
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
-#include <iostream>
 
 bool ObjectLayerPairFilterImpl::ShouldCollide(JPH::ObjectLayer inLayer1,
                                               JPH::ObjectLayer inLayer2) const {
@@ -137,8 +136,8 @@ void PhysicsCore::Initialize() {
     physicsSystem->Init(1024, 0, 1024, 1024, *broadPhaseLayerInterface,
                         *objectVsBroadPhaseLayerFilter, *objectLayerPairFilter);
     physicsSystem->SetGravity(JPH::Vec3(0, -9.81f, 0));
-    physicsSystem->SetContactListener(contactListener);
-    physicsSystem->SetBodyActivationListener(bodyActivationListener);
+    // physicsSystem->SetContactListener(contactListener);
+    // physicsSystem->SetBodyActivationListener(bodyActivationListener);
 
     bx::debugPrintf("Jolt Physics initialized successfully.\n");
 }
@@ -280,7 +279,7 @@ void PhysicsCore::Shutdown() {
         delete objectLayerPairFilter;
         objectLayerPairFilter = nullptr;
     }
-    if (objectVsBroadPhaseLayerFilter) { // Add this
+    if (objectVsBroadPhaseLayerFilter) {
         delete objectVsBroadPhaseLayerFilter;
         objectVsBroadPhaseLayerFilter = nullptr;
     }
