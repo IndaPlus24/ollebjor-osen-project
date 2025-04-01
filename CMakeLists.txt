@@ -21,6 +21,8 @@ include_directories(${VENDOR_DIR}/bgfx.cmake/bgfx/include)
 include_directories(${VENDOR_DIR}/SDL/include)
 include_directories(${VENDOR_DIR}/JoltPhysics)
 include_directories(${VENDOR_DIR}/Lua/lua-5.4.7/include)
+include_directories(${EXTERNAL_DIR})
+
 
 # Add SDL
 add_subdirectory(${VENDOR_DIR}/SDL EXCLUDE_FROM_ALL)
@@ -62,8 +64,7 @@ file(GLOB_RECURSE SRC_FILES ${SRC_DIR}/*.cpp)
 
 # Platform-specific settings
 if(WIN32)
-    add_executable(Loonar WIN32 ${SRC_FILES} ${SHADER_FILES_VS} ${SHADER_FILES_FS})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /Zc:preprocessor")
+    add_executable(Loonar ${SRC_FILES} ${SHADER_FILES_VS} ${SHADER_FILES_FS})
     target_compile_definitions(Loonar PRIVATE "_CRT_SECURE_NO_WARNINGS")
 elseif(APPLE)
     add_executable(Loonar ${SRC_FILES} ${SHADER_FILES_VS} ${SHADER_FILES_FS})

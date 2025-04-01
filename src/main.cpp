@@ -11,6 +11,7 @@
 #include "Core.hpp"
 #include "Renderer.hpp"
 #include "Primitive.hpp"
+#include "LuaCore.hpp"
 #include "PhysicsCore.hpp"
 #include "utils.hpp"
 
@@ -30,6 +31,10 @@ int main(int argc, char** argv) {
     const double FIXED_TIMESTEP = 1.0f / 60.0f;
     double accumulator = 0;
     bx::debugPrintf("Starting application\n");
+  
+    LuaCore lua;
+    lua.Init();
+    lua.Run("scripts/test.lua");
 
     PhysicsCore physicsCore = PhysicsCore();
     physicsCore.Initialize();
