@@ -24,13 +24,13 @@ class LuaCore {
     void SetGlobal(std::string name, std::string value) const;
     std::string GetGlobal(std::string name) const;
     void RegisterLuaClass(std::string name, const luaL_Reg methods[],
-                          size_t methodCount) const;
+                          const luaL_Reg funcs[]) const;
 
-    static const float Version;
+    static const std::string Version;
 
   private:
     static const struct luaL_Reg overrides[];
-    int InitializePrimitives();
+    int InitializePrimitive();
     void Prepare(std::string path) const;
     void pcall(int narg, int nres, int errfunc) const;
     void registerGlobalFunction(lua_CFunction func, std::string luaFName) const;

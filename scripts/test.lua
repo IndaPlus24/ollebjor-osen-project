@@ -13,8 +13,10 @@ print("Lua execution started")
 print("Version: " .. Version())
 
 local p = Primitive.new()
-Primitive.SetPosition(p, 1, 2, 3)
+p:SetPosition(70,5,17)
 
-print (Primitive.GetPosition(p))
+local x, y, z = p:GetPosition()
+
+print ("Position: ", x, y, z)
 
 print("Lua executed successfully")

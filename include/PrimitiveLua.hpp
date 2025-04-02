@@ -21,6 +21,9 @@ class PrimitiveLua : public LuaClass {
     const glm::vec3& GetPosition() const;
 
     const static luaL_Reg methods[];
+    const static luaL_Reg functions[];
+    const static std::string luaName;
+    const static std::string metatableName;
 
   private:
     std::string name; // TODO: Make enum

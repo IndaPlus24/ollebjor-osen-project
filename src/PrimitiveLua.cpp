@@ -1,4 +1,5 @@
 #include "PrimitiveLua.hpp"
+#include "lauxlib.h"
 #include "lua.h"
 #include <lua.hpp>
 #include <glm/glm.hpp>
@@ -11,7 +12,13 @@ PrimitiveLua::PrimitiveLua(const std::string& name) : name(name) {
 
 namespace {
 int luaSetPosition(lua_State* L) {
-    PrimitiveLua* i = (PrimitiveLua*)lua_touserdata(L, 1);
+    PrimitiveLua* i = reinterpret_cast<PrimitiveLua*>(
+        luaL_checkudata(L, 1,
+                        PrimitiveLua::metatableName
+                            .c_str())); // Check if the first argument is a
+                                        // userdata of type PrimitiveLua
+
+    luaL_argcheck(L, i != nullptr, 1, "'Primitive' expected");
 
     int x = luaL_checkinteger(L, 2);
     int y = luaL_checkinteger(L, 3);
@@ -25,7 +32,12 @@ int luaSetPosition(lua_State* L) {
 
 namespace {
 int luaGetPosition(lua_State* L) {
-    PrimitiveLua* i = (PrimitiveLua*)lua_touserdata(L, 1);
+    PrimitiveLua* i = reinterpret_cast<PrimitiveLua*>(
+        luaL_checkudata(L, 1,
+                        PrimitiveLua::metatableName
+                            .c_str())); // Check if the first argument is a
+                                        // userdata of type PrimitiveLua
+    luaL_argcheck(L, i != nullptr, 1, "'Primitive' expected");
 
     const glm::vec3& pos = i->GetPosition();
     lua_pushnumber(L, pos.x);
@@ -37,15 +49,14 @@ int luaGetPosition(lua_State* L) {
 
 namespace {
 int newPrimitive(lua_State* L) {
-    // Create a new instance of PrimitiveLua and push it onto the stack
-    // PrimitiveLua* prim = reinterpret_cast<PrimitiveLua*>(lua_newuserdatauv(
-    //     L, sizeof(PrimitiveLua), 0));     // Allocate memory for the instance
-    // *prim = PrimitiveLua("PrimitiveLua"); // Initialize the instance
-
     PrimitiveLua* obj = new PrimitiveLua();
     PrimitiveLua** userdata =
         reinterpret_cast<PrimitiveLua**>(lua_newuserdatauv(L, sizeof(obj), 0));
     *userdata = obj;
+    // Created and pushed a userdata object onto the stack
+    //  Now we need to set the metatable for this userdata object
+    luaL_setmetatable(L, PrimitiveLua::metatableName.c_str());
+
     return 1;
 }
 } // namespace
@@ -75,8 +86,11 @@ void PrimitiveLua::SetPosition(glm::vec3& position) {
 
 const glm::vec3& PrimitiveLua::GetPosition() const { return position; }
 
+const std::string PrimitiveLua::luaName = "Primitive";
+const std::string PrimitiveLua::metatableName = "Primitive.Metatable";
 const luaL_Reg PrimitiveLua::methods[] = {
     {"SetPosition", &luaSetPosition},
     {"GetPosition", &luaGetPosition},
-    {"new", &newPrimitive},
     {nullptr, nullptr}}; // End of the methods array
+const luaL_Reg PrimitiveLua::functions[] = {
+    {"new", &newPrimitive}, {nullptr, nullptr}}; // End of the functions array
