@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.5)
 project(Loonar LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -76,8 +76,6 @@ elseif(UNIX)
     add_executable(Loonar ${SRC_FILES} ${SHADER_FILES_VS} ${SHADER_FILES_FS})
     target_link_libraries(Loonar PRIVATE pthread dl)
 endif()
-
-add_compile_options(Loonar -Xclang)
 
 target_include_directories(Loonar PUBLIC ${INCLUDE_DIR})
 target_link_libraries(Loonar PRIVATE bgfx glm SDL2main SDL2-static Jolt lua_static)

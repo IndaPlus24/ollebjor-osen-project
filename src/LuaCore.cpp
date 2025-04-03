@@ -50,12 +50,12 @@ void LuaCore::RegisterLuaClass(std::string name, const luaL_Reg methods[],
     int ok = luaL_newmetatable(
         L, mtName.c_str()); // Pushes a new table onto the stack
     luaL_setfuncs(L, methods,
-                  0); // Register all methods in the array to the table
+                  0);     // Register all methods in the array to the table
     lua_pushvalue(L, -1); // Pushes the metatable onto the stack again
     lua_setfield(L, -2, "__index"); // metatable.__index = metatable
     lua_pop(L, 1);
 
-    lua_createtable(L, 0, 1); // Create library table
+    lua_createtable(L, 0, 1);             // Create library table
     luaL_setmetatable(L, mtName.c_str()); // Set the metatable for the table)
 
     luaL_setfuncs(L, funcs,
