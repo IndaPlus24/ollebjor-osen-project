@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     Core core = Core();
     core.Init();
 
-    Renderer renderer = Renderer("Hello World", 1280, 720);
+    Renderer renderer = Renderer("Hello World", 1280/10, 720/10);
     renderer.Init();
 
     renderer.SetViewClear();

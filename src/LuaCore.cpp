@@ -50,12 +50,12 @@ void LuaCore::RegisterLuaClass(std::string name, const luaL_Reg methods[],
     int ok = luaL_newmetatable(
         L, mtName.c_str()); // Pushes a new table onto the stack
     luaL_setfuncs(L, methods,
-                  0); // Register all methods in the array to the table
+                  0);     // Register all methods in the array to the table
     lua_pushvalue(L, -1); // Pushes the metatable onto the stack again
     lua_setfield(L, -2, "__index"); // metatable.__index = metatable
     lua_pop(L, 1);
 
-    lua_createtable(L, 0, 1); // Create library table
+    lua_createtable(L, 0, 1);             // Create library table
     luaL_setmetatable(L, mtName.c_str()); // Set the metatable for the table)
 
     luaL_setfuncs(L, funcs,
@@ -94,9 +94,9 @@ void LuaCore::Init() {
     luaL_openlibs(L);
     registerGlobalFunction(luaGetVersion, "Version");
     overrideLuaLibFunctions();
-    RegisterLuaClass(PrimitiveLua::luaName, PrimitiveLua::methods,
-                     PrimitiveLua::functions);
-    // InitializePrimitives();
+    // RegisterLuaClass(PrimitiveLua::luaName, PrimitiveLua::methods,
+    // PrimitiveLua::functions);
+    InitializePrimitive();
 }
 
 void LuaCore::pcall(int nargs, int nresults, int errfunc) const {
@@ -107,24 +107,26 @@ void LuaCore::pcall(int nargs, int nresults, int errfunc) const {
 }
 
 int LuaCore::InitializePrimitive() {
-    std::string METATABLE_NAME = "Primitive.Metatable";
-    std::vector<luaL_Reg> REGS = {};
 
-    // Register the Primitive class in Lua
-    glm::vec3* vector3 = new glm::vec3();
-    glm::vec3** userdata = reinterpret_cast<glm::vec3**>(
-        lua_newuserdatauv(L, sizeof(glm::vec3*), 0));
-    *userdata = vector3;
-    int type = luaL_getmetatable(L, METATABLE_NAME.c_str());
-    if (type == LUA_TNIL) {
-        lua_pop(L, 1);
-        luaL_newmetatable(L, METATABLE_NAME.c_str());
-        lua_pushvalue(L, -1);
-        lua_setfield(L, -2, "__index");
-        luaL_setfuncs(L, REGS.data(), 0);
-    }
+    int ok =
+        luaL_newmetatable(L, PrimitiveLua::metatableName
+                                 .c_str()); // Pushes a new table onto the stack
+    luaL_setfuncs(L, PrimitiveLua::methods,
+                  0); // Register all methods in the array to the table
 
-    lua_setmetatable(L, 1);
+    lua_pushcfunction(L, PrimitiveLua::luaIndexPrimitive);
+    lua_setfield(L, -2, "__index"); // metatable.__index = metatable
+    lua_pop(L, 1);
+
+    lua_createtable(L, 0, 1); // Create library table
+    luaL_setmetatable(L, PrimitiveLua::metatableName
+                             .c_str()); // Set the metatable for the table)
+
+    luaL_setfuncs(L, PrimitiveLua::functions,
+                  0); // Register all methods in the array to the table
+    lua_setglobal(
+        L, PrimitiveLua::luaName
+               .c_str()); // Consume the top of the stack and make it a global
 
     return 1;
 }

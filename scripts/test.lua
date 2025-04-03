@@ -1,22 +1,19 @@
-print("Lua execution started")
+print("Lua execution started [Version " .. Version().."]")
 
+local function printPos(p)
+    local pos = p.Position
+    print("Position: ", pos.x, pos.y, pos.z)
+end
 
--- local primitive = Primitive.new("Cube")
--- local color = primitive.color
--- print("Color: " .. color)
+for i = 1, 10, 1 do
+    local p = Primitive.new()
+    p:SetPosition(i, i, i)
+    for key, value in pairs(p:GetPosition()) do
+        print(key, value) 
+    end
+    p.name = "penis"
+end
 
--- local position = primitive.position
--- print("Position: " .. position)
-
--- print("Primitive name: " .. primitive.name)
-
-print("Version: " .. Version())
-
-local p = Primitive.new()
-p:SetPosition(70,5,17)
-
-local x, y, z = p:GetPosition()
-
-print ("Position: ", x, y, z)
-
+-- local p = Primitive.new()
+-- printPos(p)
 print("Lua executed successfully")
