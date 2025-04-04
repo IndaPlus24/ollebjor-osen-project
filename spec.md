@@ -88,3 +88,35 @@ Keyboard.KeyDown:Connect(function(key)
 end)
 
 ```
+
+
+## Requirements
+### Must haves
+|What |Why|
+|-----|---|
+|Implement 3 primitive types | Box, sphere, plane - for basic gameplay |
+|Create primitives with lua | Cool |
+|Render primitives | To see them |
+|Add physics to primitives | make them move |
+|Change primitive color at runtime | Disco |
+|Lua singletons/services | To expose the system events and other properties |
+|Expose system events to lua| To make functionality |
+|Bind action to system event in lua| functionality |
+
+### Nice to haves
+|What |Why|
+|-----|---|
+|Lua hot reload| ChatGPT suggestion, would be very cool |
+|Custom 3D-models | To make custom assets |
+|Textures| To texture custom assets|
+|Language server| For intellisense and autocomplete for lua|
+|Raycasting| Laser pew pew |
+|Trigger volumes| For triggering |
+|Usd scene format description| For seamless integration with other programs |
+
+### Risks
+|What |Why|
+|-----|---|
+|Lua is too difficult| Perchance it is |
+|Too much time for timeframe| Maybe we took water over our heads (bit off more than we can chew) |
+|Project being bought by google| It was too good, they bought it for 100M USD|
