@@ -31,6 +31,7 @@ class LuaCore {
   private:
     static const struct luaL_Reg overrides[];
     int InitializePrimitive();
+    void ExportVector3() const;
     void Prepare(std::string path) const;
     void pcall(int narg, int nres, int errfunc) const;
     void registerGlobalFunction(lua_CFunction func, std::string luaFName) const;

@@ -106,6 +106,14 @@ void LuaCore::pcall(int nargs, int nresults, int errfunc) const {
     }
 }
 
+int print(lua_State* L) {
+    PrimitiveLua* i = (PrimitiveLua*)luaL_checkudata(
+        L, 1, PrimitiveLua::metatableName.c_str());
+    luaL_argcheck(L, L != nullptr, 1, "'Primitive' expected in gc");
+    std::cout << "Garbage collection" << std::endl;
+    return 0;
+}
+
 int LuaCore::InitializePrimitive() {
 
     int ok =
@@ -116,11 +124,21 @@ int LuaCore::InitializePrimitive() {
 
     lua_pushcfunction(L, PrimitiveLua::luaIndexPrimitive);
     lua_setfield(L, -2, "__index"); // metatable.__index = metatable
+
+    lua_pushcfunction(L, print);
+    lua_setfield(L, -2,
+                 "__gc"); // metatable.__gc = PrimitiveLua::luaIndexPrimitive
+
+    lua_pushcfunction(L, PrimitiveLua::luaNewIndexPrimitive);
+    lua_setfield(L, -2,
+                 "__newindex"); // metatable.__newindex =
+                                // PrimitiveLua::luaNewIndexPrimitive
+
     lua_pop(L, 1);
 
     lua_createtable(L, 0, 1); // Create library table
-    luaL_setmetatable(L, PrimitiveLua::metatableName
-                             .c_str()); // Set the metatable for the table)
+    // luaL_setmetatable(L, PrimitiveLua::metatableName
+    //                          .c_str()); // Set the metatable for the table)
 
     luaL_setfuncs(L, PrimitiveLua::functions,
                   0); // Register all methods in the array to the table
@@ -129,6 +147,14 @@ int LuaCore::InitializePrimitive() {
                .c_str()); // Consume the top of the stack and make it a global
 
     return 1;
+}
+
+void LuaCore::ExportVector3() const {
+
+    // LuaType Vector3 = LuaCore::CreateType(L, "Vector3"); --Creates a new
+    // LuaType class which handles the creation of the Vector3 class
+    // Vector3.AddFunc("new", &Vector3::luaNew);
+    // Vector3.AddMethod("GetPosition", &Vector3::luaGetPosition);
 }
 
 LuaCore::LuaCore() { L = luaL_newstate(); }

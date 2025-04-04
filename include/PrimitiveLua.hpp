@@ -25,6 +25,7 @@ class PrimitiveLua : public LuaClass {
     const static std::string luaName;
     const static std::string metatableName;
     const static lua_CFunction luaIndexPrimitive;
+    const static lua_CFunction luaNewIndexPrimitive;
 
   private:
     std::string name; // TODO: Make enum
