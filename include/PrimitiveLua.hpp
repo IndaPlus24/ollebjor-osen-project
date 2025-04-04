@@ -3,8 +3,7 @@
 #include <glm/glm.hpp>
 #include "LuaClass.hpp"
 #include "lauxlib.h"
-
-#define PRIMITIVE_METHOD_COUNT 3
+#include "lua.h"
 
 class PrimitiveLua : public LuaClass {
   public:
@@ -12,18 +11,20 @@ class PrimitiveLua : public LuaClass {
     PrimitiveLua();
     ~PrimitiveLua();
 
-    // const std::string& GetName() const;
+    std::string& GetName();
+    void SetName() const;
 
     // void SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
     // const uint32_t& GetColor() const;
 
     void SetPosition(glm::vec3& position);
-    const glm::vec3& GetPosition() const;
+    glm::vec3& GetPosition();
 
     const static luaL_Reg methods[];
     const static luaL_Reg functions[];
     const static std::string luaName;
     const static std::string metatableName;
+    const static lua_CFunction luaIndexPrimitive;
 
   private:
     std::string name; // TODO: Make enum
