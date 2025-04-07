@@ -1,11 +1,9 @@
 #include <lua.hpp>
 #include <iostream>
-#include <vector>
+#include "LuaExporter.hpp"
+#include "LuaVector3.hpp"
 #include "LuaCore.hpp"
 #include "PrimitiveLua.hpp"
-#include "lauxlib.h"
-#include "lua.h"
-#include "lualib.h"
 
 const std::string LuaCore::Version = "0.1.2";
 
@@ -96,7 +94,11 @@ void LuaCore::Init() {
     overrideLuaLibFunctions();
     // RegisterLuaClass(PrimitiveLua::luaName, PrimitiveLua::methods,
     // PrimitiveLua::functions);
-    InitializePrimitive();
+    //InitializePrimitive();
+
+    LuaExporter exporter(L, "Primitive");
+    exporter.Func("new", LuaVector3::newVector3, 3).Export();
+
 }
 
 void LuaCore::pcall(int nargs, int nresults, int errfunc) const {

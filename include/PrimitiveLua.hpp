@@ -1,11 +1,10 @@
 #pragma once
 #include <string>
 #include <glm/glm.hpp>
-#include "LuaClass.hpp"
 #include "lauxlib.h"
-#include "lua.h"
+#include "lua.hpp"
 
-class PrimitiveLua : public LuaClass {
+class PrimitiveLua {
   public:
     PrimitiveLua(const std::string& name);
     PrimitiveLua();

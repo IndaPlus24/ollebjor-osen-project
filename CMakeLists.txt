@@ -77,8 +77,6 @@ elseif(UNIX)
     target_link_libraries(Loonar PRIVATE pthread dl)
 endif()
 
-add_compile_options(Loonar -Xclang)
-
 target_include_directories(Loonar PUBLIC ${INCLUDE_DIR})
 target_link_libraries(Loonar PRIVATE bgfx glm SDL2main SDL2-static Jolt lua_static)
 set_target_properties(Loonar PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})

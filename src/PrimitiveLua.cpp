@@ -1,8 +1,6 @@
 #include "PrimitiveLua.hpp"
-#include "lauxlib.h"
-#include "lua.h"
+#include "lua.hpp"
 #include <iostream>
-#include <lua.hpp>
 #include <glm/glm.hpp>
 #include <string>
 

@@ -144,7 +144,7 @@ void PhysicsCore::Initialize() {
 
 void PhysicsCore::Update(float deltaTime) {
     if (physicsSystem) {
-        physicsSystem->Update(deltaTime, 1, tempAllocator, jobSystem);
+        physicsSystem->Update(deltaTime, 2, tempAllocator, jobSystem);
     }
 }
 
