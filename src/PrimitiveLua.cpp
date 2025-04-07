@@ -1,5 +1,5 @@
 #include "PrimitiveLua.hpp"
-#include "lua.hpp"
+#include <lua.hpp>
 #include <iostream>
 #include <glm/glm.hpp>
 #include <string>

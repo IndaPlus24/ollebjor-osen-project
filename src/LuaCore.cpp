@@ -96,8 +96,8 @@ void LuaCore::Init() {
     // PrimitiveLua::functions);
     //InitializePrimitive();
 
-    LuaExporter exporter(L, "Primitive");
-    exporter.Func("new", LuaVector3::newVector3, 3).Export();
+    LuaExporter exporter(L, "Vector3");
+    exporter.Func("new", LuaVector3::luaNewVector3, 3).Export();
 
 }
 

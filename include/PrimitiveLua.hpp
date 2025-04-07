@@ -1,8 +1,7 @@
 #pragma once
 #include <string>
 #include <glm/glm.hpp>
-#include "lauxlib.h"
-#include "lua.hpp"
+#include <lua.hpp>
 
 class PrimitiveLua {
   public:

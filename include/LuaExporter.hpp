@@ -14,10 +14,10 @@ class LuaExporter {
     LuaExporter Funcs(luaL_Reg funcs[]);
     LuaExporter Method(std::string name, lua_CFunction func, int nargs = 0);
     LuaExporter Methods(luaL_Reg methods[]);
-    LuaExporter Property(std::string name, lua_CFunction getter, lua_CFunction setter);
-    LuaExporter Setter(std::string name, lua_CFunction setter);
-    LuaExporter Getter(std::string name, lua_CFunction getter);
-    LuaExporter Constructor(std::string name, int nargs = 0);
+    // LuaExporter Property(std::string name, lua_CFunction getter, lua_CFunction setter);
+    // LuaExporter Setter(std::string name, lua_CFunction setter);
+    // LuaExporter Getter(std::string name, lua_CFunction getter);
+    // LuaExporter Constructor(std::string name, int nargs = 0);
     void Export();
 
   private:

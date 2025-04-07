@@ -27,7 +27,7 @@ class LuaVector3 {
     static int luaDot(lua_State* L);
     static int luaCross(lua_State* L);
     static int luaNormalize(lua_State* L);
-    static int newVector3(lua_State* L);
+    static int luaNewVector3(lua_State* L);
 
   private:
     glm::vec3 position;

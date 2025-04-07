@@ -1,5 +1,8 @@
 #include "LuaVector3.hpp"
+#include "lauxlib.h"
+#include "lua.h"
 #include <iostream>
+#include <stdexcept>
 
 LuaVector3::LuaVector3() : position(0.0f, 0.0f, 0.0f) {}
 LuaVector3::LuaVector3(glm::vec3 position) : position(position) {}
@@ -35,13 +38,13 @@ int LuaVector3::luaGetX(lua_State* L) {
     return 1;
 }
 
-int LuaVector3::newVector3(lua_State *L) {
+int LuaVector3::luaNewVector3(lua_State *L) {
     float x = luaL_checknumber(L, 1);
     float y = luaL_checknumber(L, 2);
     float z = luaL_checknumber(L, 3);
+    std::cout << "Creating new LuaVector3: " << x << ", " << y << ", " << z << std::endl;
     LuaVector3* vec = (LuaVector3*)lua_newuserdata(L, sizeof(LuaVector3));
     new (vec) LuaVector3(glm::vec3(x, y, z)); // Placement new
-    luaL_getmetatable(L, "LuaVector3.Metatable");
-    lua_setmetatable(L, -2); // Set the metatable for the userdata
+    luaL_setmetatable(L, "LuaVector3.Metatable");
     return 1;
 }
