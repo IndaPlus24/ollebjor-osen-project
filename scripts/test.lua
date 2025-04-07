@@ -6,6 +6,18 @@ print("Lua execution started [Version " .. Version() .. "]")
 -- end
 
 local v = Vector3.new(1, 2, 3)
+local u = Vector3.new(2, 4, 6)
+
+local t = getmetatable(v)
+
+for key, value in pairs(t) do
+    print(key, value)
+end
+
+
+
+local p = v:Dot(u)
+ print("Dot product: ", p)
 
 -- for i = 1, 10, 1 do
 -- 	local p = Primitive.new()

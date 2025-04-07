@@ -1,5 +1,6 @@
 #include "LuaExporter.hpp"
 #include "lauxlib.h"
+#include "lua.h"
 #include <lua.hpp>
 #include <string>
 #include <vector>
@@ -53,7 +54,18 @@ void LuaExporter::Export() {
     luaL_setfuncs(L, methods.data(),
                   0); // Register all methods in the array to the table
     luaL_setfuncs(L, metamethods.data(), 0);
-    lua_pop(L, 1);
+
+    //Check to see if the metatable has a __index field
+    lua_getfield(L, -1, "__index");
+    if (lua_isnil(L, -1)){
+        lua_pop(L, 1);
+        //TODO: set metatable.__index = metatable
+        lua_pushvalue(L, -1); // Pushes the metatable onto the stack again
+        lua_setfield(L, -2, "__index"); // metatable.__index = metatable
+        lua_pop(L, 1); // Pop the metatable off the stack
+    }else{
+        lua_pop(L, 2); //Pop the metatable and the function value off the stack
+    }
 
     lua_createtable(L, 0, 1); // Create library table
     luaL_setfuncs(L, funcs.data(),

@@ -94,11 +94,19 @@ void LuaCore::Init() {
     overrideLuaLibFunctions();
     // RegisterLuaClass(PrimitiveLua::luaName, PrimitiveLua::methods,
     // PrimitiveLua::functions);
-    //InitializePrimitive();
+    // InitializePrimitive();
 
-    LuaExporter exporter(L, "Vector3");
-    exporter.Func("new", LuaVector3::luaNewVector3, 3).Export();
+    LuaExporter vector3(L, "Vector3");
+    vector3.Func("new", LuaVector3::luaNewVector3, 3)
+        .Method("Dot", LuaVector3::luaDot, 1)
+        .Export();
 
+    LuaExporter primitive(L, "Primitive");
+    // primitive.Func("new", PrimitiveLua::luaNewPrimitive, 0)
+    //     .Method("SetPosition", PrimitiveLua::luaSetPosition, 1)
+    //     .Method("GetPosition", PrimitiveLua::luaGetPosition, 0)
+    //     .Method("GetName", PrimitiveLua::luaGetName, 0)
+    //     .Export();
 }
 
 void LuaCore::pcall(int nargs, int nresults, int errfunc) const {
