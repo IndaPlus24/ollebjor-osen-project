@@ -8,14 +8,16 @@
 #include <vector>
 #include "Enums.hpp"
 
+#include "Entity.hpp"
 #include "Core.hpp"
 #include "Renderer.hpp"
 #include "Primitive.hpp"
+#include "Texture.hpp"
 #include "LuaCore.hpp"
 #include "PhysicsCore.hpp"
 #include "utils.hpp"
 
-void KeyEvent(Keycode key, KeyState state, std::vector<Primitive>& primitives) {
+void KeyEvent(Keycode key, KeyState state, std::vector<Entity>& primitives) {
     bx::debugPrintf("Key event: %d, %d\n", key, state);
     if (state == KeyState::Release && key == Keycode::SPACE) {
         primitives[0].SetPhysicsPosition(glm::vec3{1.0f, 4.1f, 0.0f});
@@ -45,22 +47,23 @@ int main(int argc, char** argv) {
     Renderer renderer = Renderer("Hello World", 1280, 720);
     renderer.Init();
 
-
     renderer.SetViewClear();
     {
-        Texture texture = Texture("assets/amongus.jpg", bgfx::TextureFormat::RGB8);
+        Texture texture =
+            Texture("assets/amongus.jpg", bgfx::TextureFormat::RGB8);
 
-        std::vector<Primitive> primitives;
-        primitives.emplace_back(PrimitiveType::Cube, RigidBodyType::Dynamic,
-                                physicsCore, renderer.GetVertexLayout(),
-                                texture, glm::vec3{0.7f, 2.1f, 0.0f});
-        primitives.emplace_back(PrimitiveType::Sphere, RigidBodyType::Dynamic,
-                                physicsCore, renderer.GetVertexLayout(),
-                                texture, glm::vec3{0.0f, 0.0f, 0.0f});
-        primitives.emplace_back(
+        std::vector<Entity> primitives;
+        primitives.reserve(3);
+        primitives.push_back(Primitive(
+            PrimitiveType::Cube, RigidBodyType::Dynamic, physicsCore,
+            renderer.GetVertexLayout(), texture, glm::vec3{0.7f, 2.1f, 0.0f}));
+        primitives.push_back(Primitive(
+            PrimitiveType::Sphere, RigidBodyType::Dynamic, physicsCore,
+            renderer.GetVertexLayout(), texture, glm::vec3{0.0f, 0.0f, 0.0f}));
+        primitives.push_back(Primitive(
             PrimitiveType::Plane, RigidBodyType::Static, physicsCore,
             renderer.GetVertexLayout(), texture, glm::vec3{0.0f, -2.5f, 0.0f},
-            glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{10.0f, 1.0f, 10.0f});
+            glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{10.0f, 1.0f, 10.0f}));
         core.SetKeyEventCallback(std::bind(KeyEvent, std::placeholders::_1,
                                            std::placeholders::_2,
                                            std::ref(primitives)));
