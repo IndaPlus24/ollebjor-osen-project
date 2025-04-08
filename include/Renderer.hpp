@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Texture.hpp"
 #include <SDL2/SDL.h>
 #include <bgfx/bgfx.h>
 #include <bx/bx.h>
@@ -14,6 +15,7 @@ class Renderer {
     std::string title;
     bgfx::VertexLayout layout;
     bgfx::ProgramHandle program;
+    bgfx::UniformHandle textureUniform;
 
   public:
     Renderer(std::string title, int width, int height);
@@ -32,6 +34,8 @@ class Renderer {
     }
     inline bgfx::ProgramHandle& GetProgramHandle() { return program; }
     inline bgfx::VertexLayout& GetVertexLayout() { return layout; }
+
+    void SetTextureUniform(bgfx::TextureHandle texture);
 
     void SetViewClear();
     bool UpdateWindowSize();
