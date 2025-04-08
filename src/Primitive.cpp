@@ -71,7 +71,7 @@ Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
         } break;
         case PrimitiveType::Sphere: {
             bodyID =
-                physicsCore.AddDynamicSphere(size.x * 1.96, joltPosition, 1.0f);
+                physicsCore.AddDynamicSphere(size.x, joltPosition, 1.0f);
             bx::debugPrintf("Dynamic Sphere created: Type: %d vbh: %d ibh: %d",
                             type, vbh.idx, ibh.idx);
         } break;
@@ -197,9 +197,9 @@ void Primitive::GetPrimitiveTypeData(const bgfx::Memory*& vertMem,
         indiMem = bgfx::copy(quad.indices, sizeof(quad.indices));
     } break;
     case PrimitiveType::Sphere: {
-        // PrimitiveSphere sphere;
-        // vertMem = bgfx::copy(sphere.vertices, sizeof(sphere.vertices));
-        // indiMem = bgfx::copy(sphere.indices, sizeof(sphere.indices));
+        PrimitiveSphere sphere;
+        vertMem = bgfx::copy(sphere.vertices, sizeof(sphere.vertices));
+        indiMem = bgfx::copy(sphere.indices, sizeof(sphere.indices));
     } break;
     }
     BX_ASSERT(vertMem->data != nullptr, "Vertex Memory is null");

@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
         primitives.emplace_back(PrimitiveType::Cube, RigidBodyType::Dynamic,
                                 physicsCore, renderer.GetVertexLayout(),
                                 texture, glm::vec3{0.7f, 2.1f, 0.0f});
-        primitives.emplace_back(PrimitiveType::Cube, RigidBodyType::Dynamic,
+        primitives.emplace_back(PrimitiveType::Sphere, RigidBodyType::Dynamic,
                                 physicsCore, renderer.GetVertexLayout(),
                                 texture, glm::vec3{0.0f, 0.0f, 0.0f});
         primitives.emplace_back(
