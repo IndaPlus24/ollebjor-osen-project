@@ -5,22 +5,25 @@
 #include "PhysicsCore.hpp"
 #include "PrimitiveDefinitions.hpp"
 #include "Enums.hpp"
+#include "Texture.hpp"
+#include "utils.hpp"
 #include "bgfx/bgfx.h"
 #include "bx/bx.h"
 #include "bx/debug.h"
 #include "glm/fwd.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "glm/trigonometric.hpp"
+#include <cstddef>
 
 Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
                      PhysicsCore& physicsCore, bgfx::VertexLayout& layout,
-                     uint32_t abgr, glm::vec3 position, glm::vec3 rotation,
+                     Texture& texture, glm::vec3 position, glm::vec3 rotation,
                      glm::vec3 size)
-    : type(type), abgr(abgr), position(position), rotation(rotation),
-      size(size), bodyType(bodyType) {
+    : type(type), position(position), rotation(rotation), size(size),
+      bodyType(bodyType) {
     const bgfx::Memory* verticesMem = nullptr;
     const bgfx::Memory* indicesMem = nullptr;
-    GetPrimitiveTypeData(verticesMem, indicesMem, type, abgr);
+    GetPrimitiveTypeData(verticesMem, indicesMem, type);
 
     vbh = bgfx::createDynamicVertexBuffer(verticesMem, layout);
     ibh = bgfx::createIndexBuffer(indicesMem);
@@ -28,9 +31,10 @@ Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
         bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %x",
                         type, vbh.idx, ibh.idx);
     } else {
-        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d Color: %x",
-                        type, vbh.idx, ibh.idx, abgr);
+        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d", type,
+                        vbh.idx, ibh.idx);
     }
+    textureHandle = texture.GetTextureHandle();
 
     SetPosition(position);
     SetRotation(rotation);
@@ -44,13 +48,14 @@ Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
     switch (bodyType) {
     case RigidBodyType::Static: {
         glm::vec3 normal = glm::vec3(0.0f, 1.0f, 0.0f);
-        glm::vec3 rotatedNormal = glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x),
-                                              glm::vec3(1.0f, 0.0f, 0.0f)) *
-                                  glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y),
-                                              glm::vec3(0.0f, 1.0f, 0.0f)) *
-                                  glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z),
-                                              glm::vec3(0.0f, 0.0f, 1.0f)) *
-                                  glm::vec4(normal, 1.0f);
+        glm::vec3 rotatedNormal =
+            glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x),
+                        glm::vec3(1.0f, 0.0f, 0.0f)) *
+            glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y),
+                        glm::vec3(0.0f, 1.0f, 0.0f)) *
+            glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z),
+                        glm::vec3(0.0f, 0.0f, 1.0f)) *
+            glm::vec4(normal, 1.0f);
         JPH::Vec3 joltNormal(rotatedNormal.x, rotatedNormal.y, rotatedNormal.z);
         bodyID = physicsCore.AddStaticPlane(joltPosition, joltNormal);
         bx::debugPrintf("Static Plane created: Type: %d vbh: %d ibh: %d", type,
@@ -66,7 +71,7 @@ Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
         } break;
         case PrimitiveType::Sphere: {
             bodyID =
-                physicsCore.AddDynamicSphere(size.x * 1.96, joltPosition, 1.0f);
+                physicsCore.AddDynamicSphere(size.x, joltPosition, 1.0f);
             bx::debugPrintf("Dynamic Sphere created: Type: %d vbh: %d ibh: %d",
                             type, vbh.idx, ibh.idx);
         } break;
@@ -80,7 +85,7 @@ Primitive::Primitive(Primitive&& other) noexcept {
     bodyType = other.bodyType;
     position = other.position;
     rotation = other.rotation;
-    abgr = other.abgr;
+    textureHandle = other.textureHandle;
     size = other.size;
     vbh = other.vbh;
     ibh = other.ibh;
@@ -119,32 +124,10 @@ Primitive::~Primitive() {
                     vbh.idx, ibh.idx);
 }
 
-void Primitive::SetColor(uint32_t abgr) {
-    if (abgr == this->abgr) {
-        return;
-    }
-    bx::debugPrintf(
-        "Primitive color changed: Type: %d vbh: %d ibh: %d Color: %x\n", type,
-        vbh.idx, ibh.idx, abgr);
-    const bgfx::Memory* verticesMem = nullptr;
-    switch (type) {
-    case PrimitiveType::Cube: {
-        PrimitiveCube cube(abgr);
-        verticesMem = bgfx::copy(cube.vertices, sizeof(cube.vertices));
-    } break;
-    case PrimitiveType::Plane: {
-        PrimitiveQuad quad(abgr);
-        verticesMem = bgfx::copy(quad.vertices, sizeof(quad.vertices));
-    } break;
-    case PrimitiveType::Sphere: {
-        PrimitiveIcosphere sphere(abgr);
-        verticesMem = bgfx::copy(sphere.vertices, sizeof(sphere.vertices));
-    } break;
-    default:
-        return;
-    }
-    this->abgr = abgr;
-    bgfx::update(vbh, 0, verticesMem);
+bgfx::TextureHandle Primitive::SetTexture() { return textureHandle; }
+
+void Primitive::UpdateTexture(Texture& texture) {
+    this->textureHandle = texture.GetTextureHandle();
 }
 
 void Primitive::SetPhysicsPosition(glm::vec3 position,
@@ -201,20 +184,20 @@ void Primitive::AddRotation(glm::vec3 rotation) {
 
 void Primitive::GetPrimitiveTypeData(const bgfx::Memory*& vertMem,
                                      const bgfx::Memory*& indiMem,
-                                     PrimitiveType type, uint32_t abgr) {
+                                     PrimitiveType type) {
     switch (type) {
     case PrimitiveType::Cube: {
-        PrimitiveCube cube(abgr);
+        PrimitiveCube cube;
         vertMem = bgfx::copy(cube.vertices, sizeof(cube.vertices));
         indiMem = bgfx::copy(cube.indices, sizeof(cube.indices));
     } break;
     case PrimitiveType::Plane: {
-        PrimitiveQuad quad(abgr);
+        PrimitiveQuad quad;
         vertMem = bgfx::copy(quad.vertices, sizeof(quad.vertices));
         indiMem = bgfx::copy(quad.indices, sizeof(quad.indices));
     } break;
     case PrimitiveType::Sphere: {
-        PrimitiveIcosphere sphere(abgr);
+        PrimitiveSphere sphere;
         vertMem = bgfx::copy(sphere.vertices, sizeof(sphere.vertices));
         indiMem = bgfx::copy(sphere.indices, sizeof(sphere.indices));
     } break;

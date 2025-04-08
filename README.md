@@ -11,8 +11,7 @@ cd ollebjor-osen-project
 cd vendor/SDL && ./configure && cd ../..
 # If Windows
 mv external/SDL_config_windows.h vendor/SDL/include/SDL_config.h
-mkdir build
-cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -Wno-dev -DCMAKE_BUILD_TYPE=Release -B build
+cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -Wno-dev -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -B build
 mv build/compile_commands.json ./
 cmake --build build
 ```

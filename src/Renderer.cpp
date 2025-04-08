@@ -78,13 +78,19 @@ bool Renderer::Init() {
         SDL_Quit();
         return false;
     }
-    uint64_t state = 0 | BGFX_STATE_DEFAULT;
-    // bgfx::setDebug(BGFX_DEBUG_STATS);
+    uint64_t state = 0 | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_RGB |
+                     BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS |
+                     BGFX_STATE_FRONT_CCW;
+    bgfx::setDebug(BGFX_DEBUG_TEXT);
 
     layout.begin()
         .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-        .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+        .add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
+        .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
         .end();
+
+    textureUniform =
+        bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
 
 #if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
     program = bgfx::createProgram(
@@ -130,10 +136,19 @@ bool Renderer::Init() {
 bool Renderer::Shutdown() {
 
     bgfx::destroy(program);
+    bgfx::destroy(textureUniform);
 
     bgfx::shutdown();
     SDL_DestroyWindow(window);
     return true;
+}
+
+void Renderer::SetTextureUniform(bgfx::TextureHandle texture) {
+    if (texture.idx == bgfx::kInvalidHandle) {
+        std::cerr << "Invalid texture handle" << std::endl;
+        return;
+    }
+    bgfx::setTexture(0, textureUniform, texture, 0);
 }
 
 void Renderer::SetTitle(std::string title) {
