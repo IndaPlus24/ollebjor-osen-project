@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Enums.hpp"
-#include "utils.hpp"
+#include "Renderer.hpp"
+#include "Texture.hpp"
 #include "Jolt/Jolt.h"
 #include "Jolt/Physics/Body/BodyID.h"
 #include "Jolt/Physics/Body/BodyInterface.h"
@@ -20,7 +21,7 @@ class Primitive {
     glm::vec3 rotation;
     glm::vec3 size;
     glm::mat4 transform;
-    uint32_t abgr;
+    bgfx::TextureHandle textureHandle;
 
     bgfx::DynamicVertexBufferHandle vbh;
     bgfx::IndexBufferHandle ibh;
@@ -29,21 +30,18 @@ class Primitive {
     JPH::BodyInterface* bodyInterface = nullptr;
 
     void GetPrimitiveTypeData(const bgfx::Memory*& vertMem,
-                              const bgfx::Memory*& indiMem, PrimitiveType type,
-                              uint32_t abgr = 0xffffff);
+                              const bgfx::Memory*& indiMem, PrimitiveType type);
     void QuaternionRotate(glm::mat4& result, const glm::vec3& axis,
                           float angle);
 
   public:
     Primitive(PrimitiveType type, RigidBodyType bodyType,
               PhysicsCore& physicsCore, bgfx::VertexLayout& layout,
-              uint32_t abgr = 0xffffff, glm::vec3 position = glm::vec3(0.0f),
+              Texture& texture, glm::vec3 position = glm::vec3(0.0f),
               glm::vec3 rotation = glm::vec3(0.0f),
               glm::vec3 size = glm::vec3(1.0f));
     Primitive(Primitive&& other) noexcept;
     Primitive(const Primitive&) = default;
-    Primitive& operator=(Primitive&&) = default;
-    Primitive& operator=(const Primitive&) = default;
     ~Primitive();
 
     inline void SetVertexBuffer() { bgfx::setVertexBuffer(0, vbh); }
@@ -58,7 +56,8 @@ class Primitive {
 
     inline void ApplyTransform() { bgfx::setTransform(&transform[0][0]); }
 
-    void SetColor(uint32_t abgr);
+    bgfx::TextureHandle SetTexture();
+    void UpdateTexture(Texture& texture);
 
     inline void SetPosition(glm::vec3 position) {
         this->position = position;
