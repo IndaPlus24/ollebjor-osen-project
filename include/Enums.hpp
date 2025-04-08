@@ -16,6 +16,14 @@ enum class RigidBodyType {
     Kinematic
 };
 
+enum class ColliderType {
+    Box,
+    Sphere,
+    Capsule,
+    Plane,
+    Mesh
+};
+
 enum class Keycode {
     UNKNOWN = SDLK_UNKNOWN,
     RETURN = SDL_SCANCODE_RETURN,

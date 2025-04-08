@@ -186,8 +186,8 @@ JPH::BodyID PhysicsCore::AddDynamicBox(const JPH::Vec3& position,
 
     // Define the body settings
     JPH::BodyCreationSettings bodySettings(
-        boxShape, position, JPH::Quat::sIdentity(),
-        JPH::EMotionType::Dynamic, Layers::MOVING);
+        boxShape, position, JPH::Quat::sIdentity(), JPH::EMotionType::Dynamic,
+        Layers::MOVING);
 
     // Set mass properties (important for dynamic bodies)
     bodySettings.mOverrideMassProperties =
@@ -243,9 +243,9 @@ JPH::BodyID PhysicsCore::AddDynamicSphere(float radius, JPH::RVec3 position,
     return bodyID;
 }
 
-JPH::BodyID PhysicsCore::AddStaticPlane(const JPH::Vec3& position, const JPH::Vec3& normal) {
+JPH::BodyID PhysicsCore::AddStaticPlane(const JPH::Vec3& position,
+                                        const JPH::Vec3& normal) {
     JPH::BodyInterface& bodyInterface = physicsSystem->GetBodyInterface();
-
 
     // Create a plane shape
     JPH::Plane planeSettinge(normal, 0);
@@ -262,6 +262,47 @@ JPH::BodyID PhysicsCore::AddStaticPlane(const JPH::Vec3& position, const JPH::Ve
     if (body) {
         bodyID = body->GetID();
         bodyInterface.AddBody(bodyID, JPH::EActivation::DontActivate);
+        return bodyID;
+    }
+    return JPH::BodyID(); // Return an invalid ID if body creation failed
+}
+
+JPH::BodyID PhysicsCore::AddStaticCollider(const JPH::Vec3& position,
+                                           const JPH::Ref<JPH::Shape>& shape) {
+    JPH::BodyInterface& bodyInterface = physicsSystem->GetBodyInterface();
+
+    // Define the body settings
+    JPH::BodyCreationSettings settings(shape, position, JPH::Quat::sIdentity(),
+                                       JPH::EMotionType::Static, 0);
+    // Create the body
+    JPH::BodyID bodyID;
+    JPH::Body* body = bodyInterface.CreateBody(settings);
+    if (body) {
+        bodyID = body->GetID();
+        bodyInterface.AddBody(bodyID, JPH::EActivation::DontActivate);
+        return bodyID;
+    }
+    return JPH::BodyID(); // Return an invalid ID if body creation failed
+}
+
+JPH::BodyID PhysicsCore::AddDynamicCollider(const JPH::Vec3& position,
+                                            const JPH::Ref<JPH::Shape> shape,
+                                            float mass) {
+    JPH::BodyInterface& bodyInterface = physicsSystem->GetBodyInterface();
+    // Define the body settings
+    JPH::BodyCreationSettings settings(shape, position, JPH::Quat::sIdentity(),
+                                       JPH::EMotionType::Dynamic, Layers::MOVING);
+    // Set mass properties (important for dynamic bodies)
+    settings.mOverrideMassProperties =
+        JPH::EOverrideMassProperties::CalculateInertia;
+    settings.mMassPropertiesOverride.mMass = mass;
+    // Create the body
+    JPH::BodyID bodyID;
+    JPH::Body* body = bodyInterface.CreateBody(settings);
+    if (body) {
+        bodyID = body->GetID();
+        bodyInterface.AddBody(bodyID, JPH::EActivation::Activate);
+        return bodyID;
     }
     return JPH::BodyID(); // Return an invalid ID if body creation failed
 }

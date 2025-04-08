@@ -4,6 +4,7 @@
 #include <Jolt/Physics/PhysicsSystem.h>
 #include "Jolt/Physics/Body/BodyActivationListener.h"
 #include "Jolt/Physics/Body/BodyID.h"
+#include "Jolt/Physics/Collision/Shape/Shape.h"
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
@@ -49,7 +50,7 @@ class BPLayerInterfaceImpl final : public JPH::BroadPhaseLayerInterface {
     GetBroadPhaseLayerName(JPH::BroadPhaseLayer inLayer) const override;
 #endif
 
-private:
+  private:
     JPH::BroadPhaseLayer mObjectToBroadPhase[Layers::NUM_LAYERS];
 };
 
@@ -69,20 +70,20 @@ class MyContactListener : public JPH::ContactListener {
     virtual void OnContactPersisted(const JPH::Body& inBody1,
                                     const JPH::Body& inBody2,
                                     const JPH::ContactManifold& inManifold,
-                                    JPH::ContactSettings& ioSettings) override; 
+                                    JPH::ContactSettings& ioSettings) override;
 
     virtual void
-    OnContactRemoved(const JPH::SubShapeIDPair& inSubShapePair) override; 
+    OnContactRemoved(const JPH::SubShapeIDPair& inSubShapePair) override;
 };
 
 // An example activation listener
 class MyBodyActivationListener : public JPH::BodyActivationListener {
   public:
     virtual void OnBodyActivated(const JPH::BodyID& inBodyID,
-                                 JPH::uint64 inBodyUserData) override; 
+                                 JPH::uint64 inBodyUserData) override;
 
     virtual void OnBodyDeactivated(const JPH::BodyID& inBodyID,
-                                   JPH::uint64 inBodyUserData) override; 
+                                   JPH::uint64 inBodyUserData) override;
 };
 
 class PhysicsCore {
@@ -102,12 +103,20 @@ class PhysicsCore {
 
     void Initialize();
     void Update(float deltaTime);
-    JPH::BodyID AddStaticBox(const JPH::Vec3& position, const JPH::Vec3& halfExtent);
-    JPH::BodyID AddDynamicBox(const JPH::Vec3& position, const JPH::Vec3& halfExtent,
-                       float mass);
-    JPH::BodyID AddDynamicSphere(float radius, JPH::RVec3 position, float mass = 1.0f);
-    JPH::BodyID AddStaticPlane(const JPH::Vec3& position, const JPH::Vec3& normal);
+    JPH::BodyID AddStaticBox(const JPH::Vec3& position,
+                             const JPH::Vec3& halfExtent);
+    JPH::BodyID AddDynamicBox(const JPH::Vec3& position,
+                              const JPH::Vec3& halfExtent, float mass);
+    JPH::BodyID AddDynamicSphere(float radius, JPH::RVec3 position,
+                                 float mass = 1.0f);
+    JPH::BodyID AddStaticPlane(const JPH::Vec3& position,
+                               const JPH::Vec3& normal);
 
+    JPH::BodyID AddStaticCollider(const JPH::Vec3& position,
+                                  const JPH::Ref<JPH::Shape>& shape);
+
+    JPH::BodyID AddDynamicCollider(const JPH::Vec3& position,
+                                   const JPH::Ref<JPH::Shape> shape, float mass);
     inline JPH::BodyInterface& GetBodyInterface() {
         return physicsSystem->GetBodyInterface();
     }

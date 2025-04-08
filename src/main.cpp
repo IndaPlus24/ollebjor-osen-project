@@ -1,4 +1,4 @@
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <Jolt/Jolt.h>
 #include <bgfx/bgfx.h>
 #include "bx/debug.h"
@@ -16,12 +16,16 @@
 #include "LuaCore.hpp"
 #include "PhysicsCore.hpp"
 #include "utils.hpp"
+#include "MeshContainer.hpp"
+#include "MeshEntity.hpp"
+#include "Collider.hpp"
 
 void KeyEvent(Keycode key, KeyState state, std::vector<Entity>& primitives) {
     bx::debugPrintf("Key event: %d, %d\n", key, state);
     if (state == KeyState::Release && key == Keycode::SPACE) {
         primitives[0].SetPhysicsPosition(glm::vec3{1.0f, 4.1f, 0.0f});
         primitives[1].SetPhysicsPosition(glm::vec3{0.0f, 2.0f, 0.0f});
+        primitives[3].SetPhysicsPosition(glm::vec3{0.0f, 7.0f, 0.0f});
     } else if (state == KeyState::Release && key == Keycode::W) {
         primitives[1].AddImpulse({1.0f, 10.0f, 0.0f});
         bx::debugPrintf("Added impules\n");
@@ -51,9 +55,16 @@ int main(int argc, char** argv) {
     {
         Texture texture =
             Texture("assets/amongus.jpg", bgfx::TextureFormat::RGB8);
+        MeshContainer mesh("assets/Suzane.obj");
+        MeshContainer mesh2("assets/Holder.obj");
+        Collider collider(ColliderType::Box, glm::vec3(0.0f), glm::vec3(0.0f),
+                          glm::vec3(1.0f, 1.0f, 1.2f));
+        Collider collider2(ColliderType::Mesh, glm::vec3(0.0f), glm::vec3(0.0f),
+                           glm::vec3(1.0f, 1.0f, 1.0f), mesh2.GetVertices(),
+                           mesh2.GetIndices());
 
         std::vector<Entity> primitives;
-        primitives.reserve(3);
+        primitives.reserve(5);
         primitives.push_back(Primitive(
             PrimitiveType::Cube, RigidBodyType::Dynamic, physicsCore,
             renderer.GetVertexLayout(), texture, glm::vec3{0.7f, 2.1f, 0.0f}));
@@ -64,6 +75,15 @@ int main(int argc, char** argv) {
             PrimitiveType::Plane, RigidBodyType::Static, physicsCore,
             renderer.GetVertexLayout(), texture, glm::vec3{0.0f, -2.5f, 0.0f},
             glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{10.0f, 1.0f, 10.0f}));
+        primitives.push_back(MeshEntity(
+            mesh, collider, RigidBodyType::Dynamic, physicsCore,
+            renderer.GetVertexLayout(), texture, glm::vec3{0.0f, 7.0f, 0.0f},
+            glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
+        primitives.push_back(MeshEntity(
+            mesh2, collider2, RigidBodyType::Static, physicsCore,
+            renderer.GetVertexLayout(), texture, glm::vec3{0.0f, 0.0f, 0.0f},
+            glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
+
         core.SetKeyEventCallback(std::bind(KeyEvent, std::placeholders::_1,
                                            std::placeholders::_2,
                                            std::ref(primitives)));
