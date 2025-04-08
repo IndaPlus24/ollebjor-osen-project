@@ -5,10 +5,9 @@
 class LuaVector3 {
   public:
     LuaVector3();
-    LuaVector3(glm::vec3 position);
+    LuaVector3(glm::vec3 vec);
+    LuaVector3(float x, float y, float z);
     ~LuaVector3();
-    void SetPosition(glm::vec3& position);
-    glm::vec3& GetPosition();
 
     float GetX() const;
     float GetY() const;

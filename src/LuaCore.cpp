@@ -3,7 +3,7 @@
 #include "LuaExporter.hpp"
 #include "LuaVector3.hpp"
 #include "LuaCore.hpp"
-#include "PrimitiveLua.hpp"
+#include "LuaPrimitive.hpp"
 
 namespace {
 int luaGetVersion(lua_State* L) {
@@ -70,8 +70,8 @@ void LuaCore::Init() {
     luaL_openlibs(L);
     registerGlobalFunction(luaGetVersion, "Version");
     overrideLuaLibFunctions();
-    // RegisterLuaClass(PrimitiveLua::luaName, PrimitiveLua::methods,
-    // PrimitiveLua::functions);
+    // RegisterLuaClass(LuaPrimitive::luaName, LuaPrimitive::methods,
+    // LuaPrimitive::functions);
     // InitializePrimitive();
 
     LuaExporter vector3(L, "Vector3");
@@ -83,6 +83,15 @@ void LuaCore::Init() {
         .Getter("Y", LuaVector3::luaGetY)
         .Getter("Z", LuaVector3::luaGetZ)
         .Getter("len", LuaVector3::luaGetLength)
+        .Getter("normalized", LuaVector3::luaNormalize)
+        .Export();
+
+    LuaExporter primitive(L, "Primitive");
+    primitive.Func("new", LuaPrimitive::luaNew, 1)
+        .Method("SetPosition", LuaPrimitive::luaSetPosition, 1)
+        .Method("GetPosition", LuaPrimitive::luaGetPosition, 0)
+        .Method("SetType", LuaPrimitive::luaSetType, 1)
+        .Method("GetType", LuaPrimitive::luaGetType, 0)
         .Export();
 }
 
@@ -93,13 +102,13 @@ void LuaCore::pcall(int nargs, int nresults, int errfunc) const {
     }
 }
 
-int print(lua_State* L) {
-    PrimitiveLua* i = (PrimitiveLua*)luaL_checkudata(
-        L, 1, PrimitiveLua::metatableName.c_str());
-    luaL_argcheck(L, L != nullptr, 1, "'Primitive' expected in gc");
-    std::cout << "Garbage collection" << std::endl;
-    return 0;
-}
+// int print(lua_State* L) {
+//     LuaPrimitive* i = (LuaPrimitive*)luaL_checkudata(
+//         L, 1, LuaPrimitive::metatableName.c_str());
+//     luaL_argcheck(L, L != nullptr, 1, "'Primitive' expected in gc");
+//     std::cout << "Garbage collection" << std::endl;
+//     return 0;
+// }
 
 LuaCore::LuaCore() { L = luaL_newstate(); }
 LuaCore::~LuaCore() {

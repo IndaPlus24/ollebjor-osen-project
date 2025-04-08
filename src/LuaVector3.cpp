@@ -1,17 +1,14 @@
 #include "LuaVector3.hpp"
-#include "lauxlib.h"
-#include "lua.h"
+#include <cstdio>
 
 LuaVector3::LuaVector3() : position(0.0f, 0.0f, 0.0f) {}
 LuaVector3::LuaVector3(glm::vec3 position) : position(position) {}
+LuaVector3::LuaVector3(float x, float y, float z) : position(x, y, z) {}
 
 LuaVector3::~LuaVector3() {
     // Destructor logic if needed
     // std::cout << "LuaVector3 destructor called for vector" << std::endl;
 }
-
-void LuaVector3::SetPosition(glm::vec3& position) { this->position = position; }
-glm::vec3& LuaVector3::GetPosition() { return position; }
 
 float LuaVector3::GetX() const { return position.x; }
 float LuaVector3::GetY() const { return position.y; }
@@ -78,22 +75,36 @@ int LuaVector3::luaCross(lua_State* L) {
     return luaNewVector3(L);
 }
 
+int LuaVector3::luaGetLength(lua_State* L) {
+    int i = lua_upvalueindex(1);
+    const char* mtName = lua_tostring(L, i);
+    LuaVector3* vec = (LuaVector3*)luaL_checkudata(L, 1, mtName);
+    lua_pushnumber(L, vec->GetLength());
+    return 1;
+}
+
+//Creates a normalized copy of the vector and returns it
+int LuaVector3::luaNormalize(lua_State *L) {
+    int i = lua_upvalueindex(1);
+    const char* mtName = lua_tostring(L, i);
+    LuaVector3* vec = (LuaVector3*)luaL_checkudata(L, 1, mtName);
+    lua_pop(L, 1); // Pop the userdata from the stack to create new ones
+    LuaVector3 normalized = vec->Normalize();
+    lua_pushnumber(L, normalized.GetX());
+    lua_pushnumber(L, normalized.GetY());
+    lua_pushnumber(L, normalized.GetZ());
+    return luaNewVector3(L);
+}
+
 int LuaVector3::luaNewVector3(lua_State* L) {
     int i = lua_upvalueindex(1);
     const char* mtName = lua_tostring(L, i);
+    printf(mtName);
     float x = luaL_checknumber(L, 1);
     float y = luaL_checknumber(L, 2);
     float z = luaL_checknumber(L, 3);
     LuaVector3* vec = (LuaVector3*)lua_newuserdata(L, sizeof(LuaVector3));
     new (vec) LuaVector3(glm::vec3(x, y, z)); // Placement new
     luaL_setmetatable(L, mtName);
-    return 1;
-}
-
-int LuaVector3::luaGetLength(lua_State* L) {
-    int i = lua_upvalueindex(1);
-    const char* mtName = lua_tostring(L, i);
-    LuaVector3* vec = (LuaVector3*)luaL_checkudata(L, 1, mtName);
-    lua_pushnumber(L, vec->GetLength());
     return 1;
 }
