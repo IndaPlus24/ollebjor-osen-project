@@ -1,35 +1,19 @@
 print("Lua execution started [Version " .. Version() .. "]")
-
--- local function printPos(p)
--- 	local pos = p.Position
--- 	print("Position: ", pos.x, pos.y, pos.z)
--- end
+local d = require("LoonarDebug")
 
 local v = Vector3.new(1, 2, 3)
 local u = Vector3.new(2, 4, 6)
 
-local t = getmetatable(v)
+d.PrintMetatable(v)
 
-for key, value in pairs(t) do
-    print(key, value)
-end
+local dot = v:Dot(u)
+print("Dot product: ", dot)
+
+local cross = v:Cross(u)
+print("Cross product: ", cross)
+
+print("u: ", u.X, u.Y, u.Z)
+print("v: ", v.X, v.Y, v.Z)
 
 
-
-local p = v:Dot(u)
- print("Dot product: ", p)
-
--- for i = 1, 10, 1 do
--- 	local p = Primitive.new()
--- 	p.Position = {
--- 		x = i * 2,
--- 		y = i * 2,
--- 		z = i * 2,
--- 	}
--- 	for key, value in pairs(p:GetPosition()) do
--- 		print(key, value)
--- 	end
--- end
--- -- local p = Primitive.new()
--- -- printPos(p)
 print("Lua executed successfully")

@@ -1,14 +1,15 @@
 #include "LuaExporter.hpp"
-#include "lauxlib.h"
 #include "lua.h"
+#include <iostream>
 #include <lua.hpp>
 #include <string>
 #include <vector>
+
 struct LuaClass {};
 
 LuaExporter::LuaExporter(lua_State* L, std::string name) {
     this->name = name;
-    this->metatableName = name + ".Metatable";
+    this->metatableName = name + ".Metatble";
     this->L = L;
 }
 
@@ -43,33 +44,108 @@ LuaExporter LuaExporter::Funcs(luaL_Reg funcs[]) {
     return *this;
 }
 
+LuaExporter LuaExporter::Getter(std::string name, lua_CFunction getter) {
+    luaL_Reg prop = {name.c_str(), getter};
+    getters.push_back(prop);
+    return *this;
+}
+
+int __index(lua_State* L) {
+    int i = lua_upvalueindex(1);
+    const char* mtName = lua_tostring(L, i);
+    void* vec = (void*)luaL_checkudata(L, 1, mtName);
+
+    const char* key = luaL_checkstring(L, 2);
+    int type = lua_type(L, 2);
+    lua_pop(L, 1); // Pop the key off the stack
+
+    if (type == LUA_TSTRING) {
+        //std::cout << "It is a string: " << key << std::endl;
+    } else {
+        return luaL_error(L, "Invalid key type, only strings are supported. "
+                             "This might change in the future.");
+    }
+
+    lua_getmetatable(L, 1); 
+    lua_getfield(L, -1, "__get"); 
+    lua_getfield(L, -1, key); 
+
+    //First check __get
+    if (!lua_isnil(L, -1)) {
+        //We have the getter function on the top of the stack
+        lua_remove(L, -2); 
+        lua_remove(L, -2); 
+        lua_insert(L, -2);
+        int status = lua_pcall(L, 1, 1, 0);
+        if (status != LUA_OK) {
+            const char* error = lua_tostring(L, -1);
+            std::cerr << "Error in __index: " << error << std::endl;
+            lua_pop(L, 1); // Pop the error message off the stack
+            return 0;
+        }
+        return 1;
+    }
+
+    lua_pop(L, 2); // Pop the nil value and __get of the stack
+    //Then check __methods
+    lua_getfield(L, -1, "__methods");
+    lua_getfield(L, -1, key);
+    return 1;
+}
+
 void LuaExporter::Export() {
     funcs.push_back({nullptr, nullptr});       // End of the functions array
     methods.push_back({nullptr, nullptr});     // End of the methods array
     metamethods.push_back({nullptr, nullptr}); // End of the metamethods array
-    properties.push_back({nullptr, nullptr});  // End of the properties array
+    getters.push_back({nullptr, nullptr});     // End of the getters array
 
-    int ok = luaL_newmetatable(
-        L, metatableName.c_str()); // Pushes a new table onto the stack
-    luaL_setfuncs(L, methods.data(),
-                  0); // Register all methods in the array to the table
+    // Push a new (meta)table onto the stack
+    int ok = luaL_newmetatable(L, metatableName.c_str());
+
+    // Create a new table for the __methods field OBS:__methods is not a
+    // metamethod
+    // metatable.__methods = methods 
+    lua_newtable(L);
+    lua_pushstring(L, metatableName.c_str());
+    luaL_setfuncs(L, methods.data(), 1);
+    lua_setfield(L, -2, "__methods");
+    
+    // metatable.__get = getters
+    lua_newtable(L);
+    lua_pushstring(L, metatableName.c_str());
+    luaL_setfuncs(L, getters.data(), 1);
+    lua_setfield(L, -2, "__get");
+    
+    // metatable.__set = setters
+    lua_newtable(L);
+    lua_pushstring(L, metatableName.c_str());
+    luaL_setfuncs(L, getters.data(), 1);
+    lua_setfield(L, -2, "__set");
+    
+    //Set normal metamethods directly to the metatable
     luaL_setfuncs(L, metamethods.data(), 0);
 
-    //Check to see if the metatable has a __index field
+    // Check to see if the metatable manually set __index field
     lua_getfield(L, -1, "__index");
-    if (lua_isnil(L, -1)){
+    if (lua_isnil(L, -1)) {
         lua_pop(L, 1);
-        //TODO: set metatable.__index = metatable
-        lua_pushvalue(L, -1); // Pushes the metatable onto the stack again
+        // TODO: set metatable.__index = metatable
+        // lua_pushvalue(L, -1); // Pushes the metatable onto the stack again
+        // lua_getfield(L, -1, "__methods");
+        lua_pushstring(
+            L, metatableName.c_str()); // Pushes the name of the metatable
+        lua_pushcclosure(L, __index, 1);
         lua_setfield(L, -2, "__index"); // metatable.__index = metatable
-        lua_pop(L, 1); // Pop the metatable off the stack
-    }else{
-        lua_pop(L, 2); //Pop the metatable and the function value off the stack
+        lua_pop(L, 1);                  // Pop the metatable off the stack
+    } else {
+        lua_pop(L, 2); // Pop the metatable and the function value off the stack
     }
 
     lua_createtable(L, 0, 1); // Create library table
+    lua_pushstring(L,
+                   metatableName.c_str()); // Pushes the name of the metatable
     luaL_setfuncs(L, funcs.data(),
-                  0); // Register all methods in the array to the table
+                  1); // Register all methods in the array to the table
     // TODO: set metatable for library table so it cannot be overwritten
 
     lua_setglobal(

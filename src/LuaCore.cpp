@@ -5,13 +5,12 @@
 #include "LuaCore.hpp"
 #include "PrimitiveLua.hpp"
 
-const std::string LuaCore::Version = "0.1.2";
-
 namespace {
 int luaGetVersion(lua_State* L) {
     lua_pushstring(L, LuaCore::Version.c_str());
     return 1;
 }
+
 } // namespace
 namespace {
 int luaPrintOverride(lua_State* L) {
@@ -41,33 +40,12 @@ void LuaCore::registerGlobalFunction(lua_CFunction func,
     lua_setglobal(L, luaFName.c_str());
 }
 
-void LuaCore::RegisterLuaClass(std::string name, const luaL_Reg methods[],
-                               const luaL_Reg funcs[]) const {
-
-    std::string mtName = name + ".Metatable";
-    int ok = luaL_newmetatable(
-        L, mtName.c_str()); // Pushes a new table onto the stack
-    luaL_setfuncs(L, methods,
-                  0);     // Register all methods in the array to the table
-    lua_pushvalue(L, -1); // Pushes the metatable onto the stack again
-    lua_setfield(L, -2, "__index"); // metatable.__index = metatable
-    lua_pop(L, 1);
-
-    lua_createtable(L, 0, 1);             // Create library table
-    luaL_setmetatable(L, mtName.c_str()); // Set the metatable for the table)
-
-    luaL_setfuncs(L, funcs,
-                  0); // Register all methods in the array to the table
-    lua_setglobal(
-        L, name.c_str()); // Consume the top of the stack and make it a global
-}
-
 void LuaCore::Run(std::string script) const {
-    Prepare(script);
+    prepare(script);
     pcall(0, 0, 0);
 }
 
-void LuaCore::Prepare(std::string script) const {
+void LuaCore::prepare(std::string script) const {
     if (luaL_loadfile(L, script.c_str())) {
         std::cerr << "Failed to prepare file: " << lua_tostring(L, -1)
                   << std::endl;
@@ -99,14 +77,13 @@ void LuaCore::Init() {
     LuaExporter vector3(L, "Vector3");
     vector3.Func("new", LuaVector3::luaNewVector3, 3)
         .Method("Dot", LuaVector3::luaDot, 1)
+        .Method("Cross", LuaVector3::luaCross, 1)
+        .Method("GetLength", LuaVector3::luaGetLength, 0)
+        .Getter("X", LuaVector3::luaGetX)
+        .Getter("Y", LuaVector3::luaGetY)
+        .Getter("Z", LuaVector3::luaGetZ)
+        .Getter("len", LuaVector3::luaGetLength)
         .Export();
-
-    LuaExporter primitive(L, "Primitive");
-    // primitive.Func("new", PrimitiveLua::luaNewPrimitive, 0)
-    //     .Method("SetPosition", PrimitiveLua::luaSetPosition, 1)
-    //     .Method("GetPosition", PrimitiveLua::luaGetPosition, 0)
-    //     .Method("GetName", PrimitiveLua::luaGetName, 0)
-    //     .Export();
 }
 
 void LuaCore::pcall(int nargs, int nresults, int errfunc) const {
@@ -122,49 +99,6 @@ int print(lua_State* L) {
     luaL_argcheck(L, L != nullptr, 1, "'Primitive' expected in gc");
     std::cout << "Garbage collection" << std::endl;
     return 0;
-}
-
-int LuaCore::InitializePrimitive() {
-
-    int ok =
-        luaL_newmetatable(L, PrimitiveLua::metatableName
-                                 .c_str()); // Pushes a new table onto the stack
-    luaL_setfuncs(L, PrimitiveLua::methods,
-                  0); // Register all methods in the array to the table
-
-    lua_pushcfunction(L, PrimitiveLua::luaIndexPrimitive);
-    lua_setfield(L, -2, "__index"); // metatable.__index = metatable
-
-    lua_pushcfunction(L, print);
-    lua_setfield(L, -2,
-                 "__gc"); // metatable.__gc = PrimitiveLua::luaIndexPrimitive
-
-    lua_pushcfunction(L, PrimitiveLua::luaNewIndexPrimitive);
-    lua_setfield(L, -2,
-                 "__newindex"); // metatable.__newindex =
-                                // PrimitiveLua::luaNewIndexPrimitive
-
-    lua_pop(L, 1);
-
-    lua_createtable(L, 0, 1); // Create library table
-    // luaL_setmetatable(L, PrimitiveLua::metatableName
-    //                          .c_str()); // Set the metatable for the table)
-
-    luaL_setfuncs(L, PrimitiveLua::functions,
-                  0); // Register all methods in the array to the table
-    lua_setglobal(
-        L, PrimitiveLua::luaName
-               .c_str()); // Consume the top of the stack and make it a global
-
-    return 1;
-}
-
-void LuaCore::ExportVector3() const {
-
-    // LuaType Vector3 = LuaCore::CreateType(L, "Vector3"); --Creates a new
-    // LuaType class which handles the creation of the Vector3 class
-    // Vector3.AddFunc("new", &Vector3::luaNew);
-    // Vector3.AddMethod("GetPosition", &Vector3::luaGetPosition);
 }
 
 LuaCore::LuaCore() { L = luaL_newstate(); }

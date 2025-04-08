@@ -1,18 +1,9 @@
 #pragma once
-#include <cstddef>
-#include <lua.hpp> // Ensure LuaClass is defined in this header file
-#include "lauxlib.h"
+#include <lua.hpp>
 #include <string>
 
-#define NUM_LUA_EXPORTS 1
 
-// The Lua class helps with functions and utility surrounding lua.
-
-struct luaExport {
-    std::string name;
-    const luaL_Reg methods[];
-};
-
+// The Lua core helps with functions and utility surrounding lua.
 class LuaCore {
   public:
     LuaCore();
@@ -20,24 +11,22 @@ class LuaCore {
 
     void Init();
 
+    //Prepares and runs the specified Lua script.
     void Run(std::string path) const;
+    //Sets a global variable in the Lua state. Currently only works with strings.FIXME
     void SetGlobal(std::string name, std::string value) const;
     std::string GetGlobal(std::string name) const;
-    void RegisterLuaClass(std::string name, const luaL_Reg methods[],
-                          const luaL_Reg funcs[]) const;
 
-    static const std::string Version;
+    inline static const std::string Version = "0.1.3";
 
   private:
     static const struct luaL_Reg overrides[];
-    int InitializePrimitive();
-    void ExportVector3() const;
-    void Prepare(std::string path) const;
+
+
+    void prepare(std::string path) const;
     void pcall(int narg, int nres, int errfunc) const;
     void registerGlobalFunction(lua_CFunction func, std::string luaFName) const;
     void overrideLuaLibFunctions() const;
-
-    static luaExport luaExports[];
 
     lua_State* L;
 };
