@@ -21,7 +21,7 @@ void KeyEvent(Keycode key, KeyState state, std::vector<Primitive>& primitives) {
         primitives[0].SetPhysicsPosition(glm::vec3{1.0f, 4.1f, 0.0f});
         primitives[1].SetPhysicsPosition(glm::vec3{0.0f, 2.0f, 0.0f});
     } else if (state == KeyState::Release && key == Keycode::W) {
-        primitives[1].AddImpulse({-1.0f, 10.0f, 0.0f});
+        primitives[1].AddImpulse({1.0f, 10.0f, 0.0f});
         bx::debugPrintf("Added impules\n");
     }
 }
@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     const double FIXED_TIMESTEP = 1.0f / 60.0f;
     double accumulator = 0;
     bx::debugPrintf("Starting application\n");
-  
+
     LuaCore lua;
     lua.Init();
     lua.Run("scripts/test.lua");
@@ -45,20 +45,22 @@ int main(int argc, char** argv) {
     Renderer renderer = Renderer("Hello World", 1280/10, 720/10);
     renderer.Init();
 
+
     renderer.SetViewClear();
     {
+        Texture texture = Texture("assets/amongus.jpg", bgfx::TextureFormat::RGB8);
+
         std::vector<Primitive> primitives;
-        primitives.emplace_back(PrimitiveType::Sphere, RigidBodyType::Dynamic,
-                                physicsCore, renderer.GetVertexLayout(),
-                                0xff0055ff, glm::vec3{0.7f, 2.1f, 0.0f});
         primitives.emplace_back(PrimitiveType::Cube, RigidBodyType::Dynamic,
                                 physicsCore, renderer.GetVertexLayout(),
-                                0xff0000ff, glm::vec3{0.0f, 0.0f, 0.0f});
-        primitives.emplace_back(PrimitiveType::Plane, RigidBodyType::Static,
+                                texture, glm::vec3{0.7f, 2.1f, 0.0f});
+        primitives.emplace_back(PrimitiveType::Sphere, RigidBodyType::Dynamic,
                                 physicsCore, renderer.GetVertexLayout(),
-                                0xffffffff, glm::vec3{0.0f, -2.5f, 0.0f},
-                                glm::vec3{0.0f, 0.0f, 0.0f},
-                                glm::vec3{10.0f, 1.0f, 10.0f});
+                                texture, glm::vec3{0.0f, 0.0f, 0.0f});
+        primitives.emplace_back(
+            PrimitiveType::Plane, RigidBodyType::Static, physicsCore,
+            renderer.GetVertexLayout(), texture, glm::vec3{0.0f, -2.5f, 0.0f},
+            glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{10.0f, 1.0f, 10.0f});
         core.SetKeyEventCallback(std::bind(KeyEvent, std::placeholders::_1,
                                            std::placeholders::_2,
                                            std::ref(primitives)));
@@ -96,7 +98,7 @@ int main(int argc, char** argv) {
             renderer.GetWindowSize(width, height);
 
             const bx::Vec3 at = {0.0f, 0.0f, 0.0f};
-            const bx::Vec3 eye = {-6.0f, 0.0f, -6.0f};
+            const bx::Vec3 eye = {-6.0f, 3.0f, -6.0f};
             float view[16];
             bx::mtxLookAt(view, eye, at);
             float proj[16];
@@ -108,6 +110,7 @@ int main(int argc, char** argv) {
                 primitive.SetVertexBuffer();
                 primitive.SetIndexBuffer();
                 primitive.ApplyTransform();
+                renderer.SetTextureUniform(primitive.SetTexture());
                 bgfx::submit(0, renderer.GetProgramHandle());
             }
 
