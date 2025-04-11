@@ -4,6 +4,7 @@
 #include "LuaVector3.hpp"
 #include "LuaCore.hpp"
 #include "LuaPrimitive.hpp"
+#include "LuaPrimitive.hpp"
 
 namespace {
 int luaGetVersion(lua_State* L) {
@@ -74,8 +75,8 @@ void LuaCore::Init() {
     // LuaPrimitive::functions);
     // InitializePrimitive();
 
-    LuaExporter vector3(L, "Vector3");
-    vector3.Func("new", LuaVector3::luaNewVector3, 3)
+    LuaExporter<LuaVector3> vector3(L, "Vector3", false, true);
+    vector3.Constructor(LuaVector3::luaNew, 3)
         .Method("Dot", LuaVector3::luaDot, 1)
         .Method("Cross", LuaVector3::luaCross, 1)
         .Method("GetLength", LuaVector3::luaGetLength, 0)
@@ -86,8 +87,8 @@ void LuaCore::Init() {
         .Getter("normalized", LuaVector3::luaNormalize)
         .Export();
 
-    LuaExporter primitive(L, "Primitive");
-    primitive.Func("new", LuaPrimitive::luaNew, 1)
+    LuaExporter<LuaPrimitive> primitive(L, "Primitive", false, true);
+    primitive.Constructor(LuaPrimitive::luaNew, 1)
         .Method("SetPosition", LuaPrimitive::luaSetPosition, 1)
         .Method("GetPosition", LuaPrimitive::luaGetPosition, 0)
         .Method("SetType", LuaPrimitive::luaSetType, 1)

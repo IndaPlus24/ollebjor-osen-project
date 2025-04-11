@@ -2,7 +2,6 @@
 #include <lua.hpp>
 #include <string>
 
-
 // The Lua core helps with functions and utility surrounding lua.
 class LuaCore {
   public:

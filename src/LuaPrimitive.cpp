@@ -1,6 +1,9 @@
+#include "LuaExporter.hpp"
+
 #include "LuaPrimitive.hpp"
-#include "Enums.hpp"
 #include "LuaVector3.hpp"
+
+#include "Enums.hpp"
 #include <lua.hpp>
 #include <iostream>
 #include <glm/glm.hpp>
@@ -66,53 +69,51 @@ PrimitiveType IntToPrimitiveType(int type) {
 }
 
 int LuaPrimitive::luaGetType(lua_State* L) {
-    const char* mtName = lua_tostring(L, lua_upvalueindex(1));
-    LuaPrimitive* primitive = (LuaPrimitive*)(luaL_checkudata(L, 1, mtName));
-
-    PrimitiveType type = primitive->GetType();
+    LuaPrimitive* self =
+        MetatableRegistry::instance().check_userdata<LuaPrimitive>(L, 1);
+    PrimitiveType type = self->GetType();
     int typeInt = PrimitiveTypeToInt(type);
     lua_pushinteger(L, typeInt);
     return 1;
 }
 
 int LuaPrimitive::luaSetType(lua_State* L) {
-    const char* mtName = lua_tostring(L, lua_upvalueindex(1));
-    LuaPrimitive* primitive = (LuaPrimitive*)(luaL_checkudata(L, 1, mtName));
-
+    LuaPrimitive* self =
+        MetatableRegistry::instance().check_userdata<LuaPrimitive>(L, 1);
     int typeInt = luaL_checkinteger(L, 2);
     PrimitiveType type = IntToPrimitiveType(typeInt);
-    primitive->SetType(type);
+    self->SetType(type);
     return 0;
 }
 
 // Returns a copy of the position vector
 int LuaPrimitive::luaGetPosition(lua_State* L) {
-    const char* mtName = lua_tostring(L, lua_upvalueindex(1));
-    LuaPrimitive* primitive = (LuaPrimitive*)(luaL_checkudata(L, 1, mtName));
-    LuaVector3& pos = primitive->GetPosition();
-    lua_pop(L, 1);
-    lua_pushnumber(L, pos.GetX());
-    lua_pushnumber(L, pos.GetY());
-    lua_pushnumber(L, pos.GetZ());
-    return LuaVector3::luaNewVector3(L);
+    LuaPrimitive* self =
+        MetatableRegistry::instance().check_userdata<LuaPrimitive>(L, 1);
+    LuaVector3& pos = self->GetPosition();
+    MetatableRegistry::instance().create_and_push<LuaVector3>(
+        L, pos.GetX(), pos.GetY(), pos.GetZ());
+    return 1;
 }
 
 int LuaPrimitive::luaSetPosition(lua_State* L) {
-    const char* mtName = lua_tostring(L, lua_upvalueindex(1));
-    LuaPrimitive* primitive = (LuaPrimitive*)(luaL_checkudata(L, 1, mtName));
-    LuaVector3* position = (LuaVector3*)(luaL_checkudata(
-        L, 2, "Vector3.Metatable")); // FIXME: this should not be hardcoded
-    primitive->SetPosition(*position);
+    LuaPrimitive* self =
+        MetatableRegistry::instance().check_userdata<LuaPrimitive>(L, 1);
+    LuaVector3* position =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 2);
+
+    if (position) {
+        self->SetPosition(*position);
+    } else {
+        std::cerr << "Invalid position vector" << std::endl;
+        return luaL_error(L, "Invalid position vector");
+    }
     return 0;
 }
 
 int LuaPrimitive::luaNew(lua_State* L) {
-    const char* mtName = lua_tostring(L, lua_upvalueindex(1));
-    LuaPrimitive* primitive =
-        (LuaPrimitive*)lua_newuserdatauv(L, sizeof(LuaPrimitive), 0);
-    // TODO: Fix this so that it it has optional parameters, and the type is not
-    // hardcoded
-    new (primitive) LuaPrimitive(PrimitiveType::Cube); // Default to Cube type
-    luaL_setmetatable(L, mtName);
+    //TODO: make it so that it can set the type
+    //TODO: Tell Scene manager to create a primitive and recieve the id and pointer to that
+    MetatableRegistry::instance().create_and_push<LuaPrimitive>(L, PrimitiveType::Cube);
     return 1;
 }

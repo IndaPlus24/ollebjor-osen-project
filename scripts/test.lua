@@ -1,10 +1,24 @@
 print("Lua execution started [Version " .. Version() .. "]")
 --local d = require("./LoonarDebug")
 
+function PrintMetatable(t)
+    local mt = getmetatable(t)
+    if mt then
+        print("Metatable:")
+        for key, value in pairs(mt) do
+            print(key, value)
+        end
+    else
+        print("No metatable found.")
+    end
+end
+
 local v = Vector3.new(1, 2, 3)
 local u = Vector3.new(2, 4, 6)
 
---d.PrintMetatable(v)
+PrintMetatable(v)
+
+-- d.PrintMetatable(v)
 
 local dot = v:Dot(u)
 print("Dot product: ", dot)
