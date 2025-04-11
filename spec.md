@@ -120,3 +120,17 @@ end)
 |Lua is too difficult| Perchance it is |
 |Too much time for timeframe| Maybe we took water over our heads (bit off more than we can chew) |
 |Project being bought by google| It was too good, they bought it for 100M USD|
+
+## Diagrams
+
+### Architecture
+
+![architecture](./main-program.png)
+
+### Resource management
+
+![resource management](./resource-system.png)
+
+### Lua callbacks
+
+![lua callbacks](./callback-system.png)
