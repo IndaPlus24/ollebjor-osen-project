@@ -110,8 +110,10 @@ int main(int argc, char** argv) {
                             primitive.GetBodyID());
                     primitive.SetTransform(ToGLM(transform));
                 }
+                core.CallPhysicsStep(FIXED_TIMESTEP);
                 accumulator -= FIXED_TIMESTEP;
             }
+            core.CallUpdate(core.GetDeltaTime());
 
             // This dummy draw call is here to make sure that view 0 is cleared
             // if no other draw calls are submitted to view 0.

@@ -87,6 +87,20 @@ void Core::CallKeyboardEvent() {
     }
 }
 
+void Core::CallPhysicsStep(double deltaTime) {
+    if (physicsStepCallback == nullptr) {
+        return;
+    }
+    physicsStepCallback(deltaTime);
+}
+
+void Core::CallUpdate(double deltaTime) {
+    if (updateCallback == nullptr) {
+        return;
+    }
+    updateCallback(deltaTime);
+}
+
 void Core::SetKeyEventCallback(
     std::function<void(Keycode, KeyState)> callback) {
     keyEventCallback = callback;
@@ -104,6 +118,14 @@ void Core::SetMouseButtonEventCallback(
 
 void Core::SetMouseWheelEventCallback(std::function<void(int, int)> callback) {
     mouseWheelEventCallback = callback;
+}
+
+void Core::SetPhysicsStepCallback(std::function<void(double)> callback) {
+    physicsStepCallback = callback;
+}
+
+void Core::SetUpdateCallback(std::function<void(double)> callback) {
+    updateCallback = callback;
 }
 
 double Core::GetDeltaTime() {
