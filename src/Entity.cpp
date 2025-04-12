@@ -30,6 +30,27 @@ Entity::Entity(Entity&& other) noexcept {
     other.textureHandle.idx = bgfx::kInvalidHandle;
 }
 
+Entity& Entity::operator=(Entity&& other) noexcept {
+    if (this != &other) {
+        bodyType = other.bodyType;
+        position = other.position;
+        rotation = other.rotation;
+        size = other.size;
+        transform = other.transform;
+        textureHandle = other.textureHandle;
+        vbh = other.vbh;
+        ibh = other.ibh;
+        bodyID = other.bodyID;
+        bodyInterface = other.bodyInterface;
+
+        other.bodyInterface = nullptr;
+        other.bodyID = JPH::BodyID();
+        other.vbh.idx = bgfx::kInvalidHandle;
+        other.ibh.idx = bgfx::kInvalidHandle;
+    }
+    return *this;
+}
+
 Entity::~Entity() {
     bool isInvalidVBH = vbh.idx == bgfx::kInvalidHandle;
     bool isInvalidIBH = ibh.idx == bgfx::kInvalidHandle;

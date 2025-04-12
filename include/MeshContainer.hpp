@@ -14,7 +14,8 @@ class MeshContainer {
 
   public:
     MeshContainer(const std::string& path);
-    MeshContainer(MeshContainer&&) = default;
+    MeshContainer(MeshContainer&& other) noexcept;
+    MeshContainer& operator=(MeshContainer&& other) noexcept;
     ~MeshContainer();
 
     inline const std::vector<Vertex>& GetVertices() const { return vertices; }

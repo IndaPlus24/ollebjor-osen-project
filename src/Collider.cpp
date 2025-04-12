@@ -82,6 +82,18 @@ Collider::Collider(Collider&& other) noexcept
     other.shape = nullptr;
 }
 
+Collider& Collider::operator=(Collider&& other) noexcept {
+    if (this != &other) {
+        type = other.type;
+        position = other.position;
+        rotation = other.rotation;
+        size = other.size;
+        shape = std::move(other.shape);
+        other.shape = nullptr;
+    }
+    return *this;
+}
+
 Collider::~Collider() {
     if (shape != nullptr) {
         bx::debugPrintf("Collider destructor\n");

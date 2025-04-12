@@ -20,9 +20,7 @@ class Texture {
     Texture(const std::string& filePath,
             bgfx::TextureFormat::Enum format = bgfx::TextureFormat::Unknown, uint32_t flags = 0);
     Texture(Texture&& other) noexcept;
-    Texture(const Texture&) = default;
-    Texture& operator=(Texture&&) = default;
-    Texture& operator=(const Texture&) = default;
+    Texture& operator=(Texture&& other) noexcept;
     ~Texture();
 
     inline bgfx::TextureHandle GetTextureHandle() const {

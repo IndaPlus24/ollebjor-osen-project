@@ -3,8 +3,8 @@
 #include <bgfx/bgfx.h>
 #include "bx/debug.h"
 #include <functional>
+#include <memory>
 #include <glm/glm.hpp>
-#include <vector>
 #include "Enums.hpp"
 
 #include "Entity.hpp"
@@ -19,15 +19,21 @@
 #include "MeshEntity.hpp"
 #include "Collider.hpp"
 #include "Camera.hpp"
+#include "SceneManager.hpp"
 
-void KeyEvent(Keycode key, KeyState state, std::vector<Entity>& primitives) {
+void KeyEvent(Keycode key, KeyState state,
+              std::unordered_map<uint64_t, Entity*>& entities) {
     bx::debugPrintf("Key event: %d, %d\n", key, state);
     if (state == KeyState::Release && key == Keycode::SPACE) {
-        primitives[0].SetPhysicsPosition(glm::vec3{1.0f, 4.1f, 0.0f});
-        primitives[1].SetPhysicsPosition(glm::vec3{0.0f, 2.0f, 0.0f});
-        primitives[3].SetPhysicsPosition(glm::vec3{0.0f, 7.0f, 0.0f});
+        // entities[0].SetPhysicsPosition(glm::vec3{1.0f, 4.1f, 0.0f});
+        // entities[1].SetPhysicsPosition(glm::vec3{0.0f, 2.0f, 0.0f});
+        // entities[3].SetPhysicsPosition(glm::vec3{0.0f, 7.0f, 0.0f});
     } else if (state == KeyState::Release && key == Keycode::W) {
-        primitives[1].AddImpulse({1.0f, 10.0f, 0.0f});
+        for (auto& entity : entities) {
+            if (entity.second->GetBodyType() == RigidBodyType::Dynamic) {
+                entity.second->AddImpulse(glm::vec3{0.0f, 10.0f, 0.0f});
+            }
+        }
         bx::debugPrintf("Added impules\n");
     }
 }
@@ -57,43 +63,56 @@ int main(int argc, char** argv) {
     camera.LookAt({0.0f, 0.0f, 0.0f});
 
     uint32_t frame = 0;
+    SceneManager::Initialize();
     renderer.SetViewClear();
     {
-        Texture texture =
-            Texture("assets/amongus.jpg", bgfx::TextureFormat::RGB8);
-        MeshContainer mesh("assets/Suzane.obj");
-        MeshContainer mesh2("assets/Holder.obj");
-        Collider collider(ColliderType::Box, glm::vec3(0.0f), glm::vec3(0.0f),
-                          glm::vec3(1.0f, 1.0f, 1.2f));
-        Collider collider2(ColliderType::Mesh, glm::vec3(0.0f), glm::vec3(0.0f),
-                           glm::vec3(1.0f, 1.0f, 1.0f), mesh2.GetVertices(),
-                           mesh2.GetIndices());
 
-        std::vector<Entity> primitives;
-        primitives.reserve(5);
-        primitives.push_back(Primitive(
-            PrimitiveType::Cube, RigidBodyType::Dynamic, physicsCore,
-            renderer.GetVertexLayout(), texture, glm::vec3{0.7f, 2.1f, 0.0f}));
-        primitives.push_back(Primitive(
-            PrimitiveType::Sphere, RigidBodyType::Dynamic, physicsCore,
-            renderer.GetVertexLayout(), texture, glm::vec3{0.0f, 0.0f, 0.0f}));
-        primitives.push_back(Primitive(
-            PrimitiveType::Plane, RigidBodyType::Static, physicsCore,
-            renderer.GetVertexLayout(), texture, glm::vec3{0.0f, -2.5f, 0.0f},
-            glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{10.0f, 1.0f, 10.0f}));
-        primitives.push_back(MeshEntity(
-            mesh, collider, RigidBodyType::Dynamic, physicsCore,
-            renderer.GetVertexLayout(), texture, glm::vec3{0.0f, 7.0f, 0.0f},
-            glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
-        primitives.push_back(MeshEntity(
-            mesh2, collider2, RigidBodyType::Static, physicsCore,
-            renderer.GetVertexLayout(), texture, glm::vec3{0.0f, 0.0f, 0.0f},
-            glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
+        {
+            auto& scene = SceneManager::GetInstance();
+            auto textureRef = scene.addTexture(
+                Texture("assets/amongus.jpg", bgfx::TextureFormat::RGB8));
+            auto meshRef =
+                scene.addMeshContainer(MeshContainer("assets/Suzane.obj"));
+            auto mesh2Ref =
+                scene.addMeshContainer(MeshContainer("assets/Holder.obj"));
+            auto colliderRef = scene.addCollider(
+                Collider(ColliderType::Box, glm::vec3(0.0f), glm::vec3(0.0f),
+                         glm::vec3(1.0f, 1.0f, 1.2f)));
+            auto collider2Ref = scene.addCollider(Collider(
+                ColliderType::Mesh, glm::vec3(0.0f), glm::vec3(0.0f),
+                glm::vec3(1.0f, 1.0f, 1.0f), mesh2Ref.data->GetVertices(),
+                mesh2Ref.data->GetIndices()));
 
-        core.SetKeyEventCallback(std::bind(KeyEvent, std::placeholders::_1,
-                                           std::placeholders::_2,
-                                           std::ref(primitives)));
+            scene.addEntity(
+                Primitive(PrimitiveType::Cube, RigidBodyType::Dynamic,
+                          physicsCore, renderer.GetVertexLayout(),
+                          *textureRef.data, glm::vec3{0.7f, 2.1f, 0.0f}));
+            scene.addEntity(
+                Primitive(PrimitiveType::Sphere, RigidBodyType::Dynamic,
+                          physicsCore, renderer.GetVertexLayout(),
+                          *textureRef.data, glm::vec3{0.0f, 0.0f, 0.0f}));
+            scene.addEntity(Primitive(
+                PrimitiveType::Plane, RigidBodyType::Static, physicsCore,
+                renderer.GetVertexLayout(), *textureRef.data,
+                glm::vec3{0.0f, -2.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
+                glm::vec3{10.0f, 1.0f, 10.0f}));
+            scene.addEntity(MeshEntity(
+                *meshRef.data, *colliderRef.data, RigidBodyType::Dynamic,
+                physicsCore, renderer.GetVertexLayout(), *textureRef.data,
+                glm::vec3{0.0f, 7.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
+                glm::vec3{1.0f, 1.0f, 1.0f}));
+            scene.addEntity(MeshEntity(
+                *mesh2Ref.data, *collider2Ref.data, RigidBodyType::Static,
+                physicsCore, renderer.GetVertexLayout(), *textureRef.data,
+                glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
+                glm::vec3{1.0f, 1.0f, 1.0f}));
 
+            core.SetKeyEventCallback(std::bind(KeyEvent, std::placeholders::_1,
+                                               std::placeholders::_2,
+                                               scene.getEntities()));
+        }
+
+        auto& scene = SceneManager::GetInstance();
         bx::debugPrintf("Main loop started\n");
         while (!core.IsQuit()) {
             core.EventLoop();
@@ -105,16 +124,16 @@ int main(int argc, char** argv) {
 
             while (accumulator >= FIXED_TIMESTEP) {
                 physicsCore.Update(FIXED_TIMESTEP);
-                for (auto& primitive : primitives) {
-                    if (primitive.GetBodyType() == RigidBodyType::Static) {
+                for (auto& entity : scene.getEntities()) {
+                    if (entity.second->GetBodyType() == RigidBodyType::Static) {
                         continue;
                     }
                     // Update the position of the primitive based on the physics
                     // simulation
                     auto transform =
                         physicsCore.GetBodyInterface().GetWorldTransform(
-                            primitive.GetBodyID());
-                    primitive.SetTransform(ToGLM(transform));
+                            entity.second->GetBodyID());
+                    entity.second->SetTransform(ToGLM(transform));
                 }
                 core.CallPhysicsStep(FIXED_TIMESTEP);
                 accumulator -= FIXED_TIMESTEP;
@@ -132,11 +151,11 @@ int main(int argc, char** argv) {
             camera.SetProjection();
             camera.SetViewTransform(0);
 
-            for (auto& primitive : primitives) {
-                primitive.SetVertexBuffer();
-                primitive.SetIndexBuffer();
-                primitive.ApplyTransform();
-                renderer.SetTextureUniform(primitive.SetTexture());
+            for (auto& entity : scene.getEntities()) {
+                entity.second->SetVertexBuffer();
+                entity.second->SetIndexBuffer();
+                entity.second->ApplyTransform();
+                renderer.SetTextureUniform(entity.second->SetTexture());
                 bgfx::submit(0, renderer.GetProgramHandle());
             }
 
@@ -149,6 +168,7 @@ int main(int argc, char** argv) {
         }
     }
 
+    SceneManager::Shutdown();
     physicsCore.Shutdown();
     renderer.Shutdown();
     core.Shutdown();
