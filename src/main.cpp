@@ -3,7 +3,6 @@
 #include <bgfx/bgfx.h>
 #include "bx/debug.h"
 #include <functional>
-#include <memory>
 #include <glm/glm.hpp>
 #include "Enums.hpp"
 
@@ -61,47 +60,45 @@ int main(int argc, char** argv) {
                   glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f),
                   60.0f, 1.0f, 100.0f);
     camera.LookAt({0.0f, 0.0f, 0.0f});
+    SceneManager::Initialize(physicsCore, renderer.GetVertexLayout());
 
     uint32_t frame = 0;
-    SceneManager::Initialize();
     renderer.SetViewClear();
     {
 
         {
             auto& scene = SceneManager::GetInstance();
-            auto textureRef = scene.addTexture(
-                Texture("assets/amongus.jpg", bgfx::TextureFormat::RGB8));
+            auto textureRef = scene.AddTexture("assets/amongus.jpg",
+                                               bgfx::TextureFormat::RGB8);
             auto meshRef =
-                scene.addMeshContainer(MeshContainer("assets/Suzane.obj"));
+                scene.AddMeshContainer(MeshContainer("assets/Suzane.obj"));
             auto mesh2Ref =
-                scene.addMeshContainer(MeshContainer("assets/Holder.obj"));
-            auto colliderRef = scene.addCollider(
+                scene.AddMeshContainer(MeshContainer("assets/Holder.obj"));
+            auto colliderRef = scene.AddCollider(
                 Collider(ColliderType::Box, glm::vec3(0.0f), glm::vec3(0.0f),
                          glm::vec3(1.0f, 1.0f, 1.2f)));
-            auto collider2Ref = scene.addCollider(Collider(
+            auto collider2Ref = scene.AddCollider(Collider(
                 ColliderType::Mesh, glm::vec3(0.0f), glm::vec3(0.0f),
                 glm::vec3(1.0f, 1.0f, 1.0f), mesh2Ref.data->GetVertices(),
                 mesh2Ref.data->GetIndices()));
 
-            scene.addEntity(
-                Primitive(PrimitiveType::Cube, RigidBodyType::Dynamic,
-                          physicsCore, renderer.GetVertexLayout(),
-                          *textureRef.data, glm::vec3{0.7f, 2.1f, 0.0f}));
-            scene.addEntity(
+            scene.AddEntity(PrimitiveType::Cube, RigidBodyType::Dynamic,
+                            textureRef.id, glm::vec3{0.7f, 2.1f, 0.0f});
+            scene.AddEntity(
                 Primitive(PrimitiveType::Sphere, RigidBodyType::Dynamic,
                           physicsCore, renderer.GetVertexLayout(),
                           *textureRef.data, glm::vec3{0.0f, 0.0f, 0.0f}));
-            scene.addEntity(Primitive(
+            scene.AddEntity(Primitive(
                 PrimitiveType::Plane, RigidBodyType::Static, physicsCore,
                 renderer.GetVertexLayout(), *textureRef.data,
                 glm::vec3{0.0f, -2.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
                 glm::vec3{10.0f, 1.0f, 10.0f}));
-            scene.addEntity(MeshEntity(
+            scene.AddEntity(MeshEntity(
                 *meshRef.data, *colliderRef.data, RigidBodyType::Dynamic,
                 physicsCore, renderer.GetVertexLayout(), *textureRef.data,
                 glm::vec3{0.0f, 7.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
                 glm::vec3{1.0f, 1.0f, 1.0f}));
-            scene.addEntity(MeshEntity(
+            scene.AddEntity(MeshEntity(
                 *mesh2Ref.data, *collider2Ref.data, RigidBodyType::Static,
                 physicsCore, renderer.GetVertexLayout(), *textureRef.data,
                 glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
@@ -109,7 +106,7 @@ int main(int argc, char** argv) {
 
             core.SetKeyEventCallback(std::bind(KeyEvent, std::placeholders::_1,
                                                std::placeholders::_2,
-                                               scene.getEntities()));
+                                               scene.GetEntities()));
         }
 
         auto& scene = SceneManager::GetInstance();
@@ -124,7 +121,7 @@ int main(int argc, char** argv) {
 
             while (accumulator >= FIXED_TIMESTEP) {
                 physicsCore.Update(FIXED_TIMESTEP);
-                for (auto& entity : scene.getEntities()) {
+                for (auto& entity : scene.GetEntities()) {
                     if (entity.second->GetBodyType() == RigidBodyType::Static) {
                         continue;
                     }
@@ -151,7 +148,7 @@ int main(int argc, char** argv) {
             camera.SetProjection();
             camera.SetViewTransform(0);
 
-            for (auto& entity : scene.getEntities()) {
+            for (auto& entity : scene.GetEntities()) {
                 entity.second->SetVertexBuffer();
                 entity.second->SetIndexBuffer();
                 entity.second->ApplyTransform();

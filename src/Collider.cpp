@@ -4,7 +4,6 @@
 #include <Jolt/Physics/Collision/Shape/PlaneShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include "Jolt/Geometry/IndexedTriangle.h"
-#include "Jolt/Geometry/Triangle.h"
 #include "Jolt/Math/Float3.h"
 #include "Jolt/Math/Vec3.h"
 #include "Jolt/Physics/Collision/Shape/MeshShape.h"
