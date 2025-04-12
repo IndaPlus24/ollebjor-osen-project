@@ -2,7 +2,6 @@
 #include <Jolt/Jolt.h>
 #include <bgfx/bgfx.h>
 #include "bx/debug.h"
-#include "bx/math.h"
 #include <functional>
 #include <glm/glm.hpp>
 #include <vector>
@@ -19,6 +18,7 @@
 #include "MeshContainer.hpp"
 #include "MeshEntity.hpp"
 #include "Collider.hpp"
+#include "Camera.hpp"
 
 void KeyEvent(Keycode key, KeyState state, std::vector<Entity>& primitives) {
     bx::debugPrintf("Key event: %d, %d\n", key, state);
@@ -51,6 +51,12 @@ int main(int argc, char** argv) {
     Renderer renderer = Renderer("Hello World", 1280, 720);
     renderer.Init();
 
+    Camera camera(renderer, glm::vec3(-6.0f, 3.0f, -6.0f),
+                  glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f),
+                  60.0f, 1.0f, 100.0f);
+    camera.LookAt({0.0f, 0.0f, 0.0f});
+
+    uint32_t frame = 0;
     renderer.SetViewClear();
     {
         Texture texture =
@@ -119,17 +125,12 @@ int main(int argc, char** argv) {
             // if no other draw calls are submitted to view 0.
             bgfx::touch(0);
 
-            uint32_t width, height;
-            renderer.GetWindowSize(width, height);
+            // Update the camera position to follow a cricle around {0, 0, 0}
+            camera.SetPosition(glm::vec3(10.0f * cos(frame * 0.01f), 5.0f,
+                                         10.0f * sin(frame * 0.01f)));
 
-            const bx::Vec3 at = {0.0f, 0.0f, 0.0f};
-            const bx::Vec3 eye = {-6.0f, 3.0f, -6.0f};
-            float view[16];
-            bx::mtxLookAt(view, eye, at);
-            float proj[16];
-            bx::mtxProj(proj, 60.0f, float(width) / float(height), 0.1f, 100.0f,
-                        bgfx::getCaps()->homogeneousDepth);
-            bgfx::setViewTransform(0, view, proj);
+            camera.SetProjection();
+            camera.SetViewTransform(0);
 
             for (auto& primitive : primitives) {
                 primitive.SetVertexBuffer();
@@ -141,6 +142,10 @@ int main(int argc, char** argv) {
 
             // Advance to next frame. Process submitted rendering primitives.
             bgfx::frame();
+            frame++;
+            if (frame > 628) {
+                frame = 0;
+            }
         }
     }
 

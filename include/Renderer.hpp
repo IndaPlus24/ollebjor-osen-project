@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Texture.hpp"
 #include <SDL2/SDL.h>
 #include <bgfx/bgfx.h>
 #include <bx/bx.h>
@@ -34,6 +33,9 @@ class Renderer {
     }
     inline bgfx::ProgramHandle& GetProgramHandle() { return program; }
     inline bgfx::VertexLayout& GetVertexLayout() { return layout; }
+    inline float GetAspectRatio() {
+        return static_cast<float>(width) / static_cast<float>(height);
+    }
 
     void SetTextureUniform(bgfx::TextureHandle texture);
 
