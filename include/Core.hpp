@@ -21,6 +21,8 @@ private:
     std::function<void(int, int, int, int)> mouseMoveEventCallback;
     std::function<void(int, int, MouseButton, KeyState)> mouseButtonEventCallback;
     std::function<void(int, int)> mouseWheelEventCallback;
+    std::function<void(double)> physicsStepCallback;
+    std::function<void(double)> updateCallback;
     
 public:
     Core();
@@ -40,9 +42,13 @@ public:
     void SetMouseMoveEventCallback(std::function<void(int, int, int, int)> callback);
     void SetMouseButtonEventCallback(std::function<void(int, int, MouseButton, KeyState)> callback);
     void SetMouseWheelEventCallback(std::function<void(int, int)> callback);
+    void SetPhysicsStepCallback(std::function<void(double)> callback);
+    void SetUpdateCallback(std::function<void(double)> callback);
 
     void EventLoop();
     double GetDeltaTime();
     void CallKeyboardEvent();
+    void CallPhysicsStep(double deltaTime);
+    void CallUpdate(double deltaTime);
     
 };
