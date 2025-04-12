@@ -1,11 +1,13 @@
 #pragma once
 
+#include "Camera.hpp"
 #include "Collider.hpp"
 #include "Entity.hpp"
 #include "Enums.hpp"
 #include "MeshContainer.hpp"
 #include "MeshEntity.hpp"
 #include "Primitive.hpp"
+#include "Renderer.hpp"
 #include "Texture.hpp"
 #include <cstdint>
 #include <unordered_map>
@@ -21,16 +23,20 @@ class SceneManager {
     std::unordered_map<uint64_t, Texture*> textures;
     std::unordered_map<uint64_t, MeshContainer*> meshes;
     std::unordered_map<uint64_t, Collider*> colliders;
+    std::unordered_map<uint64_t, Camera*> cameras;
 
     PhysicsCore* physicsCore;
     bgfx::VertexLayout* layout;
+    Renderer* renderer;
+
+    uint64_t activeCameraId = 0;
 
   public:
     SceneManager();
     ~SceneManager();
 
-    static void Initialize(PhysicsCore& physicsCore,
-                           bgfx::VertexLayout& layout);
+    static void Initialize(PhysicsCore& physicsCore, bgfx::VertexLayout& layout,
+                           Renderer& renderer);
     static SceneManager& GetInstance();
     static void Shutdown();
 
@@ -74,6 +80,17 @@ class SceneManager {
 
     SceneRef<Collider> GetCollider(const uint64_t id);
     void RemoveCollider(const uint64_t id);
+
+    SceneRef<Camera> AddCamera(Camera camera);
+    SceneRef<Camera>
+    AddCamera(const glm::vec3& position = glm::vec3(0.0f),
+              const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f),
+              const float fov = 60.0f, const float nearPlane = 0.1f,
+              const float farPlane = 100.0f);
+    SceneRef<Camera> GetCamera(const uint64_t id);
+    void RemoveCamera(const uint64_t id);
+    SceneRef<Camera> GetActiveCamera();
+    inline void SetActiveCamera(const uint64_t id) { activeCameraId = id; }
 
     inline std::unordered_map<uint64_t, Entity*>& GetEntities() {
         return entities;

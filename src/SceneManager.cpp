@@ -4,6 +4,7 @@
 #include "Entity.hpp"
 #include "MeshEntity.hpp"
 #include "Primitive.hpp"
+#include "Renderer.hpp"
 #include "Texture.hpp"
 #include "bx/bx.h"
 #include "bx/debug.h"
@@ -15,12 +16,13 @@ SceneManager::SceneManager() {}
 SceneManager::~SceneManager() {}
 
 void SceneManager::Initialize(PhysicsCore& physicsCore,
-                              bgfx::VertexLayout& layout) {
+                              bgfx::VertexLayout& layout, Renderer& renderer) {
     if (instance == nullptr)
         instance = new SceneManager();
 
     instance->physicsCore = &physicsCore;
     instance->layout = &layout;
+    instance->renderer = &renderer;
     bx::debugPrintf("SceneManager initialized");
 }
 
@@ -36,12 +38,15 @@ void SceneManager::Shutdown() {
     // Clean up all entities, textures, and mesh containers
     for (auto& entity : instance->entities) {
         delete entity.second;
+        bx::debugPrintf("Entity removed with ID: %llu", entity.first);
     }
     for (auto& texture : instance->textures) {
         delete texture.second;
+        bx::debugPrintf("Texture removed with ID: %llu", texture.first);
     }
     for (auto& mesh : instance->meshes) {
         delete mesh.second;
+        bx::debugPrintf("MeshContainer removed with ID: %llu", mesh.first);
     }
     instance->entities.clear();
     instance->textures.clear();
@@ -49,7 +54,7 @@ void SceneManager::Shutdown() {
 
     delete instance;
     instance = nullptr;
-    bx::debugPrintf("SceneManager shut down");
+    bx::debugPrintf("SceneManager shutdown");
 }
 
 SceneRef<Entity> SceneManager::AddEntity(Primitive primitive) {
@@ -183,7 +188,16 @@ SceneRef<Texture> SceneManager::GetTexture(const uint64_t id) {
     return {0, nullptr};
 }
 
-void SceneManager::RemoveTexture(const uint64_t id) { textures.erase(id); }
+void SceneManager::RemoveTexture(const uint64_t id) {
+    auto it = textures.find(id);
+    if (it != textures.end()) {
+        delete it->second;
+        textures.erase(it);
+        bx::debugPrintf("Texture removed with ID: %llu", id);
+    } else {
+        bx::debugPrintf("Texture not found with ID: %llu", id);
+    }
+}
 
 SceneRef<MeshContainer>
 SceneManager::AddMeshContainer(MeshContainer meshContainer) {
@@ -224,7 +238,16 @@ SceneRef<MeshContainer> SceneManager::GetMeshContainer(const uint64_t id) {
     return {0, nullptr};
 }
 
-void SceneManager::RemoveMeshContainer(const uint64_t id) { meshes.erase(id); }
+void SceneManager::RemoveMeshContainer(const uint64_t id) { 
+    auto it = meshes.find(id);
+    if (it != meshes.end()) {
+        delete it->second;
+        meshes.erase(it);
+        bx::debugPrintf("MeshContainer removed with ID: %llu", id);
+    } else {
+        bx::debugPrintf("MeshContainer not found with ID: %llu", id);
+    }
+}
 
 SceneRef<Collider> SceneManager::AddCollider(Collider collider) {
     // Create a new collider and add it to the map
@@ -266,4 +289,79 @@ SceneRef<Collider> SceneManager::GetCollider(const uint64_t id) {
     return {0, nullptr};
 }
 
-void SceneManager::RemoveCollider(const uint64_t id) { colliders.erase(id); }
+void SceneManager::RemoveCollider(const uint64_t id) {
+    auto it = colliders.find(id);
+    if (it != colliders.end()) {
+        delete it->second;
+        colliders.erase(id);
+        bx::debugPrintf("Collider removed with ID: %llu", id);
+    } else {
+        bx::debugPrintf("Collider not found with ID: %llu", id);
+    }
+}
+
+SceneRef<Camera> SceneManager::AddCamera(Camera camera) {
+    // Create a new camera and add it to the map
+    uint64_t id = cameras.size();
+    auto cameraPtr = new Camera(std::move(camera));
+    cameras.emplace(id, cameraPtr);
+    SceneRef<Camera> ref;
+    ref.id = id;
+    ref.data = cameras.at(id);
+    bx::debugPrintf("Camera added with ID: %llu", id);
+    return ref;
+}
+
+SceneRef<Camera> SceneManager::AddCamera(const glm::vec3& position,
+                                         const glm::vec3& up, const float fov,
+                                         const float nearPlane,
+                                         const float farPlane) {
+    // Create a new camera and add it to the map
+    uint64_t id = cameras.size();
+    auto cameraPtr =
+        new Camera(*renderer, position, up, fov, nearPlane, farPlane);
+    cameras.emplace(id, cameraPtr);
+    SceneRef<Camera> ref;
+    ref.id = id;
+    ref.data = cameras.at(id);
+    bx::debugPrintf("Camera added with ID: %llu", id);
+    return ref;
+}
+
+SceneRef<Camera> SceneManager::GetCamera(const uint64_t id) {
+    // Check if the camera exists in the map
+    auto it = cameras.find(id);
+    if (it != cameras.end()) {
+        SceneRef<Camera> ref;
+        ref.id = id;
+        ref.data = it->second;
+        return ref;
+    }
+    // Return an empty reference if not found
+    return {0, nullptr};
+}
+
+void SceneManager::RemoveCamera(const uint64_t id) {
+    // Check if the camera exists in the map
+    auto it = cameras.find(id);
+    if (it != cameras.end()) {
+        delete it->second;
+        cameras.erase(it);
+        bx::debugPrintf("Camera removed with ID: %llu", id);
+    } else {
+        bx::debugPrintf("Camera not found with ID: %llu", id);
+    }
+}
+
+SceneRef<Camera> SceneManager::GetActiveCamera() {
+    // Check if the active camera exists in the map
+    auto it = cameras.find(activeCameraId);
+    if (it != cameras.end()) {
+        SceneRef<Camera> ref;
+        ref.id = activeCameraId;
+        ref.data = it->second;
+        return ref;
+    }
+    // Return an empty reference if not found
+    return {0, nullptr};
+}

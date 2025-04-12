@@ -10,7 +10,6 @@
 #include "Core.hpp"
 #include "Renderer.hpp"
 #include "Primitive.hpp"
-#include "Texture.hpp"
 #include "LuaCore.hpp"
 #include "PhysicsCore.hpp"
 #include "utils.hpp"
@@ -56,11 +55,7 @@ int main(int argc, char** argv) {
     Renderer renderer = Renderer("Hello World", 1280/10, 720/10);
     renderer.Init();
 
-    Camera camera(renderer, glm::vec3(-6.0f, 3.0f, -6.0f),
-                  glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f),
-                  60.0f, 1.0f, 100.0f);
-    camera.LookAt({0.0f, 0.0f, 0.0f});
-    SceneManager::Initialize(physicsCore, renderer.GetVertexLayout());
+    SceneManager::Initialize(physicsCore, renderer.GetVertexLayout(), renderer);
 
     uint32_t frame = 0;
     renderer.SetViewClear();
@@ -68,6 +63,10 @@ int main(int argc, char** argv) {
 
         {
             auto& scene = SceneManager::GetInstance();
+            Camera camera(renderer, glm::vec3(-6.0f, 3.0f, -6.0f),
+                          glm::vec3(0.0f, 1.0f, 0.0f), 60.0f, 1.0f, 100.0f);
+            auto cam = scene.AddCamera(std::move(camera));
+            scene.SetActiveCamera(cam.id);
             auto textureRef = scene.AddTexture("assets/amongus.jpg",
                                                bgfx::TextureFormat::RGB8);
             auto meshRef =
@@ -142,11 +141,12 @@ int main(int argc, char** argv) {
             bgfx::touch(0);
 
             // Update the camera position to follow a cricle around {0, 0, 0}
-            camera.SetPosition(glm::vec3(10.0f * cos(frame * 0.01f), 5.0f,
-                                         10.0f * sin(frame * 0.01f)));
+            auto cam = scene.GetActiveCamera();
+            cam.data->SetPosition(glm::vec3(10.0f * cos(frame * 0.01f), 5.0f,
+                                            10.0f * sin(frame * 0.01f)));
 
-            camera.SetProjection();
-            camera.SetViewTransform(0);
+            cam.data->SetProjection();
+            cam.data->SetViewTransform(0);
 
             for (auto& entity : scene.GetEntities()) {
                 entity.second->SetVertexBuffer();
