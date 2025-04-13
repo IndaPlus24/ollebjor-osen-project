@@ -48,7 +48,7 @@ class SceneManager {
                                glm::vec3 size = glm::vec3(1.0f));
 
     SceneRef<Entity> AddEntity(MeshEntity meshEntity);
-    SceneRef<Entity> addEntity(uint64_t meshId, uint64_t colliderId,
+    SceneRef<Entity> AddEntity(uint64_t meshId, uint64_t colliderId,
                                const RigidBodyType bodyType, uint64_t textureId,
                                glm::vec3 position = glm::vec3(0.0f),
                                glm::vec3 rotation = glm::vec3(0.0f),

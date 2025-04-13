@@ -11,6 +11,7 @@
 #include "bx/debug.h"
 #include "utils.hpp"
 
+// If collider is plane; use rotation as normal
 Collider::Collider(ColliderType type, const glm::vec3& position,
                    const glm::vec3& rotation, const glm::vec3& size)
     : type(type), position(position), rotation(rotation), size(size) {

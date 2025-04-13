@@ -101,7 +101,7 @@ SceneRef<Entity> SceneManager::AddEntity(MeshEntity meshEntity) {
     return ref;
 }
 
-SceneRef<Entity> SceneManager::addEntity(uint64_t meshId, uint64_t colliderId,
+SceneRef<Entity> SceneManager::AddEntity(uint64_t meshId, uint64_t colliderId,
                                          const RigidBodyType bodyType,
                                          uint64_t textureId, glm::vec3 position,
                                          glm::vec3 rotation, glm::vec3 size) {
@@ -147,7 +147,17 @@ SceneRef<Entity> SceneManager::GetEntity(const uint64_t id) {
     return {0, nullptr};
 }
 
-void SceneManager::RemoveEntity(const uint64_t id) { entities.erase(id); }
+void SceneManager::RemoveEntity(const uint64_t id) { 
+    // Check if the entity exists in the map
+    auto it = entities.find(id);
+    if (it != entities.end()) {
+        delete it->second;
+        entities.erase(it);
+        bx::debugPrintf("Entity removed with ID: %llu", id);
+    } else {
+        bx::debugPrintf("Entity not found with ID: %llu", id);
+    }
+}
 
 SceneRef<Texture> SceneManager::AddTexture(Texture texture) {
     // Create a new texture and add it to the map
