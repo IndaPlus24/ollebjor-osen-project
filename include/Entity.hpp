@@ -35,9 +35,9 @@ public:
            glm::vec3 rotation = glm::vec3(0.0f),
            glm::vec3 size = glm::vec3(1.0f));
     Entity(Entity&& other) noexcept;
-    Entity(const Entity&) = default;
-    Entity& operator=(Entity&&) = default;
-    Entity& operator=(const Entity&) = default;
+    Entity& operator=(Entity&& other) noexcept;
+    Entity(const Entity&) = delete;
+    Entity& operator=(const Entity&) = delete;
     ~Entity();
 
     inline void SetVertexBuffer() { bgfx::setVertexBuffer(0, vbh); }

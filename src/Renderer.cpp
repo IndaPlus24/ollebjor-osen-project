@@ -27,7 +27,7 @@ Renderer::Renderer(std::string title, int width, int height)
 Renderer::~Renderer() {}
 
 bool Renderer::Init() {
-    window = SDL_CreateWindow(title.c_str(), 0, 0, width, height,
+    window = SDL_CreateWindow(title.c_str(), width/10, height/10, width, height,
                               SDL_WINDOW_RESIZABLE);
     if (!window) {
         std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;

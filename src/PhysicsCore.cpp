@@ -254,7 +254,7 @@ JPH::BodyID PhysicsCore::AddStaticPlane(const JPH::Vec3& position,
     // Define the body settings
     JPH::BodyCreationSettings settings(planeShape, position,
                                        JPH::Quat::sIdentity(),
-                                       JPH::EMotionType::Static, 0);
+                                       JPH::EMotionType::Static, Layers::NON_MOVING);
 
     // Create the body
     JPH::BodyID bodyID;
@@ -273,7 +273,7 @@ JPH::BodyID PhysicsCore::AddStaticCollider(const JPH::Vec3& position,
 
     // Define the body settings
     JPH::BodyCreationSettings settings(shape, position, JPH::Quat::sIdentity(),
-                                       JPH::EMotionType::Static, 0);
+                                       JPH::EMotionType::Static, Layers::NON_MOVING);
     // Create the body
     JPH::BodyID bodyID;
     JPH::Body* body = bodyInterface.CreateBody(settings);
