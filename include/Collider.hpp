@@ -22,9 +22,7 @@ class Collider {
              const std::vector<Vertex>& vertices,
              const std::vector<uint32_t>& indices);
     Collider(Collider&& other) noexcept;
-    Collider(const Collider&) = default;
-    Collider& operator=(Collider&&) = default;
-    Collider& operator=(const Collider&) = default;
+    Collider& operator=(Collider&& other) noexcept;
     ~Collider();
 
     inline ColliderType GetType() const { return type; }

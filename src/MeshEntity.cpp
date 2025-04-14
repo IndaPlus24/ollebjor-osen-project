@@ -58,6 +58,14 @@ MeshEntity::MeshEntity(MeshContainer& mesh, Collider& collider,
 MeshEntity::MeshEntity(MeshEntity&& other) noexcept
     : Entity(std::move(other)), collider(other.collider) {}
 
+MeshEntity& MeshEntity::operator=(MeshEntity&& other) noexcept {
+    if (this != &other) {
+        Entity::operator=(std::move(other));
+        collider = std::move(other.collider);
+    }
+    return *this;
+}
+
 MeshEntity::~MeshEntity() {}
 
 void MeshEntity::UpdateMesh(const MeshContainer& newMesh,

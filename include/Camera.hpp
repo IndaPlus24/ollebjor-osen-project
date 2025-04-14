@@ -20,11 +20,10 @@ class Camera {
     void SetProjection(float fov, float nearPlane, float farPlane);
 
   public:
-    Camera(Renderer& renderer, const glm::vec3& position,
-           const glm::vec3& rotation, const glm::vec3& up, float fov,
-           float nearPlane, float farPlane);
-    Camera(Camera&&) = default;
-    Camera(const Camera&) = default;
+    Camera(Renderer& renderer, const glm::vec3& position, const glm::vec3& up,
+           float fov, float nearPlane, float farPlane);
+    Camera(Camera&& other) noexcept;
+    Camera& operator=(Camera&& other) noexcept;
     ~Camera();
 
     inline const glm::vec3& GetPosition() const { return position; }

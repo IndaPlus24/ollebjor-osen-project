@@ -66,4 +66,22 @@ MeshContainer::MeshContainer(const std::string& path) : path(path) {
     }
 }
 
+MeshContainer::MeshContainer(MeshContainer&& other) noexcept {
+    path = std::move(other.path);
+    vertices = std::move(other.vertices);
+    indices = std::move(other.indices);
+    other.vertices.clear();
+    other.indices.clear();
+}
+
+MeshContainer& MeshContainer::operator=(MeshContainer&& other) noexcept {
+    if (this != &other) {
+        path = std::move(other.path);
+        vertices = std::move(other.vertices);
+        indices = std::move(other.indices);
+        other.vertices.clear();
+        other.indices.clear();
+    }
+    return *this;
+}
 MeshContainer::~MeshContainer() {}

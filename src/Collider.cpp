@@ -4,7 +4,6 @@
 #include <Jolt/Physics/Collision/Shape/PlaneShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include "Jolt/Geometry/IndexedTriangle.h"
-#include "Jolt/Geometry/Triangle.h"
 #include "Jolt/Math/Float3.h"
 #include "Jolt/Math/Vec3.h"
 #include <Jolt/Physics/Collision/Shape/MeshShape.h>
@@ -12,6 +11,7 @@
 #include "GameEngineLogger.hpp"
 #include "utils.hpp"
 
+// If collider is plane; use rotation as normal
 Collider::Collider(ColliderType type, const glm::vec3& position,
                    const glm::vec3& rotation, const glm::vec3& size)
     : type(type), position(position), rotation(rotation), size(size) {
@@ -80,6 +80,18 @@ Collider::Collider(Collider&& other) noexcept
     : type(other.type), position(other.position), rotation(other.rotation),
       size(other.size), shape(std::move(other.shape)) {
     other.shape = nullptr;
+}
+
+Collider& Collider::operator=(Collider&& other) noexcept {
+    if (this != &other) {
+        type = other.type;
+        position = other.position;
+        rotation = other.rotation;
+        size = other.size;
+        shape = std::move(other.shape);
+        other.shape = nullptr;
+    }
+    return *this;
 }
 
 Collider::~Collider() {
