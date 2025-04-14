@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
     Core core = Core();
     core.Init();
 
-    Renderer renderer = Renderer("Hello World", 1280, 720);
+    Renderer renderer = Renderer("Hello World", 1280/10, 720/10);
     renderer.Init();
 
     Camera camera(renderer, glm::vec3(-6.0f, 3.0f, -6.0f),
