@@ -12,7 +12,9 @@
 #include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
 #include "utils.hpp"
+#include "GameEngineLogger.hpp"
 #include <cstddef>
+#include <format>
 
 Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
                      PhysicsCore& physicsCore, bgfx::VertexLayout& layout,
@@ -26,11 +28,15 @@ Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
     vbh = bgfx::createDynamicVertexBuffer(verticesMem, layout);
     ibh = bgfx::createIndexBuffer(indicesMem);
     if (vbh.idx == bgfx::kInvalidHandle || ibh.idx == bgfx::kInvalidHandle) {
-        bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %x",
-                        type, vbh.idx, ibh.idx);
+        LOG_ERROR("Renderer",
+                  std::format(
+                      "Failed to create primitive: Type: {}, vbh: {}, ibh: {}",
+                      static_cast<int>(type), vbh.idx, ibh.idx));
     } else {
-        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d", type,
-                        vbh.idx, ibh.idx);
+        LOG_INFO("Renderer",
+                 "Primitive created: Type: " + std::to_string(static_cast<int>(type)) +
+                     " vbh: " + std::to_string(vbh.idx) +
+                     " ibh: " + std::to_string(ibh.idx));
     }
 
     SetPosition(position);
@@ -55,21 +61,27 @@ Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
             glm::vec4(normal, 1.0f);
         JPH::Vec3 joltNormal(rotatedNormal.x, rotatedNormal.y, rotatedNormal.z);
         bodyID = physicsCore.AddStaticPlane(joltPosition, joltNormal);
-        bx::debugPrintf("Static Plane created: Type: %d vbh: %d ibh: %d", type,
-                        vbh.idx, ibh.idx);
+        LOG_INFO("Physics",
+                 "Static Plane created: Type: " + std::to_string(static_cast<int>(type)) +
+                     " vbh: " + std::to_string(vbh.idx) +
+                     " ibh: " + std::to_string(ibh.idx));
 
     } break;
     case RigidBodyType::Dynamic: {
         switch (type) {
         case PrimitiveType::Cube: {
             bodyID = physicsCore.AddDynamicBox(joltPosition, joltSize, 1.0f);
-            bx::debugPrintf("Dynamic Cube created: Type: %d vbh: %d ibh: %d",
-                            type, vbh.idx, ibh.idx);
+            LOG_INFO("Physics",
+                     "Dynamic Cube created: Type: " + std::to_string(static_cast<int>(type)) +
+                         " vbh: " + std::to_string(vbh.idx) +
+                         " ibh: " + std::to_string(ibh.idx));
         } break;
         case PrimitiveType::Sphere: {
             bodyID = physicsCore.AddDynamicSphere(size.x, joltPosition, 1.0f);
-            bx::debugPrintf("Dynamic Sphere created: Type: %d vbh: %d ibh: %d",
-                            type, vbh.idx, ibh.idx);
+            LOG_INFO("Physics",
+                     "Dynamic Sphere created: Type: " + std::to_string(static_cast<int>(type)) +
+                         " vbh: " + std::to_string(vbh.idx) +
+                         " ibh: " + std::to_string(ibh.idx));
         } break;
         }
     }
@@ -78,8 +90,9 @@ Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
 
 Primitive::Primitive(Primitive&& other) noexcept : Entity(std::move(other)) {
     type = other.type;
-    bx::debugPrintf("Primitive moved: Type: %d vbh: %d ibh: %d", type, vbh.idx,
-                    ibh.idx);
+    LOG_DEBUG("Entity", "Primitive moved: Type: " + std::to_string(static_cast<int>(type)) +
+                            " vbh: " + std::to_string(vbh.idx) +
+                            " ibh: " + std::to_string(ibh.idx));
 }
 
 Primitive& Primitive::operator=(Primitive&& other) noexcept {
@@ -93,8 +106,9 @@ Primitive& Primitive::operator=(Primitive&& other) noexcept {
 }
 
 Primitive::~Primitive() {
-    bx::debugPrintf("Primitive destroyed: Type: %d vbh: %d ibh: %d", type,
-                    vbh.idx, ibh.idx);
+    LOG_DEBUG("Entity", "Primitive destroyed: Type: " + std::to_string(static_cast<int>(type)) +
+                            " vbh: " + std::to_string(vbh.idx) +
+                            " ibh: " + std::to_string(ibh.idx));
 }
 
 void Primitive::GetPrimitiveTypeData(const bgfx::Memory*& vertMem,

@@ -1,7 +1,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <Jolt/Jolt.h>
 #include <bgfx/bgfx.h>
-#include "bx/debug.h"
 #include <functional>
 #include <glm/glm.hpp>
 #include "Enums.hpp"
@@ -17,11 +16,15 @@
 #include "MeshEntity.hpp"
 #include "Collider.hpp"
 #include "Camera.hpp"
+#include "GameEngineLogger.hpp"
 #include "SceneManager.hpp"
+
+#define SYSTEM_INFO true
 
 void KeyEvent(Keycode key, KeyState state,
               std::unordered_map<uint64_t, Entity*>& entities) {
-    bx::debugPrintf("Key event: %d, %d\n", key, state);
+    LOG_DEBUG("Input", "Key event: " + std::to_string(static_cast<int>(key)) +
+                           ", " + std::to_string(static_cast<int>(state)));
     if (state == KeyState::Release && key == Keycode::SPACE) {
         // entities[0].SetPhysicsPosition(glm::vec3{1.0f, 4.1f, 0.0f});
         // entities[1].SetPhysicsPosition(glm::vec3{0.0f, 2.0f, 0.0f});
@@ -32,35 +35,54 @@ void KeyEvent(Keycode key, KeyState state,
                 entity.second->AddImpulse(glm::vec3{0.0f, 10.0f, 0.0f});
             }
         }
-        bx::debugPrintf("Added impules\n");
+        LOG_INFO("Physics", "Added impulse");
     }
 }
 
-int main(int argc, char** argv) {
+void InitializeLogger() {
+    auto& logManager = GameLogger::LogManager::Instance();
+    logManager.Initialize();
 
+    auto debugChannel =
+        logManager.GetOrCreateChannel("Debug", GameLogger::LogLevel::DEBUG);
+    auto consoleSink = std::make_shared<GameLogger::ConsoleSink>();
+
+#if SYSTEM_INFO
+    auto systemChannel =
+        logManager.GetOrCreateChannel("Systems", GameLogger::LogLevel::INFO);
+#endif
+    logManager.AddDefaultSink(consoleSink);
+}
+
+int main(int argc, char** argv) {
     const double FIXED_TIMESTEP = 1.0f / 60.0f;
     double accumulator = 0;
-    bx::debugPrintf("Starting application\n");
+
+    InitializeLogger();
 
     LuaCore lua;
     lua.Init();
+    LOG_INFO("Systems", "Lua initialized");
     lua.Run("scripts/test.lua");
 
     PhysicsCore physicsCore = PhysicsCore();
     physicsCore.Initialize();
+    LOG_INFO("Systems", "Physics initialized");
 
     Core core = Core();
     core.Init();
+    LOG_INFO("Systems", "Core initialized");
 
     Renderer renderer = Renderer("Hello World", 1280, 720);
+
     renderer.Init();
+    LOG_INFO("Systems", "Renderer initialized");
 
     SceneManager::Initialize(physicsCore, renderer.GetVertexLayout(), renderer);
 
     uint32_t frame = 0;
     renderer.SetViewClear();
     {
-
         {
             auto& scene = SceneManager::GetInstance();
             Camera camera(renderer, glm::vec3(-6.0f, 3.0f, -6.0f),
@@ -109,7 +131,8 @@ int main(int argc, char** argv) {
         }
 
         auto& scene = SceneManager::GetInstance();
-        bx::debugPrintf("Main loop started\n");
+        LOG_DEBUG("Debug", "Main loop started");
+
         while (!core.IsQuit()) {
             core.EventLoop();
             core.CallKeyboardEvent();
@@ -164,10 +187,10 @@ int main(int argc, char** argv) {
             }
         }
     }
-
     SceneManager::Shutdown();
     physicsCore.Shutdown();
     renderer.Shutdown();
     core.Shutdown();
+    GameLogger::LogManager::Instance().Shutdown();
     return 0;
 }

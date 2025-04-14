@@ -3,6 +3,7 @@
 #include "Enums.hpp"
 #include "bx/debug.h"
 #include "utils.hpp"
+#include "GameEngineLogger.hpp"
 
 MeshEntity::MeshEntity(MeshContainer& mesh, Collider& collider,
                        const RigidBodyType bodyType, PhysicsCore& physicsCore,
@@ -14,9 +15,9 @@ MeshEntity::MeshEntity(MeshContainer& mesh, Collider& collider,
     const bgfx::Memory* indicesMem = nullptr;
     mesh.GetMeshData(verticesMem, indicesMem);
     if (verticesMem == nullptr || indicesMem == nullptr) {
-        bx::debugPrintf(
-            "Failed to load mesh data: verticesMem: %d, indicesMem: %d",
-            verticesMem, indicesMem);
+        LOG_ERROR("Entity", "Failed to load mesh data: verticesMem: " + 
+                 std::to_string(reinterpret_cast<uintptr_t>(verticesMem)) + 
+                 ", indicesMem: " + std::to_string(reinterpret_cast<uintptr_t>(indicesMem)));
         return;
     }
     vbh = bgfx::createDynamicVertexBuffer(verticesMem, layout);
@@ -29,12 +30,12 @@ MeshEntity::MeshEntity(MeshContainer& mesh, Collider& collider,
     // setup physics
     if (bodyType == RigidBodyType::Dynamic &&
         collider.GetType() == ColliderType::Plane) {
-        bx::debugPrintf("Dynamic body type can't use Plane collider.\n");
+        LOG_ERROR("Physics", "Dynamic body type can't use Plane collider.");
         return;
     }
     if (bodyType != RigidBodyType::Static &&
         collider.GetType() == ColliderType::Mesh) {
-        bx::debugPrintf("Dynamic body type can't use Mesh collider.\n");
+        LOG_ERROR("Physics", "Dynamic body type can't use Mesh collider.");
         return;
     }
 
@@ -73,9 +74,9 @@ void MeshEntity::UpdateMesh(const MeshContainer& newMesh,
     const bgfx::Memory* indicesMem = nullptr;
     newMesh.GetMeshData(verticesMem, indicesMem);
     if (verticesMem == nullptr || indicesMem == nullptr) {
-        bx::debugPrintf(
-            "Failed to load new mesh data: verticesMem: %d, indicesMem: %d",
-            verticesMem, indicesMem);
+        LOG_ERROR("Entity", "Failed to load new mesh data: verticesMem: " + 
+                 std::to_string(reinterpret_cast<uintptr_t>(verticesMem)) + 
+                 ", indicesMem: " + std::to_string(reinterpret_cast<uintptr_t>(indicesMem)));
         return;
     }
     if (vbh.idx != bgfx::kInvalidHandle) {

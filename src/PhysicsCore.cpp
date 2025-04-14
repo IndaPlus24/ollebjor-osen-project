@@ -1,4 +1,5 @@
 #include "PhysicsCore.hpp"
+#include "GameEngineLogger.hpp"
 #include "Jolt/Geometry/Plane.h"
 #include "Jolt/Physics/Body/BodyActivationListener.h"
 #include "Jolt/Physics/Body/BodyCreationSettings.h"
@@ -6,8 +7,6 @@
 #include "Jolt/Physics/Collision/ContactListener.h"
 #include "Jolt/Physics/Collision/Shape/PlaneShape.h"
 #include "Jolt/Physics/Collision/Shape/SphereShape.h"
-#include "bx/debug.h"
-
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/RegisterTypes.h>
@@ -71,7 +70,7 @@ JPH::ValidateResult MyContactListener::OnContactValidate(
     const JPH::Body& inBody1, const JPH::Body& inBody2,
     JPH::RVec3Arg inBaseOffset,
     const JPH::CollideShapeResult& inCollisionResult) {
-    bx::debugPrintf("Contact validate callback\n");
+    LOG_DEBUG("Physics", "Contact validate callback");
 
     // Allows you to ignore a contact before it is created (using layers to
     // not make objects collide is cheaper!)
@@ -82,29 +81,29 @@ void MyContactListener::OnContactAdded(const JPH::Body& inBody1,
                                        const JPH::Body& inBody2,
                                        const JPH::ContactManifold& inManifold,
                                        JPH::ContactSettings& ioSettings) {
-    bx::debugPrintf("A contact was added\n");
+    LOG_DEBUG("Physics", "A contact was added");
 }
 
 void MyContactListener::OnContactPersisted(
     const JPH::Body& inBody1, const JPH::Body& inBody2,
     const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) {
-    bx::debugPrintf("A contact was persisted\n");
+    LOG_DEBUG("Physics", "A contact was persisted");
 }
 
 void MyContactListener::OnContactRemoved(
     const JPH::SubShapeIDPair& inSubShapePair) {
-    bx::debugPrintf("A contact was removed\n");
+    LOG_DEBUG("Physics", "A contact was removed");
 }
 
 // An example activation listener
 void MyBodyActivationListener::OnBodyActivated(const JPH::BodyID& inBodyID,
                                                JPH::uint64 inBodyUserData) {
-    bx::debugPrintf("A body got activated, id: %d\n", inBodyID.GetIndex());
+    LOG_DEBUG("Physics", "A body got activated, id: " + std::to_string(inBodyID.GetIndex()));
 }
 
 void MyBodyActivationListener::OnBodyDeactivated(const JPH::BodyID& inBodyID,
                                                  JPH::uint64 inBodyUserData) {
-    bx::debugPrintf("A body went to sleep, id: %d\n", inBodyID.GetIndex());
+    LOG_DEBUG("Physics", "A body went to sleep, id: " + std::to_string(inBodyID.GetIndex()));
 }
 
 PhysicsCore::PhysicsCore()
@@ -139,7 +138,7 @@ void PhysicsCore::Initialize() {
     // physicsSystem->SetContactListener(contactListener);
     // physicsSystem->SetBodyActivationListener(bodyActivationListener);
 
-    bx::debugPrintf("Jolt Physics initialized successfully.\n");
+    LOG_INFO("Physics", "Jolt Physics initialized successfully.");
 }
 
 void PhysicsCore::Update(float deltaTime) {
@@ -174,7 +173,7 @@ JPH::BodyID PhysicsCore::AddDynamicBox(const JPH::Vec3& position,
                                        const JPH::Vec3& halfExtent,
                                        float mass) {
     if (!physicsSystem) {
-        bx::debugPrintf("Physics system is not initialized!\n");
+        LOG_ERROR("Physics", "Physics system is not initialized!");
         return JPH::BodyID(); // Return an invalid body ID
     }
 
@@ -201,7 +200,7 @@ JPH::BodyID PhysicsCore::AddDynamicBox(const JPH::Vec3& position,
         bodyID = body->GetID();
         bodyInterface.AddBody(bodyID, JPH::EActivation::Activate);
     } else {
-        bx::debugPrintf("Failed to create dynamic sphere!\n");
+        LOG_ERROR("Physics", "Failed to create dynamic box!");
     }
 
     return bodyID;
@@ -210,7 +209,7 @@ JPH::BodyID PhysicsCore::AddDynamicBox(const JPH::Vec3& position,
 JPH::BodyID PhysicsCore::AddDynamicSphere(float radius, JPH::RVec3 position,
                                           float mass) {
     if (!physicsSystem) {
-        bx::debugPrintf("Physics system is not initialized!\n");
+        LOG_ERROR("Physics", "Physics system is not initialized!");
         return JPH::BodyID(); // Return an invalid body ID
     }
 
@@ -237,7 +236,7 @@ JPH::BodyID PhysicsCore::AddDynamicSphere(float radius, JPH::RVec3 position,
         bodyID = body->GetID();
         bodyInterface.AddBody(bodyID, JPH::EActivation::Activate);
     } else {
-        bx::debugPrintf("Failed to create dynamic sphere!\n");
+        LOG_ERROR("Physics", "Failed to create dynamic sphere!");
     }
 
     return bodyID;
@@ -345,5 +344,5 @@ void PhysicsCore::Shutdown() {
         bodyActivationListener = nullptr;
     }
     JPH::UnregisterTypes();
-    bx::debugPrintf("Jolt Physics shutdown successfully.\n");
+    LOG_INFO("Physics", "Jolt Physics shutdown successfully.");
 }
