@@ -60,6 +60,25 @@ Texture::Texture(Texture&& other) noexcept {
     other.textureHandle.idx = bgfx::kInvalidHandle;
     other.mem = nullptr;
 }
+
+Texture& Texture::operator=(Texture&& other) noexcept {
+    if (this != &other) {
+        filePath = std::move(other.filePath);
+        textureHandle = other.textureHandle;
+        mem = other.mem;
+        width = other.width;
+        height = other.height;
+        numMips = other.numMips;
+        numLayers = other.numLayers;
+        flags = other.flags;
+        format = other.format;
+
+        other.textureHandle.idx = bgfx::kInvalidHandle;
+        other.mem = nullptr;
+    }
+    return *this;
+}
+
 Texture::~Texture() {
     if (bgfx::isValid(textureHandle)) {
         bgfx::destroy(textureHandle);

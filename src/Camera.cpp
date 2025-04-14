@@ -3,11 +3,9 @@
 #include "Renderer.hpp"
 #include "bgfx/bgfx.h"
 #include "bx/math.h"
-#include "glm/ext/matrix_transform.hpp"
 
 Camera::Camera(Renderer& renderer, const glm::vec3& position,
-               const glm::vec3& rotation, const glm::vec3& up, float fov,
-               float nearPlane, float farPlane)
+               const glm::vec3& up, float fov, float nearPlane, float farPlane)
     : renderer(renderer), position(position), up(up), fov(fov),
       nearPlane(nearPlane), farPlane(farPlane) {
     // Set the projection matrix
@@ -18,6 +16,41 @@ Camera::Camera(Renderer& renderer, const glm::vec3& position,
 
 Camera::~Camera() {}
 
+Camera::Camera(Camera&& other) noexcept
+    : renderer(other.renderer), position(other.position), up(other.up),
+      target(other.target), fov(other.fov), nearPlane(other.nearPlane),
+      farPlane(other.farPlane) {
+    // Move the view and projection matrices
+    std::copy(std::begin(other.view), std::end(other.view), view);
+    std::copy(std::begin(other.projection), std::end(other.projection),
+              projection);
+    // Reset the other camera's matrices to avoid double deletion
+    std::fill(std::begin(other.view), std::end(other.view), 0);
+    std::fill(std::begin(other.projection), std::end(other.projection), 0);
+}
+
+Camera& Camera::operator=(Camera&& other) noexcept {
+    if (this != &other) {
+        // Move the renderer and other properties
+        renderer = other.renderer;
+        position = other.position;
+        up = other.up;
+        target = other.target;
+        fov = other.fov;
+        nearPlane = other.nearPlane;
+        farPlane = other.farPlane;
+
+        // Move the view and projection matrices
+        std::copy(std::begin(other.view), std::end(other.view), view);
+        std::copy(std::begin(other.projection), std::end(other.projection),
+                  projection);
+
+        // Reset the other camera's matrices to avoid double deletion
+        std::fill(std::begin(other.view), std::end(other.view), 0);
+        std::fill(std::begin(other.projection), std::end(other.projection), 0);
+    }
+    return *this;
+}
 void Camera::SetPosition(const glm::vec3& position) {
     this->position = position;
     // Update the view matrix when the position changes

@@ -95,6 +95,16 @@ Primitive::Primitive(Primitive&& other) noexcept : Entity(std::move(other)) {
                             " ibh: " + std::to_string(ibh.idx));
 }
 
+Primitive& Primitive::operator=(Primitive&& other) noexcept {
+    if (this != &other) {
+        Entity::operator=(std::move(other));
+        type = other.type;
+        bx::debugPrintf("Primitive moved: Type: %d vbh: %d ibh: %d", type,
+                        vbh.idx, ibh.idx);
+    }
+    return *this;
+}
+
 Primitive::~Primitive() {
     LOG_DEBUG("Entity", "Primitive destroyed: Type: " + std::to_string(static_cast<int>(type)) +
                             " vbh: " + std::to_string(vbh.idx) +
