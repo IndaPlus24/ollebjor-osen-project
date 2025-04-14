@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
     renderer.SetViewClear();
     {
         Texture texture =
-            Texture("assets/amongus.png", bgfx::TextureFormat::RGBA8);
+            Texture("assets/amongus.jpg", bgfx::TextureFormat::RGB8);
         MeshContainer mesh("assets/Suzane.obj");
         MeshContainer mesh2("assets/Holder.obj");
         Collider collider(ColliderType::Box, glm::vec3(0.0f), glm::vec3(0.0f),
