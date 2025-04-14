@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
     Core core = Core();
     core.Init();
 
-    Renderer renderer = Renderer("Hello World", 1280/10, 720/10);
+    Renderer renderer = Renderer("Hello World", 1280, 720);
     renderer.Init();
 
     SceneManager::Initialize(physicsCore, renderer.GetVertexLayout(), renderer);
