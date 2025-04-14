@@ -1,8 +1,13 @@
 #include "Texture.hpp"
+#include <cstdlib>
+#include <format>
 #include <iostream>
+#include <string>
 #include "bgfx/bgfx.h"
 #include "bx/debug.h"
 #include "stb_image.h"
+#define USE_FMT true
+#include "GameEngineLogger.hpp"
 
 Texture::Texture()
     : filePath(""), textureHandle(bgfx::kInvalidHandle), mem(nullptr), width(0),
@@ -14,26 +19,30 @@ Texture::Texture(const std::string& filePath, bgfx::TextureFormat::Enum format,
     : filePath(filePath), format(format), flags(flags) {
     int width, height, BPP;
     unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &BPP, 0);
-
+    GameLogger::LogManager::Instance().GetOrCreateChannel(
+        "Texture", GameLogger::LogLevel::DEBUG);
     if (!data) {
-        bx::debugPrintf("Failed to load texture: %s", filePath.c_str());
+        LOG_ERROR("Texture",
+                  std::format("Failed to load texture: {}", filePath.c_str()));
         return;
     } else {
-        bx::debugPrintf("Loaded texture: %s (%dx%d), BPP: %d", filePath.c_str(), width,
-                        height, BPP);
+        LOG_DEBUG("Texture", std::format("Loaded texture: {}.", filePath));
     }
     mem = bgfx::copy(data, width * height * BPP);
     stbi_image_free(data);
-
-    textureHandle =
-        bgfx::createTexture2D(width, height, false, 1, format,
-                              flags | BGFX_TEXTURE_RT | BGFX_SAMPLER_UVW_CLAMP | BGFX_SAMPLER_MAG_ANISOTROPIC |
-                                  BGFX_SAMPLER_MIN_ANISOTROPIC);
+    LOG_DEBUG("Texture", "copied and freed");
+    textureHandle = bgfx::createTexture2D(
+        width, height, false, 1, format,
+        flags | BGFX_TEXTURE_RT | BGFX_SAMPLER_UVW_CLAMP |
+            BGFX_SAMPLER_MAG_ANISOTROPIC | BGFX_SAMPLER_MIN_ANISOTROPIC);
+    LOG_DEBUG("Texture", "Handle created");
     if (bgfx::isValid(textureHandle)) {
         bgfx::updateTexture2D(textureHandle, 0, 0, 0, 0, width, height, mem,
                               width * 4);
     } else {
-        std::cerr << "Failed to create texture: " << filePath << std::endl;
+        LOG_ERROR("Texture", std::format("Failed to create texture: {}",
+                                         filePath.c_str()));
+        exit(1);
     }
 }
 
@@ -54,6 +63,7 @@ Texture::Texture(Texture&& other) noexcept {
 Texture::~Texture() {
     if (bgfx::isValid(textureHandle)) {
         bgfx::destroy(textureHandle);
-        bx::debugPrintf("Texture destroyed: %s", filePath.c_str());
+        LOG_DEBUG("Texture",
+                  std::format("Texture destroyed: {}", filePath.c_str()));
     }
 }

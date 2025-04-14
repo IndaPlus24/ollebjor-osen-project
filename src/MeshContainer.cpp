@@ -1,6 +1,6 @@
 #include "MeshContainer.hpp"
 
-#include "bx/debug.h"
+#include "GameEngineLogger.hpp"
 #include <iostream>
 #include <unordered_map>
 #include "Vertex.hpp"
@@ -29,14 +29,13 @@ MeshContainer::MeshContainer(const std::string& path) : path(path) {
         std::cerr << "Error loading OBJ file: " << path << std::endl;
     }
 
-    bx::debugPrintf("Mesh loading: vertices: %d, normals: %d, shapes: %d",
-                    attrib.vertices.size() / 3, attrib.normals.size() / 3,
-                    shapes.size());
+    LOG_DEBUG("Mesh", "Mesh loading: vertices: " + std::to_string(attrib.vertices.size() / 3) + 
+               ", normals: " + std::to_string(attrib.normals.size() / 3) + 
+               ", shapes: " + std::to_string(shapes.size()));
     std::unordered_map<Vertex, uint32_t> vertexMap;
 
     for (const auto& shape : shapes) {
-        bx::debugPrintf("Mesh loading: Shape loading: name: %s",
-                        shape.name.c_str());
+        LOG_DEBUG("Mesh", "Mesh loading: Shape loading: name: " + shape.name);
         for (const auto& index : shape.mesh.indices) {
             Vertex vertex;
             vertex.pos = {attrib.vertices[3 * index.vertex_index],

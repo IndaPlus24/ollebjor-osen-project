@@ -7,9 +7,9 @@
 #include "Jolt/Geometry/Triangle.h"
 #include "Jolt/Math/Float3.h"
 #include "Jolt/Math/Vec3.h"
-#include "Jolt/Physics/Collision/Shape/MeshShape.h"
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
 #include "Vertex.hpp"
-#include "bx/debug.h"
+#include "GameEngineLogger.hpp"
 #include "utils.hpp"
 
 Collider::Collider(ColliderType type, const glm::vec3& position,
@@ -42,8 +42,8 @@ Collider::Collider(ColliderType type, const glm::vec3& position,
                    const std::vector<uint32_t>& indices)
     : type(type), position(position), rotation(rotation), size(size) {
     if (type != ColliderType::Mesh) {
-        bx::debugPrintf(
-            "Error: Must use Mesh collider with this constructor.\n");
+        LOG_ERROR("Physics", 
+            "Error: Must use Mesh collider with this constructor.");
         return;
     }
     const JPH::Vec3 joltSize = ToJPH(size);
@@ -51,7 +51,7 @@ Collider::Collider(ColliderType type, const glm::vec3& position,
     JPH::IndexedTriangleList indicesList;
 
     if (vertices.size() != 0 && indices.size() != 0) {
-        bx::debugPrintf("Creating mesh collider\n");
+        LOG_INFO("Physics", "Creating mesh collider");
         for (const auto& vertex : vertices) {
             JPH::Float3 joltVertex = {vertex.pos.x, vertex.pos.y, vertex.pos.z};
             verticesList.push_back(joltVertex);
@@ -65,12 +65,12 @@ Collider::Collider(ColliderType type, const glm::vec3& position,
         // Handle the case where vertices or indices are null
         // You can either throw an exception or create a default mesh
         // For now, we'll just log a message
-        bx::debugPrintf(
-            "Error: Vertices or indices are null for mesh collider\n");
+        LOG_ERROR("Physics",
+            "Error: Vertices or indices are null for mesh collider");
         return;
     }
 
-    bx::debugPrintf("Vertices size: %zu\n", verticesList.size());
+    LOG_DEBUG("Physics", "Vertices size: " + std::to_string(verticesList.size()));
     JPH::MeshShapeSettings meshSettings(verticesList, indicesList);
     JPH::ShapeSettings::ShapeResult result;
     shape = new JPH::MeshShape(meshSettings, result);
@@ -84,7 +84,7 @@ Collider::Collider(Collider&& other) noexcept
 
 Collider::~Collider() {
     if (shape != nullptr) {
-        bx::debugPrintf("Collider destructor\n");
+        LOG_DEBUG("Physics", "Collider destructor");
         shape->Release();
         shape = nullptr;
     }
