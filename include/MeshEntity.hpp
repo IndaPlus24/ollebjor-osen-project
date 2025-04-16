@@ -10,10 +10,11 @@
 
 class MeshEntity : public Entity {
   private:
-    Collider& collider;
+    Collider* collider;
+    MeshContainer* mesh;
 
   public:
-    MeshEntity(MeshContainer& mesh, Collider& collider,
+    MeshEntity(MeshContainer& mesh, Collider* collider,
                const RigidBodyType bodyType, PhysicsCore& physicsCore,
                bgfx::VertexLayout& layout, Texture& texture,
                glm::vec3 position = glm::vec3(0.0f),
@@ -25,5 +26,6 @@ class MeshEntity : public Entity {
     MeshEntity& operator=(const MeshEntity&) = delete;
     ~MeshEntity();
 
-    void UpdateMesh(const MeshContainer& newMesh, bgfx::VertexLayout& layout);
+    void UpdateMetaData(MeshContainer* newMesh, Collider* newCollider);
+    void UpdateMesh(PhysicsCore& physicsCore, bgfx::VertexLayout& layout) override;
 };

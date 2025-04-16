@@ -117,6 +117,13 @@ class PhysicsCore {
 
     JPH::BodyID AddDynamicCollider(const JPH::Vec3& position,
                                    const JPH::Ref<JPH::Shape> shape, float mass);
+
+    inline JPH::BodyID RemoveBody(JPH::BodyID bodyID) {
+        JPH::BodyInterface& bodyInterface = physicsSystem->GetBodyInterface();
+        bodyInterface.RemoveBody(bodyID);
+        return bodyID;
+    }
+
     inline JPH::BodyInterface& GetBodyInterface() {
         return physicsSystem->GetBodyInterface();
     }

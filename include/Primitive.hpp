@@ -28,5 +28,6 @@ class Primitive: public Entity {
     ~Primitive();
 
     inline PrimitiveType GetType() const { return type; }
-    inline void SetType(PrimitiveType type) { this->type = type; } //FIXME
+    void SetType(PrimitiveType type);
+    void UpdateMesh(PhysicsCore& physicsCore, bgfx::VertexLayout& layout) override;
 };

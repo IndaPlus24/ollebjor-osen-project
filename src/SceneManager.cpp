@@ -89,6 +89,7 @@ SceneRef<Entity> SceneManager::AddEntity(PrimitiveType type,
     return ref;
 }
 
+
 SceneRef<Entity> SceneManager::AddEntity(MeshEntity meshEntity) {
     // Create a new entity and add it to the map
     uint64_t id = entities.size();
@@ -123,7 +124,7 @@ SceneRef<Entity> SceneManager::AddEntity(uint64_t meshId, uint64_t colliderId,
         return {0, nullptr};
     }
     auto entity =
-        new MeshEntity(*mesh.data, *collider.data, bodyType, *physicsCore,
+        new MeshEntity(*mesh.data, collider.data, bodyType, *physicsCore,
                        *layout, *texture.data, position, rotation, size);
     entities.emplace(id, entity);
     SceneRef<Entity> ref;
@@ -131,6 +132,34 @@ SceneRef<Entity> SceneManager::AddEntity(uint64_t meshId, uint64_t colliderId,
     ref.data = entities.at(id);
     bx::debugPrintf("MeshEntity added with ID: %llu", id);
     return ref;
+}
+
+SceneRef<Entity> SceneManager::UpdateEntity(uint64_t id, uint64_t meshId, uint64_t colliderId) {
+    // Check if the entity exists in the map
+    auto it = entities.find(id);
+    if (it != entities.end()) {
+        auto mesh = GetMeshContainer(meshId);
+        auto collider = GetCollider(colliderId);
+        if (mesh.data == nullptr) {
+            bx::debugPrintf("Mesh not found with ID: %llu", meshId);
+            return {0, nullptr};
+        }
+        if (collider.data == nullptr) {
+            bx::debugPrintf("Collider not found with ID: %llu", colliderId);
+            return {0, nullptr};
+        }
+        auto entity = dynamic_cast<MeshEntity*>(it->second);
+        if (entity == nullptr) {
+            bx::debugPrintf("Entity with ID: %llu is not a MeshEntity", id);
+            return {0, nullptr};
+        }
+        entity->UpdateMetaData(mesh.data, collider.data);
+        entity->UpdateMesh(*physicsCore, *layout);
+        bx::debugPrintf("Entity updated with ID: %llu", id);
+        return {id, it->second};
+    }
+    // Return an empty reference if not found
+    return {0, nullptr};
 }
 
 SceneRef<Entity> SceneManager::GetEntity(const uint64_t id) {

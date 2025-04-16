@@ -92,12 +92,12 @@ int main(int argc, char** argv) {
                 glm::vec3{0.0f, -2.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
                 glm::vec3{10.0f, 1.0f, 10.0f}));
             scene.AddEntity(MeshEntity(
-                *meshRef.data, *colliderRef.data, RigidBodyType::Dynamic,
+                *meshRef.data, colliderRef.data, RigidBodyType::Dynamic,
                 physicsCore, renderer.GetVertexLayout(), *textureRef.data,
                 glm::vec3{0.0f, 7.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
                 glm::vec3{1.0f, 1.0f, 1.0f}));
             scene.AddEntity(MeshEntity(
-                *mesh2Ref.data, *collider2Ref.data, RigidBodyType::Static,
+                *mesh2Ref.data, collider2Ref.data, RigidBodyType::Static,
                 physicsCore, renderer.GetVertexLayout(), *textureRef.data,
                 glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
                 glm::vec3{1.0f, 1.0f, 1.0f}));
