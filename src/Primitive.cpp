@@ -97,6 +97,72 @@ Primitive::~Primitive() {
                     vbh.idx, ibh.idx);
 }
 
+// Remember to call UpdateMesh after changing the type!
+void Primitive::SetType(PrimitiveType type) { this->type = type; }
+
+void Primitive::UpdateMesh(PhysicsCore& physicsCore,
+                           bgfx::VertexLayout& layout) {
+    const bgfx::Memory* verticesMem = nullptr;
+    const bgfx::Memory* indicesMem = nullptr;
+    GetPrimitiveTypeData(verticesMem, indicesMem, type);
+
+    if (vbh.idx != bgfx::kInvalidHandle) {
+        bgfx::destroy(vbh);
+    }
+    if (ibh.idx != bgfx::kInvalidHandle) {
+        bgfx::destroy(ibh);
+    }
+
+    vbh = bgfx::createDynamicVertexBuffer(verticesMem, layout);
+    ibh = bgfx::createIndexBuffer(indicesMem);
+    if (vbh.idx == bgfx::kInvalidHandle || ibh.idx == bgfx::kInvalidHandle) {
+        bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %x",
+                        type, vbh.idx, ibh.idx);
+    } else {
+        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d", type,
+                        vbh.idx, ibh.idx);
+    }
+
+    // update physics
+    JPH::BodyInterface& bodyInterface = physicsCore.GetBodyInterface();
+    physicsCore.RemoveBody(bodyID);
+
+    JPH::Vec3 joltPosition = ToJPH(position);
+    JPH::Vec3 joltSize = ToJPH(size);
+    switch (bodyType) {
+    case RigidBodyType::Static: {
+        glm::vec3 normal = glm::vec3(0.0f, 1.0f, 0.0f);
+        glm::vec3 rotatedNormal =
+            glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x),
+                        glm::vec3(1.0f, 0.0f, 0.0f)) *
+            glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y),
+                        glm::vec3(0.0f, 1.0f, 0.0f)) *
+            glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z),
+                        glm::vec3(0.0f, 0.0f, 1.0f)) *
+            glm::vec4(normal, 1.0f);
+        JPH::Vec3 joltNormal(rotatedNormal.x, rotatedNormal.y, rotatedNormal.z);
+        bodyID = physicsCore.AddStaticPlane(joltPosition, joltNormal);
+        bx::debugPrintf("Static Plane created: Type: %d vbh: %d ibh: %d", type,
+                        vbh.idx, ibh.idx);
+
+    } break;
+    case RigidBodyType::Dynamic: {
+        switch (type) {
+        case PrimitiveType::Cube: {
+            bodyID = physicsCore.AddDynamicBox(joltPosition, joltSize, 1.0f);
+            bx::debugPrintf("Dynamic Cube created: Type: %d vbh: %d ibh: %d",
+                            type, vbh.idx, ibh.idx);
+        } break;
+        case PrimitiveType::Sphere: {
+            bodyID = physicsCore.AddDynamicSphere(size.x, joltPosition, 1.0f);
+            bx::debugPrintf("Dynamic Sphere created: Type: %d vbh: %d ibh: %d",
+                            type, vbh.idx, ibh.idx);
+        } break;
+        }
+    }
+    }
+}
+
 void Primitive::GetPrimitiveTypeData(const bgfx::Memory*& vertMem,
                                      const bgfx::Memory*& indiMem,
                                      PrimitiveType type) {

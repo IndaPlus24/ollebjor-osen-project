@@ -46,6 +46,7 @@ class SceneManager {
                                glm::vec3 position = glm::vec3(0.0f),
                                glm::vec3 rotation = glm::vec3(0.0f),
                                glm::vec3 size = glm::vec3(1.0f));
+    SceneRef<Entity> UpdateEntity(uint64_t id, PrimitiveType type);
 
     SceneRef<Entity> AddEntity(MeshEntity meshEntity);
     SceneRef<Entity> AddEntity(uint64_t meshId, uint64_t colliderId,
@@ -53,15 +54,14 @@ class SceneManager {
                                glm::vec3 position = glm::vec3(0.0f),
                                glm::vec3 rotation = glm::vec3(0.0f),
                                glm::vec3 size = glm::vec3(1.0f));
+    SceneRef<Entity> UpdateEntity(uint64_t id, uint64_t meshId, uint64_t colliderId);
 
     SceneRef<Entity> GetEntity(const uint64_t id);
     void RemoveEntity(const uint64_t id);
 
     SceneRef<Texture> AddTexture(Texture texture);
-    SceneRef<Texture>
-    AddTexture(const std::string& filePath,
-               bgfx::TextureFormat::Enum format = bgfx::TextureFormat::Unknown,
-               uint32_t flags = 0);
+    SceneRef<Texture> AddTexture(const std::string& filePath,
+                                 uint32_t flags = 0);
 
     SceneRef<Texture> GetTexture(const uint64_t id);
     void RemoveTexture(const uint64_t id);

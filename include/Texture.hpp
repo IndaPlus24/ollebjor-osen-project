@@ -13,13 +13,10 @@ class Texture {
     uint32_t numMips;
     uint32_t numLayers;
     uint32_t flags;
-    bgfx::TextureFormat::Enum format;
 
   public:
     Texture();
-    Texture(const std::string& filePath,
-            bgfx::TextureFormat::Enum format = bgfx::TextureFormat::Unknown,
-            uint32_t flags = 0);
+    Texture(const std::string& filePath, uint32_t flags = 0);
     Texture(Texture&& other) noexcept;
     Texture& operator=(Texture&& other) noexcept;
     ~Texture();

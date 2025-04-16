@@ -26,4 +26,8 @@ class Primitive: public Entity {
     Primitive(const Primitive&) = delete;
     Primitive& operator=(const Primitive&) = delete;
     ~Primitive();
+
+    inline PrimitiveType GetType() const { return type; }
+    void SetType(PrimitiveType type);
+    void UpdateMesh(PhysicsCore& physicsCore, bgfx::VertexLayout& layout) override;
 };

@@ -11,7 +11,7 @@
 #include <glm/ext/matrix_transform.hpp>
 
 class Entity {
-protected:
+  protected:
     RigidBodyType bodyType = RigidBodyType::Static;
     glm::vec3 position;
     glm::vec3 rotation;
@@ -28,7 +28,7 @@ protected:
     void QuaternionRotate(glm::mat4& result, const glm::vec3& axis,
                           float angle);
 
-public:
+  public:
     Entity(RigidBodyType bodyType, PhysicsCore& physicsCore,
            bgfx::VertexLayout& layout, Texture& texture,
            glm::vec3 position = glm::vec3(0.0f),
@@ -83,4 +83,10 @@ public:
 
     inline JPH::BodyID GetBodyID() const { return bodyID; }
     inline RigidBodyType GetBodyType() const { return bodyType; }
+    inline glm::vec3 GetPosition() const { return position; }
+    inline glm::vec3 GetRotation() const { return rotation; }
+    inline glm::vec3 GetSize() const { return size; }
+    inline glm::mat4 GetTransform() const { return transform; }
+
+    virtual void UpdateMesh(PhysicsCore& physicsCore, bgfx::VertexLayout& layout) = 0;
 };

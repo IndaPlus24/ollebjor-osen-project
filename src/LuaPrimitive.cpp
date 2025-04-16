@@ -3,23 +3,23 @@
 #include "LuaPrimitive.hpp"
 #include "LuaVector3.hpp"
 
+#include "Primitive.hpp"
+#include "SceneManager.hpp"
 #include "Enums.hpp"
 #include <lua.hpp>
 #include <iostream>
 #include <glm/glm.hpp>
 
 LuaPrimitive::LuaPrimitive(PrimitiveType type) {
-    // Initialize position to (0, 0, 0) and color to white (0xffffffff)
-    this->position = LuaVector3(0.0f, 0.0f, 0.0f);
-    this->type = type;
-    // color = 0xffffffff;
+    std::cout << "LuaPrimitive constructor called for primitive" << std::endl;
+    this->m_ref =
+        SceneManager::GetInstance().AddEntity(type, RigidBodyType::Dynamic, 0);
+    std::cout << "LuaPrimitive created" << std::endl;
 }
 
 LuaPrimitive::LuaPrimitive(PrimitiveType type, LuaVector3& position) {
-    // Initialize position to (0, 0, 0) and color to white (0xffffffff)
-    this->position = LuaVector3(0.0f, 0.0f, 0.0f);
-    this->type = type;
-    // color = 0xffffffff;
+    this->m_ref = SceneManager::GetInstance().AddEntity(
+        type, RigidBodyType::Dynamic, 0, position.Get());
 }
 
 LuaPrimitive::~LuaPrimitive() {
@@ -27,21 +27,20 @@ LuaPrimitive::~LuaPrimitive() {
     std::cout << "LuaPrimitive destructor called for primitive" << std::endl;
 }
 
-// void LuaPrimitive::SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-//     color = (r << 24) | (g << 16) | (b << 8) | a;
-// }
-
-// const uint32_t& LuaPrimitive::GetColor() const {
-//     return color;
-// }
-
 void LuaPrimitive::SetPosition(LuaVector3& position) {
-    this->position = position;
+    m_ref.data->SetPhysicsPosition(position.Get());
 }
-LuaVector3& LuaPrimitive::GetPosition() { return position; }
+LuaVector3 LuaPrimitive::GetPosition() {
+    return LuaVector3(m_ref.data->GetPosition());
+}
 
-PrimitiveType LuaPrimitive::GetType() { return type; }
-void LuaPrimitive::SetType(PrimitiveType type) { this->type = type; }
+PrimitiveType LuaPrimitive::GetType() {
+    Primitive* p = dynamic_cast<Primitive*>(m_ref.data);
+    return p->GetType();
+}
+void LuaPrimitive::SetType(PrimitiveType type) {
+    SceneManager::GetInstance().UpdateEntity(m_ref.id, type);
+}
 
 int PrimitiveTypeToInt(PrimitiveType type) {
     switch (type) {
@@ -90,7 +89,7 @@ int LuaPrimitive::luaSetType(lua_State* L) {
 int LuaPrimitive::luaGetPosition(lua_State* L) {
     LuaPrimitive* self =
         MetatableRegistry::instance().check_userdata<LuaPrimitive>(L, 1);
-    LuaVector3& pos = self->GetPosition();
+    LuaVector3 pos = self->GetPosition();
     MetatableRegistry::instance().create_and_push<LuaVector3>(
         L, pos.GetX(), pos.GetY(), pos.GetZ());
     return 1;
@@ -111,9 +110,22 @@ int LuaPrimitive::luaSetPosition(lua_State* L) {
     return 0;
 }
 
+int LuaPrimitive::luaDestroy(lua_State* L) {
+    LuaPrimitive* self =
+        MetatableRegistry::instance().check_userdata<LuaPrimitive>(L, 1);
+    SceneManager::GetInstance().RemoveEntity(self->m_ref.id);
+    return 0;
+}
+
 int LuaPrimitive::luaNew(lua_State* L) {
-    //TODO: make it so that it can set the type
-    //TODO: Tell Scene manager to create a primitive and recieve the id and pointer to that
-    MetatableRegistry::instance().create_and_push<LuaPrimitive>(L, PrimitiveType::Cube);
+    // Get possible argument that is an int
+    if (lua_isnumber(L, 1)) {
+        int typeInt = luaL_checkinteger(L, 1);
+        PrimitiveType type = IntToPrimitiveType(typeInt);
+        MetatableRegistry::instance().create_and_push<LuaPrimitive>(L, type);
+        return 1;
+    }
+    MetatableRegistry::instance().create_and_push<LuaPrimitive>(
+        L, PrimitiveType::Cube);
     return 1;
 }

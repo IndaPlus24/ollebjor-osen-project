@@ -4,7 +4,7 @@
 #include "LuaVector3.hpp"
 #include "LuaCore.hpp"
 #include "LuaPrimitive.hpp"
-#include "LuaPrimitive.hpp"
+#include "LuaGame.hpp"
 
 namespace {
 int luaGetVersion(lua_State* L) {
@@ -71,11 +71,8 @@ void LuaCore::Init() {
     luaL_openlibs(L);
     registerGlobalFunction(luaGetVersion, "Version");
     overrideLuaLibFunctions();
-    // RegisterLuaClass(LuaPrimitive::luaName, LuaPrimitive::methods,
-    // LuaPrimitive::functions);
-    // InitializePrimitive();
-
-    LuaExporter<LuaVector3> vector3(L, "Vector3", false, true);
+    
+    LuaExporter<LuaVector3> vector3(L, "Vector3", true, true);
     vector3.Constructor(LuaVector3::luaNew, 3)
         .Method("Dot", LuaVector3::luaDot, 1)
         .Method("Cross", LuaVector3::luaCross, 1)
@@ -85,14 +82,21 @@ void LuaCore::Init() {
         .Getter("Z", LuaVector3::luaGetZ)
         .Getter("len", LuaVector3::luaGetLength)
         .Getter("normalized", LuaVector3::luaNormalize)
+        .Meta("__add", LuaVector3::lua__add)
+        .Meta("__sub", LuaVector3::lua__sub)
+        .Meta("__mul", LuaVector3::lua__mul)
+        .Meta("__div", LuaVector3::lua__div)
+        .Meta("__eq", LuaVector3::lua__eq)
+        .Meta("__tostring", LuaVector3::lua__tostring)
         .Export();
 
-    LuaExporter<LuaPrimitive> primitive(L, "Primitive", false, true);
+    LuaExporter<LuaPrimitive> primitive(L, "Primitive", true, true);
     primitive.Constructor(LuaPrimitive::luaNew, 1)
         .Method("SetPosition", LuaPrimitive::luaSetPosition, 1)
         .Method("GetPosition", LuaPrimitive::luaGetPosition, 0)
         .Method("SetType", LuaPrimitive::luaSetType, 1)
         .Method("GetType", LuaPrimitive::luaGetType, 0)
+        .Method("Destroy", LuaPrimitive::luaDestroy, 0)
         .Export();
 }
 

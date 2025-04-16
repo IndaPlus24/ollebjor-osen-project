@@ -20,3 +20,5 @@ mv build/compile_commands.json ./
 cmake --build build
 ```
 
+# Development pictures
+![Sus](sus_dev.png)

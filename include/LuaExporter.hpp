@@ -14,12 +14,11 @@ template <typename T> class LuaExporter {
     ~LuaExporter();
 
     LuaExporter<T> Func(std::string name, lua_CFunction func, int nargs = 0);
-    LuaExporter<T> Funcs(luaL_Reg funcs[]);
     LuaExporter<T> Method(std::string name, lua_CFunction func, int nargs = 0);
-    LuaExporter<T> Methods(luaL_Reg methods[]);
     LuaExporter<T> Setter(std::string name, lua_CFunction setter);
     LuaExporter<T> Getter(std::string name, lua_CFunction getter);
     LuaExporter<T> Constructor(lua_CFunction constructor, int nargs = 0);
+    LuaExporter<T> Meta(std::string name, lua_CFunction meta);
     void Export();
 
   private:
@@ -54,26 +53,11 @@ LuaExporter<T> LuaExporter<T>::Func(std::string name, lua_CFunction func,
     return *this;
 }
 
-template <typename T> LuaExporter<T> LuaExporter<T>::Funcs(luaL_Reg funcs[]) {
-    for (int i = 0; funcs[i].name != nullptr; i++) {
-        this->funcs.push_back(funcs[i]);
-    }
-    return *this;
-}
-
 template <typename T>
 LuaExporter<T> LuaExporter<T>::Method(std::string name, lua_CFunction func,
                                       int nargs) {
     luaL_Reg method = {name.c_str(), func};
     methods.push_back(method);
-    return *this;
-}
-
-template <typename T>
-LuaExporter<T> LuaExporter<T>::Methods(luaL_Reg methods[]) {
-    for (int i = 0; methods[i].name != nullptr; i++) {
-        this->methods.push_back(methods[i]);
-    }
     return *this;
 }
 
@@ -96,6 +80,13 @@ LuaExporter<T> LuaExporter<T>::Constructor(lua_CFunction constFac, int nargs) {
     luaL_Reg func = {"new", constFac};
     funcs.push_back(func);
     MetatableRegistry::instance().register_constructor<T>(constFac);
+    return *this;
+}
+
+template <typename T>
+LuaExporter<T> LuaExporter<T>::Meta(std::string name, lua_CFunction meta) {
+    luaL_Reg func = {name.c_str(), meta};
+    metamethods.push_back(func);
     return *this;
 }
 
@@ -191,6 +182,7 @@ static bool has_field(lua_State* L, const char* field) {
     lua_pop(L, 1);
     return hasField;
 }
+
 
 template <typename T> void LuaExporter<T>::Export() {
     funcs.push_back({nullptr, nullptr});       // End of the functions array
