@@ -6,29 +6,28 @@
 
 Texture::Texture()
     : filePath(""), textureHandle(bgfx::kInvalidHandle), mem(nullptr), width(0),
-      height(0), numMips(0), numLayers(0), flags(0),
-      format(bgfx::TextureFormat::Unknown) {}
+      height(0), numMips(0), numLayers(0), flags(0) {}
 
-Texture::Texture(const std::string& filePath, bgfx::TextureFormat::Enum format,
-                 uint32_t flags)
-    : filePath(filePath), format(format), flags(flags) {
+Texture::Texture(const std::string& filePath, uint32_t flags)
+    : filePath(filePath), flags(flags) {
     int width, height, BPP;
-    unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &BPP, 0);
+    unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &BPP, 4);
 
     if (!data) {
         bx::debugPrintf("Failed to load texture: %s", filePath.c_str());
         return;
     } else {
-        bx::debugPrintf("Loaded texture: %s (%dx%d), BPP: %d", filePath.c_str(), width,
-                        height, BPP);
+        bx::debugPrintf("Loaded texture: %s (%dx%d), BPP: %d", filePath.c_str(),
+                        width, height, BPP);
     }
-    mem = bgfx::copy(data, width * height * BPP);
+    mem = bgfx::copy(data, width * height * 4);
     stbi_image_free(data);
 
-    textureHandle =
-        bgfx::createTexture2D(width, height, false, 1, format,
-                              flags | BGFX_TEXTURE_RT | BGFX_SAMPLER_UVW_CLAMP | BGFX_SAMPLER_MAG_ANISOTROPIC |
-                                  BGFX_SAMPLER_MIN_ANISOTROPIC);
+    textureHandle = bgfx::createTexture2D(
+        width, height, false, 1, bgfx::TextureFormat::RGBA8,
+        flags | BGFX_TEXTURE_RT | BGFX_SAMPLER_UVW_CLAMP |
+            BGFX_SAMPLER_MAG_ANISOTROPIC | BGFX_SAMPLER_MIN_ANISOTROPIC);
+
     if (bgfx::isValid(textureHandle)) {
         bgfx::updateTexture2D(textureHandle, 0, 0, 0, 0, width, height, mem,
                               width * 4);
@@ -46,7 +45,6 @@ Texture::Texture(Texture&& other) noexcept {
     numMips = other.numMips;
     numLayers = other.numLayers;
     flags = other.flags;
-    format = other.format;
 
     other.textureHandle.idx = bgfx::kInvalidHandle;
     other.mem = nullptr;
@@ -62,7 +60,6 @@ Texture& Texture::operator=(Texture&& other) noexcept {
         numMips = other.numMips;
         numLayers = other.numLayers;
         flags = other.flags;
-        format = other.format;
 
         other.textureHandle.idx = bgfx::kInvalidHandle;
         other.mem = nullptr;

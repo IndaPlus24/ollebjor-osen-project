@@ -26,27 +26,35 @@ LuaVector3 LuaVector3::Normalize() const {
     return LuaVector3(glm::normalize(position));
 }
 
+glm::vec3 LuaVector3::Get() const { return position; }
+void LuaVector3::Set(const glm::vec3& vec) { position = vec; }
+
 int LuaVector3::luaGetX(lua_State* L) {
-    LuaVector3* vec = MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+    LuaVector3* vec =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
     lua_pushnumber(L, vec->GetX());
     return 1;
 }
 
 int LuaVector3::luaGetY(lua_State* L) {
-    LuaVector3* vec = MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+    LuaVector3* vec =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
     lua_pushnumber(L, vec->GetY());
     return 1;
 }
 
 int LuaVector3::luaGetZ(lua_State* L) {
-    LuaVector3* vec = MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+    LuaVector3* vec =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
     lua_pushnumber(L, vec->GetZ());
     return 1;
 }
 
 int LuaVector3::luaDot(lua_State* L) {
-    LuaVector3* self = MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
-    LuaVector3* other = MetatableRegistry::instance().check_userdata<LuaVector3>(L, 2);
+    LuaVector3* self =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+    LuaVector3* other =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 2);
 
     float dot = self->Dot(*other);
     lua_pushnumber(L, dot);
@@ -54,8 +62,10 @@ int LuaVector3::luaDot(lua_State* L) {
 }
 
 int LuaVector3::luaCross(lua_State* L) {
-    LuaVector3* vec = MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
-    LuaVector3* other = MetatableRegistry::instance().check_userdata<LuaVector3>(L, 2);
+    LuaVector3* vec =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+    LuaVector3* other =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 2);
 
     lua_pop(L, 2); // Pop the two userdata from the stack to create new ones
     LuaVector3 cross = vec->Cross(*other);
@@ -66,14 +76,16 @@ int LuaVector3::luaCross(lua_State* L) {
 }
 
 int LuaVector3::luaGetLength(lua_State* L) {
-    LuaVector3* vec = MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+    LuaVector3* vec =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
     lua_pushnumber(L, vec->GetLength());
     return 1;
 }
 
-//Creates a normalized copy of the vector and returns it
-int LuaVector3::luaNormalize(lua_State *L) {
-    LuaVector3* vec = MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+// Creates a normalized copy of the vector and returns it
+int LuaVector3::luaNormalize(lua_State* L) {
+    LuaVector3* vec =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
     lua_pop(L, 1); // Pop the userdata from the stack to create new ones
     LuaVector3 normalized = vec->Normalize();
     lua_pushnumber(L, normalized.GetX());

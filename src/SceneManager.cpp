@@ -147,7 +147,7 @@ SceneRef<Entity> SceneManager::GetEntity(const uint64_t id) {
     return {0, nullptr};
 }
 
-void SceneManager::RemoveEntity(const uint64_t id) { 
+void SceneManager::RemoveEntity(const uint64_t id) {
     // Check if the entity exists in the map
     auto it = entities.find(id);
     if (it != entities.end()) {
@@ -172,11 +172,10 @@ SceneRef<Texture> SceneManager::AddTexture(Texture texture) {
 }
 
 SceneRef<Texture> SceneManager::AddTexture(const std::string& filePath,
-                                           bgfx::TextureFormat::Enum format,
                                            uint32_t flags) {
     // Create a new texture and add it to the map
     uint64_t id = textures.size();
-    auto texturePtr = new Texture(filePath, format, flags);
+    auto texturePtr = new Texture(filePath, flags);
     textures.emplace(id, texturePtr);
     SceneRef<Texture> ref;
     ref.id = id;
@@ -248,7 +247,7 @@ SceneRef<MeshContainer> SceneManager::GetMeshContainer(const uint64_t id) {
     return {0, nullptr};
 }
 
-void SceneManager::RemoveMeshContainer(const uint64_t id) { 
+void SceneManager::RemoveMeshContainer(const uint64_t id) {
     auto it = meshes.find(id);
     if (it != meshes.end()) {
         delete it->second;

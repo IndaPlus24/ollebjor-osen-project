@@ -26,4 +26,7 @@ class Primitive: public Entity {
     Primitive(const Primitive&) = delete;
     Primitive& operator=(const Primitive&) = delete;
     ~Primitive();
+
+    inline PrimitiveType GetType() const { return type; }
+    inline void SetType(PrimitiveType type) { this->type = type; } //FIXME
 };

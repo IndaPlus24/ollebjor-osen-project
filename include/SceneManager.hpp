@@ -58,10 +58,8 @@ class SceneManager {
     void RemoveEntity(const uint64_t id);
 
     SceneRef<Texture> AddTexture(Texture texture);
-    SceneRef<Texture>
-    AddTexture(const std::string& filePath,
-               bgfx::TextureFormat::Enum format = bgfx::TextureFormat::Unknown,
-               uint32_t flags = 0);
+    SceneRef<Texture> AddTexture(const std::string& filePath,
+                                 uint32_t flags = 0);
 
     SceneRef<Texture> GetTexture(const uint64_t id);
     void RemoveTexture(const uint64_t id);

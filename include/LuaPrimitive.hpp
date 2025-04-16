@@ -1,9 +1,11 @@
 #pragma once
+#include "Entity.hpp"
 #include "Enums.hpp"
 #include "LuaVector3.hpp"
 #include <glm/glm.hpp>
 #include <lua.hpp>
-
+#include "Primitive.hpp"
+#include "SceneManager.hpp"
 
 class LuaPrimitive {
   public:
@@ -16,7 +18,7 @@ class LuaPrimitive {
     // void SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
     // const uint32_t& GetColor() const;
     void SetPosition(LuaVector3& position);
-    LuaVector3& GetPosition();
+    LuaVector3 GetPosition();
 
     static int luaGetType(lua_State* L);
     static int luaSetType(lua_State* L);
@@ -25,7 +27,5 @@ class LuaPrimitive {
     static int luaNew(lua_State* L);
 
   private:
-    PrimitiveType type; // TODO: Make enum
-    LuaVector3 position;
-    //uint32_t color;
+    SceneRef<Entity> m_ref;
 };

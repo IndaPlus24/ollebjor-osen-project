@@ -83,4 +83,8 @@ public:
 
     inline JPH::BodyID GetBodyID() const { return bodyID; }
     inline RigidBodyType GetBodyType() const { return bodyType; }
+    inline glm::vec3 GetPosition() const { return position; }
+    inline glm::vec3 GetRotation() const { return rotation; }
+    inline glm::vec3 GetSize() const { return size; }
+    inline glm::mat4 GetTransform() const { return transform; }
 };

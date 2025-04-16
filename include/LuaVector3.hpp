@@ -18,6 +18,9 @@ class LuaVector3 {
     LuaVector3 Cross(const LuaVector3& other) const;
     LuaVector3 Normalize() const;
 
+    glm::vec3 Get() const;
+    void Set(const glm::vec3& vec);
+
     // TODO: can we make these methods in the luaexporter?
     static int luaGetX(lua_State* L);
     static int luaGetY(lua_State* L);

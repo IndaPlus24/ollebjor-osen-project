@@ -75,7 +75,7 @@ void LuaCore::Init() {
     // LuaPrimitive::functions);
     // InitializePrimitive();
 
-    LuaExporter<LuaVector3> vector3(L, "Vector3", false, true);
+    LuaExporter<LuaVector3> vector3(L, "Vector3", true, true);
     vector3.Constructor(LuaVector3::luaNew, 3)
         .Method("Dot", LuaVector3::luaDot, 1)
         .Method("Cross", LuaVector3::luaCross, 1)
@@ -87,7 +87,7 @@ void LuaCore::Init() {
         .Getter("normalized", LuaVector3::luaNormalize)
         .Export();
 
-    LuaExporter<LuaPrimitive> primitive(L, "Primitive", false, true);
+    LuaExporter<LuaPrimitive> primitive(L, "Primitive", true, true);
     primitive.Constructor(LuaPrimitive::luaNew, 1)
         .Method("SetPosition", LuaPrimitive::luaSetPosition, 1)
         .Method("GetPosition", LuaPrimitive::luaGetPosition, 0)
