@@ -1,6 +1,6 @@
 print("Lua execution started [Version " .. Version() .. "]")
 --local d = require("./LoonarDebug")
-
+require("os")
 function PrintMetatable(t)
     local mt = getmetatable(t)
     if mt then
@@ -30,8 +30,15 @@ print("u: ", u.X, u.Y, u.Z)
 print("v: ", v.X, v.Y, v.Z)
 
 local p = Primitive.new()
-p:SetPosition(u)
+print("Primitive created: ")
+p:SetPosition(Vector3.new(0,100,0))
+print("Primitive position: ")
 local pos = p:GetPosition()
 print("Primitive position: ", pos.X, pos.Y, pos.Z)
+
+for i = 1, 100 do
+    local p = Primitive.new()
+    p:SetPosition(Vector3.new(0, i, 0))
+end
 
 print("Lua executed successfully")
