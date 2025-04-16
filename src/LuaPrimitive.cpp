@@ -27,14 +27,6 @@ LuaPrimitive::~LuaPrimitive() {
     std::cout << "LuaPrimitive destructor called for primitive" << std::endl;
 }
 
-// void LuaPrimitive::SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-//     color = (r << 24) | (g << 16) | (b << 8) | a;
-// }
-
-// const uint32_t& LuaPrimitive::GetColor() const {
-//     return color;
-// }
-
 void LuaPrimitive::SetPosition(LuaVector3& position) {
     m_ref.data->SetPhysicsPosition(position.Get());
 }
@@ -43,12 +35,11 @@ LuaVector3 LuaPrimitive::GetPosition() {
 }
 
 PrimitiveType LuaPrimitive::GetType() {
-    Primitive* p = static_cast<Primitive*>(m_ref.data);
+    Primitive* p = dynamic_cast<Primitive*>(m_ref.data);
     return p->GetType();
 }
 void LuaPrimitive::SetType(PrimitiveType type) {
-    Primitive* p = static_cast<Primitive*>(m_ref.data);
-    p->SetType(type);
+    SceneManager::GetInstance().UpdateEntity(m_ref.id, type);
 }
 
 int PrimitiveTypeToInt(PrimitiveType type) {
@@ -119,9 +110,22 @@ int LuaPrimitive::luaSetPosition(lua_State* L) {
     return 0;
 }
 
+int LuaPrimitive::luaDestroy(lua_State* L) {
+    LuaPrimitive* self =
+        MetatableRegistry::instance().check_userdata<LuaPrimitive>(L, 1);
+    SceneManager::GetInstance().RemoveEntity(self->m_ref.id);
+    return 0;
+}
+
 int LuaPrimitive::luaNew(lua_State* L) {
+    // Get possible argument that is an int
+    if (lua_isnumber(L, 1)) {
+        int typeInt = luaL_checkinteger(L, 1);
+        PrimitiveType type = IntToPrimitiveType(typeInt);
+        MetatableRegistry::instance().create_and_push<LuaPrimitive>(L, type);
+        return 1;
+    }
     MetatableRegistry::instance().create_and_push<LuaPrimitive>(
-        L, PrimitiveType::Sphere);
-    std::cout << "LuaPrimitive created" << std::endl;
+        L, PrimitiveType::Cube);
     return 1;
 }

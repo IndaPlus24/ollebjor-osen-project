@@ -30,6 +30,12 @@ class LuaVector3 {
     static int luaCross(lua_State* L);
     static int luaNormalize(lua_State* L);
     static int luaNew(lua_State* L);
+    static int lua__add(lua_State* L);
+    static int lua__sub(lua_State* L);
+    static int lua__mul(lua_State* L);
+    static int lua__div(lua_State* L);
+    static int lua__eq(lua_State* L);
+    static int lua__tostring(lua_State* L);
 
   private:
     glm::vec3 position;

@@ -101,3 +101,85 @@ int LuaVector3::luaNew(lua_State* L) {
     MetatableRegistry::instance().create_and_push<LuaVector3>(L, x, y, z);
     return 1;
 }
+
+int LuaVector3::lua__add(lua_State* L) {
+    LuaVector3* vec1 =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+    LuaVector3* vec2 =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 2);
+
+    MetatableRegistry::instance().create_and_push<LuaVector3>(
+        L, vec1->Get() + vec2->Get());
+    return 1;
+}
+
+int LuaVector3::lua__sub(lua_State* L) {
+    LuaVector3* vec1 =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+    LuaVector3* vec2 =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 2);
+
+    MetatableRegistry::instance().create_and_push<LuaVector3>(
+        L, vec1->Get() - vec2->Get());
+    return 1;
+}
+
+int LuaVector3::lua__mul(lua_State* L) {
+    LuaVector3* vec1 =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+
+    if (lua_isnumber(L, 2)) {
+        // Scalar multiplication
+        float scalar = luaL_checknumber(L, 2);
+        MetatableRegistry::instance().create_and_push<LuaVector3>(
+            L, vec1->Get() * scalar);
+    } else {
+        // Component-wise vector multiplication
+        LuaVector3* vec2 =
+            MetatableRegistry::instance().check_userdata<LuaVector3>(L, 2);
+        MetatableRegistry::instance().create_and_push<LuaVector3>(
+            L, vec1->Get() * vec2->Get()); // Multiplies every component
+    }
+    return 1;
+}
+
+int LuaVector3::lua__div(lua_State* L) {
+    LuaVector3* vec1 =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+
+    if (lua_isnumber(L, 2)) {
+        // Scalar division
+        float scalar = luaL_checknumber(L, 2);
+        MetatableRegistry::instance().create_and_push<LuaVector3>(
+            L, vec1->Get() / scalar);
+    } else {
+        // Component-wise vector division
+        LuaVector3* vec2 =
+            MetatableRegistry::instance().check_userdata<LuaVector3>(L, 2);
+        MetatableRegistry::instance().create_and_push<LuaVector3>(
+            L, vec1->Get() / vec2->Get()); // Divides every component
+    }
+    return 1;
+}
+
+int LuaVector3::lua__eq(lua_State* L) {
+    LuaVector3* vec1 =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+    LuaVector3* vec2 =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 2);
+
+    bool equal = (vec1->GetX() == vec2->GetX()) &&
+                 (vec1->GetY() == vec2->GetY()) &&
+                 (vec1->GetZ() == vec2->GetZ());
+    lua_pushboolean(L, equal);
+    return 1;
+}
+int LuaVector3::lua__tostring(lua_State* L) {
+    LuaVector3* vec =
+        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 1);
+    std::string str = "Vector3(" + std::to_string(vec->GetX()) + ", " +
+                      std::to_string(vec->GetY()) + ", " +
+                      std::to_string(vec->GetZ()) + ")";
+    lua_pushstring(L, str.c_str());
+    return 1;
+}

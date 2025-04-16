@@ -4,7 +4,6 @@
 #include "LuaVector3.hpp"
 #include <glm/glm.hpp>
 #include <lua.hpp>
-#include "Primitive.hpp"
 #include "SceneManager.hpp"
 
 class LuaPrimitive {
@@ -15,8 +14,6 @@ class LuaPrimitive {
 
     PrimitiveType GetType();
     void SetType(PrimitiveType type);
-    // void SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-    // const uint32_t& GetColor() const;
     void SetPosition(LuaVector3& position);
     LuaVector3 GetPosition();
 
@@ -24,6 +21,7 @@ class LuaPrimitive {
     static int luaSetType(lua_State* L);
     static int luaGetPosition(lua_State* L);
     static int luaSetPosition(lua_State* L);
+    static int luaDestroy(lua_State* L);
     static int luaNew(lua_State* L);
 
   private:
