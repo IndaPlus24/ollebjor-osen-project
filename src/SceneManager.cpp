@@ -89,6 +89,24 @@ SceneRef<Entity> SceneManager::AddEntity(PrimitiveType type,
     return ref;
 }
 
+SceneRef<Entity> SceneManager::UpdateEntity(uint64_t id, PrimitiveType type) {
+    // Check if the entity exists in the map
+    auto it = entities.find(id);
+    if (it != entities.end()) {
+        auto entity = dynamic_cast<Primitive*>(it->second);
+        if (entity == nullptr) {
+            bx::debugPrintf("Entity with ID: %llu is not a Primitive", id);
+            return {0, nullptr};
+        }
+        entity->SetType(type);
+        entity->UpdateMesh(*physicsCore, *layout);
+        bx::debugPrintf("Entity updated with ID: %llu", id);
+        return {id, it->second};
+    }
+    // Return an empty reference if not found
+    return {0, nullptr};
+}
+
 
 SceneRef<Entity> SceneManager::AddEntity(MeshEntity meshEntity) {
     // Create a new entity and add it to the map
