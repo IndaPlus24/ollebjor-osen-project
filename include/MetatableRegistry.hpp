@@ -71,31 +71,34 @@ public:
     
     // Create an instance of a registered type and push to Lua stack
     template <typename T, typename... Args>
-    bool create_and_push(lua_State* L, Args&&... args) {
+    T* create_and_push(lua_State* L, Args&&... args) {
         std::type_index type_idx(typeid(T));
         
         // Check if we have metadata for this type
         auto meta_it = type_metadata.find(type_idx);
         if (meta_it == type_metadata.end()) {
-            return false;
+            return nullptr;
         }
         
         // Determine if we should store the object directly or as a pointer
+        T* ins = nullptr;
         if (meta_it->second.is_reference_type) {
             // For reference types, store a pointer to a heap-allocated object
             T** ptr = static_cast<T**>(lua_newuserdata(L, sizeof(T*)));
             *ptr = new T(std::forward<Args>(args)...);
+            ins = *ptr;
         } else {
             // For value types, allocate the object directly in Lua
             T* obj = static_cast<T*>(lua_newuserdata(L, sizeof(T)));
             new (obj) T(std::forward<Args>(args)...);  // Placement new
+            ins = obj;
         }
         
         // Set the metatable
         luaL_getmetatable(L, get_metatable_name<T>());
         lua_setmetatable(L, -2);
         
-        return true;
+        return ins;
     }
     
     // Helper to check if a userdata is of a specific type
@@ -163,17 +166,6 @@ public:
                 lua_pushcfunction(L, create_gc_function<T>());
                 lua_settable(L, -3);
             }
-
-            //TODO: Set this on the library table. For cleaner constructors
-            // Set __call field to constructor factory if available
-            // auto constructor_it = constructor_factories.find(std::type_index(typeid(T)));
-            // if (constructor_it != constructor_factories.end()) {
-            //     lua_pushstring(L, "__call");
-            //     auto constructor_func = constructor_it->second.target<lua_CFunction>();
-            //     lua_pushcfunction(L, *constructor_func);
-            //     lua_settable(L, -3);
-            // }
-
         }
         
         // Pop the metatable

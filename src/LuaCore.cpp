@@ -1,10 +1,13 @@
 #include <lua.hpp>
 #include <iostream>
 #include "LuaExporter.hpp"
+#include "LuaCore.hpp"
+#include "LuaGame.hpp"
 #include "LuaVector3.hpp"
 #include "LuaCore.hpp"
 #include "LuaPrimitive.hpp"
-#include "LuaGame.hpp"
+#include "LuaWindowService.hpp"
+#include "lua.h"
 
 namespace {
 int luaGetVersion(lua_State* L) {
@@ -71,8 +74,13 @@ void LuaCore::Init() {
     luaL_openlibs(L);
     registerGlobalFunction(luaGetVersion, "Version");
     overrideLuaLibFunctions();
-    
-    LuaExporter<LuaVector3> vector3(L, "Vector3", true, true);
+
+    LuaExporter<LuaGame> gameExporter(L, "game");
+    LuaGame* Game = gameExporter.Method("Get", LuaGame::luaGet, 1)
+        .ExportAsSingleton();
+    //Game->AddService<typename T>(std::string service, Args args...)
+
+    LuaExporter<LuaVector3> vector3(L, "Vector3");
     vector3.Constructor(LuaVector3::luaNew, 3)
         .Method("Dot", LuaVector3::luaDot, 1)
         .Method("Cross", LuaVector3::luaCross, 1)
@@ -88,16 +96,18 @@ void LuaCore::Init() {
         .Meta("__div", LuaVector3::lua__div)
         .Meta("__eq", LuaVector3::lua__eq)
         .Meta("__tostring", LuaVector3::lua__tostring)
-        .Export();
+        .Export(true, true);
+    std::cout << __FILE_NAME__ << __LINE__ << std::endl;
 
-    LuaExporter<LuaPrimitive> primitive(L, "Primitive", true, true);
+    LuaExporter<LuaPrimitive> primitive(L, "Primitive");
     primitive.Constructor(LuaPrimitive::luaNew, 1)
         .Method("SetPosition", LuaPrimitive::luaSetPosition, 1)
         .Method("GetPosition", LuaPrimitive::luaGetPosition, 0)
         .Method("SetType", LuaPrimitive::luaSetType, 1)
         .Method("GetType", LuaPrimitive::luaGetType, 0)
         .Method("Destroy", LuaPrimitive::luaDestroy, 0)
-        .Export();
+        .Export(true, true);
+    std::cout << __FILE_NAME__ << __LINE__ << std::endl;
 }
 
 void LuaCore::pcall(int nargs, int nresults, int errfunc) const {

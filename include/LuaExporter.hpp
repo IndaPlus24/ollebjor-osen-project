@@ -9,8 +9,7 @@
 template <typename T> class LuaExporter {
 
   public:
-    LuaExporter(lua_State* L, std::string name, bool isReferenceType = false,
-                bool autoGC = true);
+    LuaExporter(lua_State* L, std::string name);
     ~LuaExporter();
 
     LuaExporter<T> Func(std::string name, lua_CFunction func, int nargs = 0);
@@ -19,24 +18,29 @@ template <typename T> class LuaExporter {
     LuaExporter<T> Getter(std::string name, lua_CFunction getter);
     LuaExporter<T> Constructor(lua_CFunction constructor, int nargs = 0);
     LuaExporter<T> Meta(std::string name, lua_CFunction meta);
-    void Export();
+    void Export(bool isReferenceType = false,
+                bool autoGC = true); // Export the class to Lua
+    T* ExportAsSingleton();
 
   private:
-    std::string name; // TODO: Make enum
+    std::string name;
     lua_State* L;
     std::vector<luaL_Reg> methods;
     std::vector<luaL_Reg> funcs;
     std::vector<luaL_Reg> metamethods;
     std::vector<luaL_Reg> getters;
+    std::vector<luaL_Reg> setters;
+    void enableGetters(lua_State* L, std::string mtName);
+    void enableSetters(lua_State* L, std::string mtName);
+    void enableMethods(lua_State* L, std::string mtName);
+    void createMetaSubTable(lua_State* L, std::vector<luaL_Reg>& funcs,
+                            std::string name);
 };
 
 // Add template implementation in the header file
 
 template <typename T>
-LuaExporter<T>::LuaExporter(lua_State* L, std::string luaName,
-                            bool isReferenceType, bool autoGC) {
-    MetatableRegistry::instance().register_metatable<T>(
-        luaName + ".Metatable", isReferenceType, autoGC);
+LuaExporter<T>::LuaExporter(lua_State* L, std::string luaName) {
     this->name = luaName;
     this->L = L;
 }
@@ -64,7 +68,7 @@ LuaExporter<T> LuaExporter<T>::Method(std::string name, lua_CFunction func,
 template <typename T>
 LuaExporter<T> LuaExporter<T>::Setter(std::string name, lua_CFunction setter) {
     luaL_Reg prop = {name.c_str(), setter};
-    metamethods.push_back(prop);
+    setters.push_back(prop);
     return *this;
 }
 
@@ -75,6 +79,7 @@ LuaExporter<T> LuaExporter<T>::Getter(std::string name, lua_CFunction getter) {
     return *this;
 }
 
+//What does this do?
 template <typename T>
 LuaExporter<T> LuaExporter<T>::Constructor(lua_CFunction constFac, int nargs) {
     luaL_Reg func = {"new", constFac};
@@ -183,53 +188,113 @@ static bool has_field(lua_State* L, const char* field) {
     return hasField;
 }
 
+template <typename T>
+void LuaExporter<T>::createMetaSubTable(lua_State* L,
+                                        std::vector<luaL_Reg>& funcs,
+                                        std::string name) {
+    lua_newtable(L);
+    luaL_setfuncs(L, funcs.data(), 0);
+    lua_setfield(L, -2, name.c_str());
+}
 
-template <typename T> void LuaExporter<T>::Export() {
+template <typename T>
+void LuaExporter<T>::enableGetters(lua_State* L, std::string mtName) {
+    luaL_getmetatable(L, mtName.c_str());
+    createMetaSubTable(L, getters, "__get");
+    lua_pop(L, 1); // Pop the metatable off the stack
+}
+
+template <typename T>
+void LuaExporter<T>::enableSetters(lua_State* L, std::string mtName) {
+    luaL_getmetatable(L, mtName.c_str());
+    createMetaSubTable(L, setters, "__set");
+    lua_pop(L, 1); // Pop the metatable off the stack
+}
+
+template <typename T>
+void LuaExporter<T>::enableMethods(lua_State* L, std::string mtName) {
+    luaL_getmetatable(L, mtName.c_str());
+    createMetaSubTable(L, methods, "__methods");
+    lua_pop(L, 1); // Pop the metatable off the stack
+}
+
+// Creates an instance of T and creates a type to match it.
+// Then makes this instance a global variable in Lua with the name of the class
+// TODO: return a pointer to the instance
+template <typename T> T* LuaExporter<T>::ExportAsSingleton() {
     funcs.push_back({nullptr, nullptr});       // End of the functions array
     methods.push_back({nullptr, nullptr});     // End of the methods array
     metamethods.push_back({nullptr, nullptr}); // End of the metamethods array
     getters.push_back({nullptr, nullptr});     // End of the getters array
+    setters.push_back({nullptr, nullptr});
 
+    // Create a metatable with the __index set to itself
+    MetatableRegistry::instance().register_metatable<T>(name + ".Metatable",
+                                                        false, false);
     MetatableRegistry::instance().setup_metatable<T>(
         L); // Creates a default metatable with __name and __gc
     const char* mtName = MetatableRegistry::instance().get_metatable_name<T>();
+    enableMethods(L, mtName); // Enable methods in the metatable
+    enableGetters(L, mtName); // Enable getters in the metatable
+    enableSetters(L, mtName); // Enable setters in the metatable
+    luaL_getmetatable(L, mtName); // Push the metatable on the stack
+    // Set normal metamethods directly to the metatable
+    luaL_setfuncs(L, metamethods.data(), 0);
+    
+    // Sets the __index and __newindex metamethods to the metatable
+    // if they are not already, manually set
+    if (!has_field(L, "__index")) {
+        lua_pushcfunction(L, __index_wrapper<T>());
+        lua_setfield(L, -2, "__index");
+    }
+    if (!has_field(L, "__newindex")) {
+        lua_pushcfunction(L, __newindex_wrapper<T>());
+        lua_setfield(L, -2, "__newindex");
+    }
 
-    luaL_getmetatable(L, mtName); // Pushes the metatable on the stack
-    // metatable.__methods = methods
-    lua_newtable(L);
-    luaL_setfuncs(L, methods.data(), 0);
-    lua_setfield(L, -2, "__methods");
 
-    // metatable.__get = getters
-    lua_newtable(L);
-    luaL_setfuncs(L, getters.data(), 0);
-    lua_setfield(L, -2, "__get");
+    T* ins = MetatableRegistry::instance().create_and_push<T>(L);
+    lua_setglobal(L, name.c_str()); // Set the userdata as a global variable "game"
+    return ins;
+}
 
-    // metatable.__set = setters
-    lua_newtable(L);
-    luaL_setfuncs(L, getters.data(), 0);
-    lua_setfield(L, -2, "__set");
+template <typename T>
+void LuaExporter<T>::Export(bool isReferenceType, bool autoGC) {
+    funcs.push_back({nullptr, nullptr});       // End of the functions array
+    methods.push_back({nullptr, nullptr});     // End of the methods array
+    metamethods.push_back({nullptr, nullptr}); // End of the metamethods array
+    getters.push_back({nullptr, nullptr});     // End of the getters array
+    setters.push_back({nullptr, nullptr});
 
+    MetatableRegistry::instance().register_metatable<T>(
+        name + ".Metatable", isReferenceType, autoGC);
+    MetatableRegistry::instance().setup_metatable<T>(
+        L); // Creates a default metatable with __name and __gc
+    const char* mtName = MetatableRegistry::instance().get_metatable_name<T>();
+    enableMethods(L, mtName); // Enable methods in the metatable
+    enableGetters(L, mtName); // Enable getters in the metatable
+    enableSetters(L, mtName); // Enable setters in the metatable
+
+    luaL_getmetatable(L, mtName); // Push the metatable on the stack
     // Set normal metamethods directly to the metatable
     luaL_setfuncs(L, metamethods.data(), 0);
 
     // Sets the __index and __newindex metamethods to the metatable
     // if they are not already, manually set
     if (!has_field(L, "__index")) {
-        lua_pushcclosure(L, __index_wrapper<T>(), 0);
+        lua_pushcfunction(L, __index_wrapper<T>());
         lua_setfield(L, -2, "__index");
     }
 
     if (!has_field(L, "__newindex")) {
-        lua_pushcclosure(L, __newindex_wrapper<T>(), 0);
+        lua_pushcfunction(L, __newindex_wrapper<T>());
         lua_setfield(L, -2, "__newindex");
     }
 
-    lua_createtable(L, 0, 1);  // Create library table
-    lua_pushstring(L, mtName); // Pushes the name of the metatable
+    lua_createtable(L, 0, 1); // Create library table
     luaL_setfuncs(L, funcs.data(),
                   1); // Register all methods in the array to the table
-    // TODO: set metatable for library table so it cannot be overwritten
+    // TODO: set metatable for library table so it cannot be modified
 
     lua_setglobal(
         L, name.c_str()); // Consume the top of the stack and make it a global

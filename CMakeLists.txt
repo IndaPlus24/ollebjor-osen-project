@@ -14,6 +14,7 @@ set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
 
 # Add include directories
 include_directories(${INCLUDE_DIR})
+include_directories(${INCLUDE_DIR/lua})
 include_directories(${INCLUDE_DIR}/glm)
 include_directories(${VENDOR_DIR}/bgfx.cmake/bx/include)
 include_directories(${VENDOR_DIR}/bgfx.cmake/bimg/include)
