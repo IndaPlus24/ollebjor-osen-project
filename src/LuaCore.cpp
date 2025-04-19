@@ -1,10 +1,13 @@
 #include <lua.hpp>
 #include <iostream>
-#include "LuaExporter.hpp"
-#include "LuaVector3.hpp"
 #include "LuaCore.hpp"
-#include "LuaPrimitive.hpp"
-#include "LuaGame.hpp"
+// #include "LuaEvent.hpp"
+// #include "LuaExporter.hpp"
+// #include "LuaVector3.hpp"
+// #include "LuaPrimitive.hpp"
+#include "LuaWindowService.hpp"
+#include "LuaSignal.hpp"
+#include "LuaType.hpp"
 
 namespace {
 int luaGetVersion(lua_State* L) {
@@ -71,33 +74,62 @@ void LuaCore::Init() {
     luaL_openlibs(L);
     registerGlobalFunction(luaGetVersion, "Version");
     overrideLuaLibFunctions();
-    
-    LuaExporter<LuaVector3> vector3(L, "Vector3", true, true);
-    vector3.Constructor(LuaVector3::luaNew, 3)
-        .Method("Dot", LuaVector3::luaDot, 1)
-        .Method("Cross", LuaVector3::luaCross, 1)
-        .Method("GetLength", LuaVector3::luaGetLength, 0)
-        .Getter("X", LuaVector3::luaGetX)
-        .Getter("Y", LuaVector3::luaGetY)
-        .Getter("Z", LuaVector3::luaGetZ)
-        .Getter("len", LuaVector3::luaGetLength)
-        .Getter("normalized", LuaVector3::luaNormalize)
-        .Meta("__add", LuaVector3::lua__add)
-        .Meta("__sub", LuaVector3::lua__sub)
-        .Meta("__mul", LuaVector3::lua__mul)
-        .Meta("__div", LuaVector3::lua__div)
-        .Meta("__eq", LuaVector3::lua__eq)
-        .Meta("__tostring", LuaVector3::lua__tostring)
-        .Export();
 
-    LuaExporter<LuaPrimitive> primitive(L, "Primitive", true, true);
-    primitive.Constructor(LuaPrimitive::luaNew, 1)
-        .Method("SetPosition", LuaPrimitive::luaSetPosition, 1)
-        .Method("GetPosition", LuaPrimitive::luaGetPosition, 0)
-        .Method("SetType", LuaPrimitive::luaSetType, 1)
-        .Method("GetType", LuaPrimitive::luaGetType, 0)
-        .Method("Destroy", LuaPrimitive::luaDestroy, 0)
-        .Export();
+    LuaType<LuaSignal> signalType(L, "Signal", true);
+    signalType.AddMethod("Send", LuaSignal::luaSend)
+        .AddMethod("OnReceive", LuaSignal::luaOnReceive)
+        .MakeClass(LuaSignal::luaNew);
+
+    LuaWindowService* windowService = new LuaWindowService(L);
+    LuaType<LuaWindowService> window(L, "Window", true, false);
+    window.AddMethod("SetTitle", LuaWindowService::luaSetTitle)
+        .AddProperty("Minimized", LuaWindowService::luaMinimized, NO_SETTER)
+        .MakeSingleton(windowService);
+
+    // LuaExporter<LuaSignal> signal(L, "Signal");
+    // signal.Constructor(LuaSignal::luaNew, 0)
+    //     .Method("Send", LuaSignal::luaSend, 1)
+    //     .Method("OnReceive", LuaSignal::luaOnReceive, 1)
+    //     .Export(true, true);
+
+    // LuaUtil::Get().NewType<LuaWindowService>(L, "Window", true, false);
+
+    // LuaExporter<LuaEvent> windowMinimized(L, "Event");
+    // windowMinimized.Method("Connect", LuaEvent::luaConnect, 1).Export();
+
+    // LuaExporter<LuaWindowService> window(L, "Window");
+    // window.Method("SetTitle", LuaWindowService::luaSetTitle, 1)
+    //     .Getter("Minimized", LuaWindowService::luaMinimized)
+    //     .ExportAsSingleton();
+
+    // LuaExporter<LuaVector3> vector3(L, "Vector3");
+    // vector3.Constructor(LuaVector3::luaNew, 3)
+    //     .Method("Dot", LuaVector3::luaDot, 1)
+    //     .Method("Cross", LuaVector3::luaCross, 1)
+    //     .Method("GetLength", LuaVector3::luaGetLength, 0)
+    //     .Getter("X", LuaVector3::luaGetX)
+    //     .Getter("Y", LuaVector3::luaGetY)
+    //     .Getter("Z", LuaVector3::luaGetZ)
+    //     .Getter("len", LuaVector3::luaGetLength)
+    //     .Getter("normalized", LuaVector3::luaNormalize)
+    //     .Meta("__add", LuaVector3::lua__add)
+    //     .Meta("__sub", LuaVector3::lua__sub)
+    //     .Meta("__mul", LuaVector3::lua__mul)
+    //     .Meta("__div", LuaVector3::lua__div)
+    //     .Meta("__eq", LuaVector3::lua__eq)
+    //     .Meta("__tostring", LuaVector3::lua__tostring)
+    //     .Export(true, true);
+    // std::cout << __FILE_NAME__ << __LINE__ << std::endl;
+
+    // LuaExporter<LuaPrimitive> primitive(L, "Primitive");
+    // primitive.Constructor(LuaPrimitive::luaNew, 1)
+    //     .Method("SetPosition", LuaPrimitive::luaSetPosition, 1)
+    //     .Method("GetPosition", LuaPrimitive::luaGetPosition, 0)
+    //     .Method("SetType", LuaPrimitive::luaSetType, 1)
+    //     .Method("GetType", LuaPrimitive::luaGetType, 0)
+    //     .Method("Destroy", LuaPrimitive::luaDestroy, 0)
+    //     .Export(true, true);
+    // std::cout << __FILE_NAME__ << __LINE__ << std::endl;
 }
 
 void LuaCore::pcall(int nargs, int nresults, int errfunc) const {

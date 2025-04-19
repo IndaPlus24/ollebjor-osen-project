@@ -111,7 +111,7 @@ PhysicsCore::PhysicsCore()
     : jobSystem(nullptr), physicsSystem(nullptr), tempAllocator(nullptr) {}
 PhysicsCore::~PhysicsCore() { Shutdown(); }
 
-void PhysicsCore::Initialize() {
+void PhysicsCore::Init() {
     // Initialize Jolt
     JPH::RegisterDefaultAllocator();
     JPH::Factory::sInstance = new JPH::Factory();

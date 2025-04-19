@@ -26,7 +26,7 @@ void SceneManager::Initialize(PhysicsCore& physicsCore,
     bx::debugPrintf("SceneManager initialized");
 }
 
-SceneManager& SceneManager::GetInstance() {
+SceneManager& SceneManager::Get() {
     BX_ASSERT(instance != nullptr, "SceneManager not initialized");
     return *instance;
 }
@@ -107,7 +107,6 @@ SceneRef<Entity> SceneManager::UpdateEntity(uint64_t id, PrimitiveType type) {
     return {0, nullptr};
 }
 
-
 SceneRef<Entity> SceneManager::AddEntity(MeshEntity meshEntity) {
     // Create a new entity and add it to the map
     uint64_t id = entities.size();
@@ -152,7 +151,8 @@ SceneRef<Entity> SceneManager::AddEntity(uint64_t meshId, uint64_t colliderId,
     return ref;
 }
 
-SceneRef<Entity> SceneManager::UpdateEntity(uint64_t id, uint64_t meshId, uint64_t colliderId) {
+SceneRef<Entity> SceneManager::UpdateEntity(uint64_t id, uint64_t meshId,
+                                            uint64_t colliderId) {
     // Check if the entity exists in the map
     auto it = entities.find(id);
     if (it != entities.end()) {

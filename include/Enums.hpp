@@ -4,25 +4,11 @@
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
 
-enum class PrimitiveType {
-    Cube,
-    Plane,
-    Sphere
-};
+enum class PrimitiveType { Cube, Plane, Sphere };
 
-enum class RigidBodyType {
-    Static,
-    Dynamic,
-    Kinematic
-};
+enum class RigidBodyType { Static, Dynamic, Kinematic };
 
-enum class ColliderType {
-    Box,
-    Sphere,
-    Capsule,
-    Plane,
-    Mesh
-};
+enum class ColliderType { Box, Sphere, Capsule, Plane, Mesh };
 
 enum class Keycode {
     UNKNOWN = SDLK_UNKNOWN,
@@ -80,10 +66,7 @@ enum class Keycode {
     W = SDL_SCANCODE_W,
 };
 
-enum class KeyState {
-    Pressed = SDL_PRESSED,
-    Release = SDL_RELEASED
-};
+enum class KeyState { Pressed = SDL_PRESSED, Release = SDL_RELEASED };
 
 enum class MouseButton {
     Left = SDL_BUTTON_LEFT,
