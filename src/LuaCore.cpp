@@ -2,9 +2,7 @@
 #include <iostream>
 #include "LuaExporter.hpp"
 #include "LuaCore.hpp"
-#include "LuaGame.hpp"
 #include "LuaVector3.hpp"
-#include "LuaCore.hpp"
 #include "LuaPrimitive.hpp"
 #include "LuaWindowService.hpp"
 
