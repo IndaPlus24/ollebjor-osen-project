@@ -7,7 +7,6 @@
 #include "LuaCore.hpp"
 #include "LuaPrimitive.hpp"
 #include "LuaWindowService.hpp"
-#include "lua.h"
 
 namespace {
 int luaGetVersion(lua_State* L) {
@@ -75,10 +74,9 @@ void LuaCore::Init() {
     registerGlobalFunction(luaGetVersion, "Version");
     overrideLuaLibFunctions();
 
-    LuaExporter<LuaGame> gameExporter(L, "game");
-    LuaGame* Game = gameExporter.Method("Get", LuaGame::luaGet, 1)
+    LuaExporter<LuaWindowService> window(L, "Window");
+    window.Method("SetTitle", LuaWindowService::luaSetTitle, 1)
         .ExportAsSingleton();
-    //Game->AddService<typename T>(std::string service, Args args...)
 
     LuaExporter<LuaVector3> vector3(L, "Vector3");
     vector3.Constructor(LuaVector3::luaNew, 3)

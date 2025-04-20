@@ -90,6 +90,7 @@ class SceneManager {
     SceneRef<Camera> GetCamera(const uint64_t id);
     void RemoveCamera(const uint64_t id);
     SceneRef<Camera> GetActiveCamera();
+    Renderer& GetRenderer() { return *renderer; }
     inline void SetActiveCamera(const uint64_t id) { activeCameraId = id; }
 
     inline std::unordered_map<uint64_t, Entity*>& GetEntities() {

@@ -26,8 +26,14 @@ template <typename T> T& LuaGame::GetService(std::string service) const {
     }
     return nameIter->second;
 }
+
 template <typename T, typename... Args>
-void LuaGame::AddService(std::string luaName, Args... args) {
+LuaExporter<T> LuaGame::AddService(lua_State* L, std::string luaName,
+                                   Args... args) {
+
+    // Create the luaexporter for the service
+    LuaExporter<T> exporter(L, luaName);
+
     // Create a LuaService wrapper
     LuaService luaService;
 
@@ -35,6 +41,8 @@ void LuaGame::AddService(std::string luaName, Args... args) {
     auto typeIndex = std::type_index(typeid(T));
     m_services[typeIndex] = luaService;
     m_serviceNames[luaName] = typeIndex;
+
+    return exporter;
 }
 
 int LuaGame::luaGet(lua_State* L) { return 1; }

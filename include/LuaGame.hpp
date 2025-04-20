@@ -2,6 +2,7 @@
 #include <string>
 #include <lua.hpp>
 #include <typeindex>
+#include "LuaExporter.hpp"
 #include "LuaService.hpp"
 #include <unordered_map>
 
@@ -11,7 +12,7 @@ class LuaGame {
     template <typename T> T& GetService() const;
     template <typename T> T& GetService(std::string service) const;
     template <typename T, typename... Args>
-    void AddService(std::string service, Args... args);
+    LuaExporter<T> AddService(lua_State* L, std::string service, Args... args);
     static int luaGet(lua_State* L);
 
   private:
