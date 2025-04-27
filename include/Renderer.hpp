@@ -9,12 +9,36 @@
 class Renderer {
   private:
     SDL_Window* window;
-    bgfx::ViewId clearView = 0;
     uint32_t width, height;
     std::string title;
+
+    bgfx::ViewId geomtryView = 0;
+    bgfx::ViewId lightingView = 1;
+    bgfx::ViewId combineView = 2;
+
     bgfx::VertexLayout layout;
-    bgfx::ProgramHandle program;
-    bgfx::UniformHandle textureUniform;
+
+    bgfx::VertexLayout screenLayout;
+    bgfx::VertexBufferHandle screenVbh;
+    bgfx::IndexBufferHandle screenIbh;
+
+    bgfx::ProgramHandle geomtryProgram;
+    bgfx::ProgramHandle lightingProgram;
+    bgfx::ProgramHandle combineProgram;
+
+    bgfx::TextureHandle texGbuffers[3];
+    bgfx::FrameBufferHandle GBuffersFrameBuffer;
+
+    bgfx::FrameBufferHandle combineFrameBuffer;
+
+    bgfx::UniformHandle texColorUniform;
+    bgfx::UniformHandle texNormalUniform;
+
+    bgfx::UniformHandle albedoUniform;
+    bgfx::UniformHandle normalUniform;
+    bgfx::UniformHandle depthUniform;
+    bgfx::UniformHandle lightingUniform;
+
 
   public:
     Renderer(std::string title, int width, int height);

@@ -1,4 +1,5 @@
 #include "Renderer.hpp"
+#include "ScreenVertex.hpp"
 #include "SDL_syswm.h"
 #include "SDL_video.h"
 #include "bgfx/bgfx.h"
@@ -20,6 +21,16 @@
 #include <metal/vs_cubes.sc.bin.h>
 #include <metal/fs_cubes.sc.bin.h>
 #endif // BX_PLATFORM_OSX
+
+static const ScreenVertex screenVertices[] = {
+    {{-1.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},  //
+    {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},   //
+    {{-1.0f, -1.0f, 0.0f}, {0.0f, 1.0f}}, //
+    {{1.0f, -1.0f, 0.0f}, {1.0f, 1.0f}}};
+
+static const uint16_t screenIndices[] = {0, 1, 2, //
+                                         2, 1, 3};
+
 
 Renderer::Renderer(std::string title, int width, int height)
     : width(width), height(height), title(title) {}
@@ -86,6 +97,7 @@ bool Renderer::Init() {
     layout.begin()
         .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
         .add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
+        .add(bgfx::Attrib::Tangent, 3, bgfx::AttribType::Float)
         .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
         .end();
 
