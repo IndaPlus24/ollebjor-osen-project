@@ -94,7 +94,7 @@ void MeshEntity::UpdateMesh(PhysicsCore& physicsCore,
         bgfx::destroy(ibh);
     }
     vbh = bgfx::createDynamicVertexBuffer(verticesMem, layout);
-    ibh = bgfx::createIndexBuffer(indicesMem);
+    ibh = bgfx::createIndexBuffer(indicesMem, BGFX_BUFFER_INDEX32);
 
     // Update the physics body with the new mesh
     physicsCore.RemoveBody(bodyID);

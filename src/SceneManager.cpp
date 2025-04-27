@@ -38,15 +38,15 @@ void SceneManager::Shutdown() {
     // Clean up all entities, textures, and mesh containers
     for (auto& entity : instance->entities) {
         delete entity.second;
-        bx::debugPrintf("Entity removed with ID: %llu", entity.first);
+        bx::debugPrintf("Entity removed with ID: %llu\n", entity.first);
     }
     for (auto& texture : instance->textures) {
         delete texture.second;
-        bx::debugPrintf("Texture removed with ID: %llu", texture.first);
+        bx::debugPrintf("Texture removed with ID: %llu\n", texture.first);
     }
     for (auto& mesh : instance->meshes) {
         delete mesh.second;
-        bx::debugPrintf("MeshContainer removed with ID: %llu", mesh.first);
+        bx::debugPrintf("MeshContainer removed with ID: %llu\n", mesh.first);
     }
     instance->entities.clear();
     instance->textures.clear();
