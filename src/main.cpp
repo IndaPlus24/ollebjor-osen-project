@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     lua.Init();
 
     PhysicsCore physicsCore = PhysicsCore();
-    physicsCore.Initialize();
+    physicsCore.Init();
 
     Core core = Core();
     core.Init();
@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
     {
 
         {
-            auto& scene = SceneManager::GetInstance();
+            auto& scene = SceneManager::Get();
             Camera camera(renderer, glm::vec3(-6.0f, 3.0f, -6.0f),
                           glm::vec3(0.0f, 1.0f, 0.0f), 60.0f, 1.0f, 100.0f);
             auto cam = scene.AddCamera(std::move(camera));
@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
             lua.Run("scripts/test.lua");
         }
 
-        auto& scene = SceneManager::GetInstance();
+        auto& scene = SceneManager::Get();
         bx::debugPrintf("Main loop started\n");
         while (!core.IsQuit()) {
             core.EventLoop();

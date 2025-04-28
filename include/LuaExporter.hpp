@@ -84,7 +84,7 @@ template <typename T>
 LuaExporter<T> LuaExporter<T>::Constructor(lua_CFunction constFac, int nargs) {
     luaL_Reg func = {"new", constFac};
     funcs.push_back(func);
-    MetatableRegistry::instance().register_constructor<T>(constFac);
+    MetatableRegistry::Get().register_constructor<T>(constFac);
     return *this;
 }
 
@@ -98,7 +98,7 @@ LuaExporter<T> LuaExporter<T>::Meta(std::string name, lua_CFunction meta) {
 template <typename T> static lua_CFunction __index_wrapper() {
     return [](lua_State* L) -> int {
         const char* mtName =
-            MetatableRegistry::instance().get_metatable_name<T>();
+            MetatableRegistry::Get().get_metatable_name<T>();
         T* obj = (T*)luaL_checkudata(L, 1, mtName);
 
         const char* key = luaL_checkstring(L, 2);
@@ -143,7 +143,7 @@ template <typename T> static lua_CFunction __index_wrapper() {
 template <typename T> static lua_CFunction __newindex_wrapper() {
     return [](lua_State* L) -> int {
         const char* mtName =
-            MetatableRegistry::instance().get_metatable_name<T>();
+            MetatableRegistry::Get().get_metatable_name<T>();
         void* obj = (void*)luaL_checkudata(L, 1, mtName);
 
         const char* key = luaL_checkstring(L, 2);
@@ -229,11 +229,11 @@ template <typename T> T* LuaExporter<T>::ExportAsSingleton() {
     setters.push_back({nullptr, nullptr});
 
     // Create a metatable with the __index set to itself
-    MetatableRegistry::instance().register_metatable<T>(name + ".Metatable",
+    MetatableRegistry::Get().register_metatable<T>(name + ".Metatable",
                                                         false, false);
-    MetatableRegistry::instance().setup_metatable<T>(
+    MetatableRegistry::Get().setup_metatable<T>(
         L); // Creates a default metatable with __name and __gc
-    const char* mtName = MetatableRegistry::instance().get_metatable_name<T>();
+    const char* mtName = MetatableRegistry::Get().get_metatable_name<T>();
     enableMethods(L, mtName); // Enable methods in the metatable
     enableGetters(L, mtName); // Enable getters in the metatable
     enableSetters(L, mtName); // Enable setters in the metatable
@@ -253,7 +253,7 @@ template <typename T> T* LuaExporter<T>::ExportAsSingleton() {
     }
 
 
-    T* ins = MetatableRegistry::instance().create_and_push<T>(L);
+    T* ins = MetatableRegistry::Get().create_and_push<T>(L);
     lua_setglobal(L, name.c_str()); // Set the userdata as a global variable "game"
     return ins;
 }
@@ -266,11 +266,11 @@ void LuaExporter<T>::Export(bool isReferenceType, bool autoGC) {
     getters.push_back({nullptr, nullptr});     // End of the getters array
     setters.push_back({nullptr, nullptr});
 
-    MetatableRegistry::instance().register_metatable<T>(
+    MetatableRegistry::Get().register_metatable<T>(
         name + ".Metatable", isReferenceType, autoGC);
-    MetatableRegistry::instance().setup_metatable<T>(
+    MetatableRegistry::Get().setup_metatable<T>(
         L); // Creates a default metatable with __name and __gc
-    const char* mtName = MetatableRegistry::instance().get_metatable_name<T>();
+    const char* mtName = MetatableRegistry::Get().get_metatable_name<T>();
     enableMethods(L, mtName); // Enable methods in the metatable
     enableGetters(L, mtName); // Enable getters in the metatable
     enableSetters(L, mtName); // Enable setters in the metatable

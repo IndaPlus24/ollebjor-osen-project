@@ -3,6 +3,7 @@
 #include "LuaExporter.hpp"
 #include "Renderer.hpp"
 #include "SceneManager.hpp"
+#include "LuaEvent.hpp"
 
 class LuaWindowService {
 
@@ -11,9 +12,10 @@ class LuaWindowService {
     ~LuaWindowService() = default;
 
     static int luaSetTitle(lua_State* L) {
-        MetatableRegistry::instance().check_userdata<LuaWindowService>(L, 1);
+        MetatableRegistry::Get().check_userdata<LuaWindowService>(L, 1);
         const char* title = luaL_checkstring(L, 2);
-        SceneManager::GetInstance().GetRenderer().SetTitle(title);
+        SceneManager::Get().GetRenderer().SetTitle(title);
         return 0;
     }
+    LuaEvent* Minimized;
 };
