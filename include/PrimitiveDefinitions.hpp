@@ -51,14 +51,14 @@ struct PrimitiveCube {
 };
 
 // Plane with face up
-struct PrimitivePlane{
+struct PrimitiveQuad{
     const Vertex vertices[4];
     const uint16_t indices[6] = {
         0, 1, 2, //
         0, 3, 1, //
             };
 
-    inline PrimitivePlane()
+    inline PrimitiveQuad()
     : vertices{
         {{1, 0, 1}, {-0, 1, -0}, {1, -0, -0}, {1, 1}},
         {{-1, 0, -1}, {-0, 1, -0}, {1, -0, -0}, {0, 0}},

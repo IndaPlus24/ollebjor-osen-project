@@ -13,7 +13,7 @@ void main() {
     vec3 normal = normalize(normalData.xyz * 2.0 - 1.0);
     
     // Simple directional light
-    vec3 lightDir = normalize(vec3(1.0, 1.0, -0.5));
+    vec3 lightDir = normalize(vec3(0.5, 0.3, -0.5));
     vec3 lightColor = vec3(1.0, 0.9, 0.8);
     
     // Calculate lighting

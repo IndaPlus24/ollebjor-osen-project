@@ -17,7 +17,7 @@ void main() {
     vec3 T = normalize(v_tangent);
     vec3 B = normalize(cross(N, T));
 
-    mat3 TBN = mat3(T, B, N);
+    mat3 TBN = mat3(T, -B, N);
 
     // Transform normal map from tangent space to world space
     vec3 normal = normalize(TBN * normalMap);

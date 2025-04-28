@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include <bgfx/bgfx.h>
+#include <glm/glm.hpp>
 #include <bx/bx.h>
 #include <cstdint>
 #include <string>
@@ -11,6 +12,9 @@ class Renderer {
     SDL_Window* window;
     uint32_t width, height;
     std::string title;
+
+    bgfx::ViewId currentView = 0;
+    float identity[16];
 
     bgfx::ViewId geometryView = 0;
     bgfx::ViewId lightingView = 1;
@@ -29,7 +33,7 @@ class Renderer {
     bgfx::TextureHandle texGbuffers[3];
     bgfx::FrameBufferHandle GBuffersFrameBuffer;
 
-    bgfx::FrameBufferHandle combineFrameBuffer;
+    bgfx::FrameBufferHandle lightingFrameBuffer;
 
     bgfx::UniformHandle texColorUniform;
     bgfx::UniformHandle texNormalUniform;
@@ -38,6 +42,10 @@ class Renderer {
     bgfx::UniformHandle normalUniform;
     bgfx::UniformHandle depthUniform;
     bgfx::UniformHandle lightingUniform;
+
+    void BeginGeometry();
+    void BeginLighting();
+    void BeginCombine();
 
   public:
     Renderer(std::string title, int width, int height);
@@ -49,7 +57,7 @@ class Renderer {
 
     bool Init();
     bool Shutdown();
-    void RecreateFrameBuffers();
+    void RecreateFrameBuffers(int width, int height);
 
     inline void GetWindowSize(uint32_t& w, uint32_t& h) {
         w = width;
@@ -64,7 +72,9 @@ class Renderer {
     void SetTextureUniforms(bgfx::TextureHandle albedo,
                             bgfx::TextureHandle normal);
 
-    void SetViewClear();
-    bool UpdateWindowSize();
+
+    void BeginPass(bgfx::ViewId view);
+    void EndPass();
+
     void SetTitle(std::string title);
 };
