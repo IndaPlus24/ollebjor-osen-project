@@ -12,7 +12,7 @@ class Renderer {
     uint32_t width, height;
     std::string title;
 
-    bgfx::ViewId geomtryView = 0;
+    bgfx::ViewId geometryView = 0;
     bgfx::ViewId lightingView = 1;
     bgfx::ViewId combineView = 2;
 
@@ -22,7 +22,7 @@ class Renderer {
     bgfx::VertexBufferHandle screenVbh;
     bgfx::IndexBufferHandle screenIbh;
 
-    bgfx::ProgramHandle geomtryProgram;
+    bgfx::ProgramHandle geometryProgram;
     bgfx::ProgramHandle lightingProgram;
     bgfx::ProgramHandle combineProgram;
 
@@ -39,7 +39,6 @@ class Renderer {
     bgfx::UniformHandle depthUniform;
     bgfx::UniformHandle lightingUniform;
 
-
   public:
     Renderer(std::string title, int width, int height);
     Renderer(Renderer&&) = default;
@@ -50,18 +49,20 @@ class Renderer {
 
     bool Init();
     bool Shutdown();
+    void RecreateFrameBuffers();
 
     inline void GetWindowSize(uint32_t& w, uint32_t& h) {
         w = width;
         h = height;
     }
-    inline bgfx::ProgramHandle& GetProgramHandle() { return program; }
+
     inline bgfx::VertexLayout& GetVertexLayout() { return layout; }
     inline float GetAspectRatio() {
         return static_cast<float>(width) / static_cast<float>(height);
     }
 
-    void SetTextureUniform(bgfx::TextureHandle texture);
+    void SetTextureUniforms(bgfx::TextureHandle albedo,
+                            bgfx::TextureHandle normal);
 
     void SetViewClear();
     bool UpdateWindowSize();
