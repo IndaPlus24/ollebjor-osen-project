@@ -5,20 +5,18 @@
 #include "PhysicsCore.hpp"
 #include "PrimitiveDefinitions.hpp"
 #include "Enums.hpp"
-#include "Texture.hpp"
 #include "bgfx/bgfx.h"
 #include "bx/bx.h"
 #include "bx/debug.h"
 #include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
 #include "utils.hpp"
-#include <cstddef>
 
 Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
                      PhysicsCore& physicsCore, bgfx::VertexLayout& layout,
-                     Texture& texture, glm::vec3 position, glm::vec3 rotation,
+                     uint64_t materialId, glm::vec3 position, glm::vec3 rotation,
                      glm::vec3 size)
-    : Entity(bodyType, physicsCore, layout, texture, position, rotation, size) {
+    : Entity(bodyType, physicsCore, layout, materialId, position, rotation, size) {
     const bgfx::Memory* verticesMem = nullptr;
     const bgfx::Memory* indicesMem = nullptr;
     GetPrimitiveTypeData(verticesMem, indicesMem, type);

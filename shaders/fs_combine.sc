@@ -14,7 +14,7 @@ void main() {
     vec3 finalColor = albedoData.rgb * lightingData.rgb;
     
     // Gamma correction for better visual results
-    finalColor = pow(abs(finalColor), vec3_splat(1.0/2.2));
+    finalColor = pow(finalColor, vec3_splat(1.0/2.2));
     
     gl_FragColor = vec4(finalColor, 1.0);
 }

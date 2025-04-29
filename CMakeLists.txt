@@ -1,44 +1,101 @@
 cmake_minimum_required(VERSION 3.5)
-project(Loonar LANGUAGES CXX)
+project(Loonar LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_DEBUG_POSTFIX "-Debug")
 
+# Include FetchContent module
+include(FetchContent)
+
 # Set paths
-set(VENDOR_DIR ${CMAKE_SOURCE_DIR}/vendor)
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 set(SHADER_DIR ${CMAKE_SOURCE_DIR}/shaders)
 set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
 
+# Fetch SDL
+FetchContent_Declare(
+  SDL
+  GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+  GIT_TAG release-2.32.4
+)
+FetchContent_MakeAvailable(SDL)
+
+# Fetch bgfx
+FetchContent_Declare(
+  bgfx
+  GIT_REPOSITORY https://github.com/bkaradzic/bgfx.cmake.git
+  GIT_TAG master
+)
+FetchContent_MakeAvailable(bgfx)
+
+# Fetch JoltPhysics
+FetchContent_Declare(
+  JoltPhysics
+  GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics.git
+  GIT_TAG v5.3.0
+  SOURCE_SUBDIR "Build"
+)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
+set(BUILD_SAMPLES OFF CACHE BOOL "Build JoltPhysics samples" FORCE)
+set(BUILD_UNIT_TESTS OFF CACHE BOOL "Build JoltPhysics unit tests" FORCE)
+FetchContent_MakeAvailable(JoltPhysics)
+
+# Fetch glm
+FetchContent_Declare(
+  glm
+  GIT_REPOSITORY https://github.com/g-truc/glm.git
+  GIT_TAG 1.0.1
+)
+FetchContent_MakeAvailable(glm)
+
+# Fetch Lua
+FetchContent_Declare(
+  lua
+  GIT_REPOSITORY https://github.com/lua/lua.git
+  GIT_TAG v5.4.7
+)
+
+# Special handling for Lua as it doesn't have CMake support by default
+FetchContent_GetProperties(lua)
+if(NOT lua_POPULATED)
+    FetchContent_MakeAvailable(lua)
+  
+  # Create a custom target for Lua
+  file(GLOB LUA_SOURCES ${lua_SOURCE_DIR}/*.c)
+  list(REMOVE_ITEM LUA_SOURCES "${lua_SOURCE_DIR}/lua.c" "${lua_SOURCE_DIR}/luac.c")
+  
+  add_library(lua_static STATIC ${LUA_SOURCES})
+  target_include_directories(lua_static PUBLIC ${lua_SOURCE_DIR})
+  
+  if(UNIX AND NOT APPLE)
+    target_link_libraries(lua_static PRIVATE m dl)
+  endif()
+endif()
+
+# Fetch assimp
+FetchContent_Declare(
+    assimp
+    GIT_REPOSITORY https://github.com/assimp/assimp.git
+    GIT_TAG v5.4.3
+)
+# set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Build Assimp tests" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build Assimp shared libraries" FORCE)
+set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "Assimp warnings as errors" FORCE)
+FetchContent_MakeAvailable(assimp)
+
 # Add include directories
 include_directories(${INCLUDE_DIR})
-include_directories(${INCLUDE_DIR/lua})
-include_directories(${INCLUDE_DIR}/glm)
-include_directories(${VENDOR_DIR}/bgfx.cmake/bx/include)
-include_directories(${VENDOR_DIR}/bgfx.cmake/bimg/include)
-include_directories(${VENDOR_DIR}/bgfx.cmake/bgfx/include)
-include_directories(${VENDOR_DIR}/SDL/include)
-include_directories(${VENDOR_DIR}/JoltPhysics)
-include_directories(${VENDOR_DIR}/Lua/lua-5.4.7/include)
+include_directories(${GLM_INCLUDE_DIR}/glm)
+include_directories(${bgfx_SOURCE_DIR}/bx/include)
+include_directories(${bgfx_SOURCE_DIR}/bimg/include)
+include_directories(${bgfx_SOURCE_DIR}/bgfx/include)
+include_directories(${SDL_SOURCE_DIR}/include)
+include_directories(${JoltPhysics_SOURCE_DIR})
+include_directories(${lua_SOURCE_DIR})
+include_directories(${ASSIMP_SOURCE_DIR}/include)
 include_directories(${EXTERNAL_DIR})
-
-
-# Add SDL
-add_subdirectory(${VENDOR_DIR}/SDL EXCLUDE_FROM_ALL)
-
-# Add bgfx
-add_subdirectory(${VENDOR_DIR}/bgfx.cmake)
-
-# Add JoltPhysics
-add_subdirectory(${VENDOR_DIR}/JoltPhysics/Build)
-
-# Add glm
-add_subdirectory(${VENDOR_DIR}/glm)
-
-# Add Lua
-add_subdirectory(${VENDOR_DIR}/Lua)
 
 # Compile shaders
 include_directories(${SHADER_DIR}/include/generated)
@@ -79,7 +136,7 @@ elseif(UNIX)
 endif()
 
 target_include_directories(Loonar PUBLIC ${INCLUDE_DIR})
-target_link_libraries(Loonar PRIVATE bgfx glm SDL2main SDL2-static Jolt lua_static)
+target_link_libraries(Loonar PRIVATE bgfx glm SDL2main SDL2-static Jolt assimp lua_static)
 set_target_properties(Loonar PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
 # Set output directories

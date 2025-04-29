@@ -17,7 +17,7 @@ class Entity {
     glm::vec3 rotation;
     glm::vec3 size;
     glm::mat4 transform;
-    bgfx::TextureHandle textureHandle;
+    uint64_t materialId = 0;
 
     bgfx::DynamicVertexBufferHandle vbh;
     bgfx::IndexBufferHandle ibh;
@@ -31,7 +31,7 @@ class Entity {
 
   public:
     Entity(RigidBodyType bodyType, PhysicsCore& physicsCore,
-           bgfx::VertexLayout& layout, Texture& texture,
+           bgfx::VertexLayout& layout, uint64_t materialId,
            glm::vec3 position = glm::vec3(0.0f),
            glm::vec3 rotation = glm::vec3(0.0f),
            glm::vec3 size = glm::vec3(1.0f));
@@ -53,8 +53,11 @@ class Entity {
 
     inline void ApplyTransform() { bgfx::setTransform(&transform[0][0]); }
 
-    bgfx::TextureHandle SetTexture();
-    void UpdateTexture(Texture& texture);
+    uint64_t GetMaterialId() const { return materialId; }
+
+    inline void SetMaterialId(uint64_t materialId) {
+        this->materialId = materialId;
+    }
 
     inline void SetPosition(glm::vec3 position) {
         this->position = position;
@@ -89,5 +92,6 @@ class Entity {
     inline glm::vec3 GetSize() const { return size; }
     inline glm::mat4 GetTransform() const { return transform; }
 
-    virtual void UpdateMesh(PhysicsCore& physicsCore, bgfx::VertexLayout& layout) = 0;
+    virtual void UpdateMesh(PhysicsCore& physicsCore,
+                            bgfx::VertexLayout& layout) = 0;
 };
