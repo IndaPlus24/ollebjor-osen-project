@@ -73,7 +73,10 @@ void Core::EventLoop() {
             quit = true;
             break;
         case SDL_EventType::SDL_WINDOWEVENT:
-            if (event.window.event == SDL_WINDOWEVENT_MINIMIZED) {
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                renderer->RecreateFrameBuffers(event.window.data1,
+                                               event.window.data2);
+            } else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED) {
                 EventDispatcher::Get().DispatchEvent("WindowMinimized");
             }
             break;
