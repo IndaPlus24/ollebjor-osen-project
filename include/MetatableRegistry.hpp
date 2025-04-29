@@ -27,7 +27,7 @@ private:
 
 public:
     // Singleton accessor
-    static MetatableRegistry& instance() {
+    static MetatableRegistry& Get() {
         static MetatableRegistry registry;
         return registry;
     }

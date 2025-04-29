@@ -26,7 +26,7 @@ void SceneManager::Initialize(PhysicsCore& physicsCore,
     bx::debugPrintf("SceneManager initialized");
 }
 
-SceneManager& SceneManager::GetInstance() {
+SceneManager& SceneManager::Get() {
     BX_ASSERT(instance != nullptr, "SceneManager not initialized");
     return *instance;
 }

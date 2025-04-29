@@ -37,7 +37,7 @@ class SceneManager {
 
     static void Initialize(PhysicsCore& physicsCore, bgfx::VertexLayout& layout,
                            Renderer& renderer);
-    static SceneManager& GetInstance();
+    static SceneManager& Get();
     static void Shutdown();
 
     SceneRef<Entity> AddEntity(Primitive primitive);

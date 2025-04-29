@@ -101,7 +101,7 @@ class PhysicsCore {
     PhysicsCore();
     ~PhysicsCore();
 
-    void Initialize();
+    void Init();
     void Update(float deltaTime);
     JPH::BodyID AddStaticBox(const JPH::Vec3& position,
                              const JPH::Vec3& halfExtent);
