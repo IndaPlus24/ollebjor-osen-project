@@ -1,6 +1,6 @@
 print("Lua execution started [Version " .. Version() .. "]")
---local d = require("./LoonarDebug")
-require("os")
+-- local d = require("./LoonarDebug")
+
 local function PrintMetatable(t)
 	local mt = getmetatable(t)
 	if mt then
@@ -43,5 +43,9 @@ print("Primitive position: ", pos.X, pos.Y, pos.Z)
 --     p:SetPosition(Vector3.new(0, i, 0))
 --     p:SetType(0)
 -- end
+
+Window.Minimized:Connect(function()
+	print("Window minimized")
+end)
 
 print("Lua executed successfully")

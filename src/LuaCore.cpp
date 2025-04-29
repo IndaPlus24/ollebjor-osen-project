@@ -1,5 +1,6 @@
 #include <lua.hpp>
 #include <iostream>
+#include "LuaEvent.hpp"
 #include "LuaExporter.hpp"
 #include "LuaCore.hpp"
 #include "LuaVector3.hpp"
@@ -72,11 +73,14 @@ void LuaCore::Init() {
     registerGlobalFunction(luaGetVersion, "Version");
     overrideLuaLibFunctions();
 
+    LuaExporter<LuaEvent> windowMinimized(L, "Event");
+    windowMinimized.Method("Connect", LuaEvent::luaConnect, 1).Export();
+
     LuaExporter<LuaWindowService> window(L, "Window");
-    window
-        .Method("SetTitle", LuaWindowService::luaSetTitle, 1)
-        // .Getter("Minimized", LuaWindowService::Minimized)
+    window.Method("SetTitle", LuaWindowService::luaSetTitle, 1)
+        .Getter("Minimized", LuaWindowService::luaMinimized)
         .ExportAsSingleton();
+
     LuaExporter<LuaVector3> vector3(L, "Vector3");
     vector3.Constructor(LuaVector3::luaNew, 3)
         .Method("Dot", LuaVector3::luaDot, 1)
