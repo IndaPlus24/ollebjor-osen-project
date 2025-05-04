@@ -24,6 +24,7 @@ class SceneManager {
     std::unordered_map<uint64_t, MeshContainer*> meshes;
     std::unordered_map<uint64_t, Collider*> colliders;
     std::unordered_map<uint64_t, Camera*> cameras;
+    std::unordered_map<uint64_t, Material*> materials;
 
     PhysicsCore* physicsCore;
     bgfx::VertexLayout* layout;
