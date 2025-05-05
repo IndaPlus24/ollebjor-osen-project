@@ -4,6 +4,7 @@
 #include "Collider.hpp"
 #include "Entity.hpp"
 #include "Enums.hpp"
+#include "Material.hpp"
 #include "MeshContainer.hpp"
 #include "MeshEntity.hpp"
 #include "Primitive.hpp"
@@ -43,7 +44,7 @@ class SceneManager {
 
     SceneRef<Entity> AddEntity(Primitive primitive);
     SceneRef<Entity> AddEntity(PrimitiveType type, RigidBodyType bodyType,
-                               uint64_t textureId,
+                               uint64_t materialId,
                                glm::vec3 position = glm::vec3(0.0f),
                                glm::vec3 rotation = glm::vec3(0.0f),
                                glm::vec3 size = glm::vec3(1.0f));
@@ -51,11 +52,13 @@ class SceneManager {
 
     SceneRef<Entity> AddEntity(MeshEntity meshEntity);
     SceneRef<Entity> AddEntity(uint64_t meshId, uint64_t colliderId,
-                               const RigidBodyType bodyType, uint64_t textureId,
+                               const RigidBodyType bodyType,
+                               uint64_t materialId,
                                glm::vec3 position = glm::vec3(0.0f),
                                glm::vec3 rotation = glm::vec3(0.0f),
                                glm::vec3 size = glm::vec3(1.0f));
-    SceneRef<Entity> UpdateEntity(uint64_t id, uint64_t meshId, uint64_t colliderId);
+    SceneRef<Entity> UpdateEntity(uint64_t id, uint64_t meshId,
+                                  uint64_t colliderId);
 
     SceneRef<Entity> GetEntity(const uint64_t id);
     void RemoveEntity(const uint64_t id);
@@ -82,6 +85,14 @@ class SceneManager {
     SceneRef<Collider> GetCollider(const uint64_t id);
     void RemoveCollider(const uint64_t id);
 
+    SceneRef<Material> AddMaterial(Material material);
+    SceneRef<Material> AddMaterial(uint64_t albedoId, uint64_t normalId);
+    SceneRef<Material> AddMaterial(std::string albedoPath,
+                                   std::string normalPath);
+
+    SceneRef<Material> GetMaterial(const uint64_t id);
+    void RemoveMaterial(const uint64_t id);
+
     SceneRef<Camera> AddCamera(Camera camera);
     SceneRef<Camera>
     AddCamera(const glm::vec3& position = glm::vec3(0.0f),
@@ -89,8 +100,10 @@ class SceneManager {
               const float fov = 60.0f, const float nearPlane = 0.1f,
               const float farPlane = 100.0f);
     SceneRef<Camera> GetCamera(const uint64_t id);
+
     void RemoveCamera(const uint64_t id);
     SceneRef<Camera> GetActiveCamera();
+
     Renderer& GetRenderer() { return *renderer; }
     inline void SetActiveCamera(const uint64_t id) { activeCameraId = id; }
 

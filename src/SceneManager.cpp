@@ -23,6 +23,10 @@ void SceneManager::Initialize(PhysicsCore& physicsCore,
     instance->physicsCore = &physicsCore;
     instance->layout = &layout;
     instance->renderer = &renderer;
+
+    instance->AddMaterial("assets/Loonar-image-not-found.png",
+                          "assets/Loonar-image-not-found-normal.png");
+
     bx::debugPrintf("SceneManager initialized");
 }
 
@@ -70,17 +74,14 @@ SceneRef<Entity> SceneManager::AddEntity(Primitive primitive) {
 
 SceneRef<Entity> SceneManager::AddEntity(PrimitiveType type,
                                          RigidBodyType bodyType,
-                                         uint64_t textureId, glm::vec3 position,
-                                         glm::vec3 rotation, glm::vec3 size) {
+                                         uint64_t materialId,
+                                         glm::vec3 position, glm::vec3 rotation,
+                                         glm::vec3 size) {
     // Create a new primitive and add it to the map
     uint64_t id = entities.size();
-    auto texture = GetTexture(textureId);
-    if (texture.data == nullptr) {
-        bx::debugPrintf("Texture not found with ID: %llu", textureId);
-        return {0, nullptr};
-    }
+    auto material = GetMaterial(materialId);
     auto entity = new Primitive(type, bodyType, *physicsCore, *layout,
-                                *texture.data, position, rotation, size);
+                                material.id, position, rotation, size);
     entities.emplace(id, entity);
     SceneRef<Entity> ref;
     ref.id = id;
@@ -121,13 +122,13 @@ SceneRef<Entity> SceneManager::AddEntity(MeshEntity meshEntity) {
 
 SceneRef<Entity> SceneManager::AddEntity(uint64_t meshId, uint64_t colliderId,
                                          const RigidBodyType bodyType,
-                                         uint64_t textureId, glm::vec3 position,
+                                         uint64_t materialId, glm::vec3 position,
                                          glm::vec3 rotation, glm::vec3 size) {
     // Create a new entity and add it to the map
     uint64_t id = entities.size();
     auto mesh = GetMeshContainer(meshId);
     auto collider = GetCollider(colliderId);
-    auto texture = GetTexture(textureId);
+    auto material = GetMaterial(materialId);
     if (mesh.data == nullptr) {
         bx::debugPrintf("Mesh not found with ID: %llu", meshId);
         return {0, nullptr};
@@ -136,13 +137,9 @@ SceneRef<Entity> SceneManager::AddEntity(uint64_t meshId, uint64_t colliderId,
         bx::debugPrintf("Collider not found with ID: %llu", colliderId);
         return {0, nullptr};
     }
-    if (texture.data == nullptr) {
-        bx::debugPrintf("Texture not found with ID: %llu", textureId);
-        return {0, nullptr};
-    }
     auto entity =
         new MeshEntity(*mesh.data, collider.data, bodyType, *physicsCore,
-                       *layout, *texture.data, position, rotation, size);
+                       *layout, material.id, position, rotation, size);
     entities.emplace(id, entity);
     SceneRef<Entity> ref;
     ref.id = id;
@@ -241,7 +238,7 @@ SceneRef<Texture> SceneManager::GetTexture(const uint64_t id) {
         return ref;
     }
     // Return an empty reference if not found
-    return {0, nullptr};
+    return GetTexture(0);
 }
 
 void SceneManager::RemoveTexture(const uint64_t id) {
@@ -252,6 +249,72 @@ void SceneManager::RemoveTexture(const uint64_t id) {
         bx::debugPrintf("Texture removed with ID: %llu", id);
     } else {
         bx::debugPrintf("Texture not found with ID: %llu", id);
+    }
+}
+
+SceneRef<Material> SceneManager::AddMaterial(Material material) {
+    // Create a new material and add it to the map
+    uint64_t id = materials.size();
+    auto materialPtr = new Material(std::move(material));
+    materials.emplace(id, materialPtr);
+    SceneRef<Material> ref;
+    ref.id = id;
+    ref.data = materials.at(id);
+    bx::debugPrintf("Material added with ID: %llu", id);
+    return ref;
+}
+
+SceneRef<Material> SceneManager::AddMaterial(uint64_t albedoId,
+                                             uint64_t normalId) {
+    // Create a new material and add it to the map
+    uint64_t id = materials.size();
+    auto materialPtr = new Material(albedoId, normalId);
+    materials.emplace(id, materialPtr);
+    SceneRef<Material> ref;
+    ref.id = id;
+    ref.data = materials.at(id);
+    bx::debugPrintf("Material added with ID: %llu", id);
+    return ref;
+}
+
+SceneRef<Material> SceneManager::AddMaterial(std::string albedoPath,
+                                             std::string normalPath) {
+    // Create textures for the albedo and normal maps
+    auto albedoTexture = AddTexture(albedoPath);
+    auto normalTexture = AddTexture(normalPath);
+
+    // Create a new material and add it to the map
+    uint64_t id = materials.size();
+    auto materialPtr = new Material(albedoTexture.id, normalTexture.id);
+    materials.emplace(id, materialPtr);
+    SceneRef<Material> ref;
+    ref.id = id;
+    ref.data = materials.at(id);
+    bx::debugPrintf("Material added with ID: %llu", id);
+    return ref;
+}
+
+SceneRef<Material> SceneManager::GetMaterial(const uint64_t id) {
+    // Check if the material exists in the map
+    auto it = materials.find(id);
+    if (it != materials.end()) {
+        SceneRef<Material> ref;
+        ref.id = id;
+        ref.data = it->second;
+        return ref;
+    }
+    // Return an empty reference if not found
+    return GetMaterial(0);
+}
+
+void SceneManager::RemoveMaterial(const uint64_t id) {
+    auto it = materials.find(id);
+    if (it != materials.end()) {
+        delete it->second;
+        materials.erase(it);
+        bx::debugPrintf("Material removed with ID: %llu", id);
+    } else {
+        bx::debugPrintf("Material not found with ID: %llu", id);
     }
 }
 

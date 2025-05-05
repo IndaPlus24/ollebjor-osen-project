@@ -67,10 +67,9 @@ int main(int argc, char** argv) {
                           glm::vec3(0.0f, 1.0f, 0.0f), 60.0f, 1.0f, 100.0f);
             auto cam = scene.AddCamera(std::move(camera));
             scene.SetActiveCamera(cam.id);
-            auto textureRef = scene.AddTexture("assets/wood_planks_diff_2k.jpg",
-                                               bgfx::TextureFormat::RGB8);
-            auto texture2Ref = scene.AddTexture(
-                "assets/wood_planks_nor_dx_2k.jpg", bgfx::TextureFormat::RGBA8);
+            auto materialRef =
+                scene.AddMaterial("assets/wood_planks_diff_2k.jpg",
+                                  "assets/wood_planks_nor_dx_2k.jpg");
             auto meshRef =
                 scene.AddMeshContainer(MeshContainer("assets/Suzane.obj"));
             auto mesh2Ref =
@@ -84,24 +83,23 @@ int main(int argc, char** argv) {
                 mesh2Ref.data->GetIndices()));
 
             scene.AddEntity(PrimitiveType::Cube, RigidBodyType::Dynamic,
-                            textureRef.id, glm::vec3{0.7f, 2.1f, 0.0f});
-            scene.AddEntity(
-                Primitive(PrimitiveType::Sphere, RigidBodyType::Dynamic,
-                          physicsCore, renderer.GetVertexLayout(),
-                          *textureRef.data, glm::vec3{0.0f, 0.0f, 0.0f}));
+                            materialRef.id, glm::vec3{0.7f, 2.1f, 0.0f});
+            scene.AddEntity(Primitive(
+                PrimitiveType::Sphere, RigidBodyType::Dynamic, physicsCore,
+                renderer.GetVertexLayout(), materialRef.id, glm::vec3{0.0f, 0.0f, 0.0f}));
             scene.AddEntity(Primitive(
                 PrimitiveType::Plane, RigidBodyType::Static, physicsCore,
-                renderer.GetVertexLayout(), *textureRef.data,
+                renderer.GetVertexLayout(), materialRef.id,
                 glm::vec3{0.0f, -2.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
                 glm::vec3{10.0f, 1.0f, 10.0f}));
             scene.AddEntity(MeshEntity(
                 *meshRef.data, colliderRef.data, RigidBodyType::Dynamic,
-                physicsCore, renderer.GetVertexLayout(), *textureRef.data,
+                physicsCore, renderer.GetVertexLayout(), materialRef.id,
                 glm::vec3{0.0f, 7.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
                 glm::vec3{1.0f, 1.0f, 1.0f}));
             scene.AddEntity(MeshEntity(
                 *mesh2Ref.data, collider2Ref.data, RigidBodyType::Static,
-                physicsCore, renderer.GetVertexLayout(), *textureRef.data,
+                physicsCore, renderer.GetVertexLayout(), materialRef.id,
                 glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
                 glm::vec3{1.0f, 1.0f, 1.0f}));
 
@@ -143,13 +141,10 @@ int main(int argc, char** argv) {
 
             // Update the camera position to follow a cricle around {0, 0, 0}
             auto cam = scene.GetActiveCamera();
-            cam.data->SetPosition(glm::vec3(10.0f * cos(frame * 0.003f), 3.3f + 2.0f *
-                                                        sin(frame * 0.008f),
+            cam.data->SetPosition(glm::vec3(10.0f * cos(frame * 0.003f),
+                                            3.3f + 2.0f * sin(frame * 0.008f),
                                             10.0f * sin(frame * 0.003f)));
             cam.data->SetProjection();
-
-            auto albedo = scene.GetTexture(0);
-            auto normal = scene.GetTexture(1);
 
             for (auto& entity : scene.GetEntities()) {
                 // Start a rendering pass for every entity
@@ -158,6 +153,10 @@ int main(int argc, char** argv) {
                 entity.second->SetVertexBuffer();
                 entity.second->SetIndexBuffer();
                 entity.second->ApplyTransform();
+                auto matId = entity.second->GetMaterialId();
+                auto mat = scene.GetMaterial(matId);
+                auto albedo = scene.GetTexture(mat.data->GetAlbedoId());
+                auto normal = scene.GetTexture(mat.data->GetNormalId());
                 renderer.SetTextureUniforms(albedo.data->GetTextureHandle(),
                                             normal.data->GetTextureHandle());
                 renderer.EndPass();
