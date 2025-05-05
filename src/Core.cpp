@@ -1,6 +1,5 @@
 #include "Core.hpp"
 
-#include "EventDispatcher.hpp"
 #include <SDL2/SDL.h>
 #include "Enums.hpp"
 #include "SDL_keyboard.h"

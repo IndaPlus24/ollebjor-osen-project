@@ -1,5 +1,4 @@
 #include "LuaDebug.hpp"
-#include "lua.h"
 #include <iostream>
 #include <typeindex>
 #include <string>

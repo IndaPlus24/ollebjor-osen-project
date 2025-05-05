@@ -3,7 +3,6 @@
 #include <iostream>
 #include <ostream>
 #include <string>
-#include "LuaExporter.hpp"
 #include "LuaUtil.hpp"
 #include "LuaDebug.hpp"
 
