@@ -22,8 +22,10 @@ class MeshContainer {
     inline const std::vector<uint32_t>& GetIndices() const { return indices; }
 
     inline void GetMeshData(const bgfx::Memory*& vertMem,
-                     const bgfx::Memory*& indiMem) const {
+                            const bgfx::Memory*& indiMem) const {
         vertMem = bgfx::copy(vertices.data(), vertices.size() * sizeof(Vertex));
         indiMem = bgfx::copy(indices.data(), indices.size() * sizeof(uint32_t));
     }
+
+    inline const std::string& GetPath() const { return path; }
 };

@@ -24,4 +24,6 @@ class Texture {
     inline bgfx::TextureHandle GetTextureHandle() const {
         return textureHandle;
     }
+
+    inline const std::string& GetPath() const { return filePath; }
 };
