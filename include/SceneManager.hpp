@@ -11,7 +11,11 @@
 #include "Renderer.hpp"
 #include "Texture.hpp"
 #include <cstdint>
+#include <string>
 #include <unordered_map>
+
+// Forward declaration
+class SceneImporter;
 
 template <typename T> struct SceneRef {
     uint64_t id;
@@ -29,6 +33,7 @@ class SceneManager {
     std::unordered_map<std::string, u_int32_t> loadedURIs;
 
 
+    SceneImporter* sceneImporter;
     PhysicsCore* physicsCore;
     bgfx::VertexLayout* layout;
     Renderer* renderer;
@@ -40,7 +45,7 @@ class SceneManager {
     ~SceneManager();
 
     static void Initialize(PhysicsCore& physicsCore, bgfx::VertexLayout& layout,
-                           Renderer& renderer);
+                           Renderer& renderer, SceneImporter& sceneImporter);
     static SceneManager& Get();
     static void Shutdown();
 
@@ -65,6 +70,8 @@ class SceneManager {
     SceneRef<Entity> GetEntity(const uint64_t id);
     void RemoveEntity(const uint64_t id);
 
+    std::vector<SceneRef<Entity>> AddScene(const std::string& path);
+
     SceneRef<Texture> AddTexture(Texture texture);
     SceneRef<Texture> AddTexture(const std::string& filePath,
                                  uint32_t flags = 0);
@@ -74,6 +81,8 @@ class SceneManager {
 
     SceneRef<MeshContainer> AddMeshContainer(MeshContainer meshContainer);
     SceneRef<MeshContainer> AddMeshContainer(const std::string& path);
+    SceneRef<MeshContainer> AddMeshContainer(std::string path, std::vector<Vertex> vertices,
+                                            std::vector<uint32_t> indices);
 
     SceneRef<MeshContainer> GetMeshContainer(const uint64_t id);
     void RemoveMeshContainer(const uint64_t id);

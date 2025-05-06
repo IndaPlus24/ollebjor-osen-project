@@ -25,7 +25,7 @@ Texture::Texture(const std::string& filePath, uint32_t flags)
 
     textureHandle = bgfx::createTexture2D(
         width, height, false, 1, bgfx::TextureFormat::RGBA8,
-        flags | BGFX_TEXTURE_RT | BGFX_SAMPLER_UVW_CLAMP |
+        flags | BGFX_TEXTURE_RT | BGFX_SAMPLER_NONE |
             BGFX_SAMPLER_MAG_ANISOTROPIC | BGFX_SAMPLER_MIN_ANISOTROPIC);
 
     if (bgfx::isValid(textureHandle)) {

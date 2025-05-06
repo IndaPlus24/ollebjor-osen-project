@@ -1,6 +1,8 @@
 #include "SceneManager.hpp"
+#include "SceneImporter.hpp"
 #include <bgfx/bgfx.h>
 #include <utility>
+#include <vector>
 #include "Entity.hpp"
 #include "MeshEntity.hpp"
 #include "Primitive.hpp"
@@ -16,13 +18,16 @@ SceneManager::SceneManager() {}
 SceneManager::~SceneManager() {}
 
 void SceneManager::Initialize(PhysicsCore& physicsCore,
-                              bgfx::VertexLayout& layout, Renderer& renderer) {
+                              bgfx::VertexLayout& layout, Renderer& renderer,
+                              SceneImporter& sceneImporter) {
     if (instance == nullptr)
         instance = new SceneManager();
 
     instance->physicsCore = &physicsCore;
     instance->layout = &layout;
     instance->renderer = &renderer;
+    instance->sceneImporter = &sceneImporter;
+    instance->sceneImporter->SetSceneManager(instance);
 
     instance->AddMaterial("assets/Loonar-image-not-found.png",
                           "assets/Loonar-image-not-found-normal.png");
@@ -48,13 +53,23 @@ void SceneManager::Shutdown() {
         delete texture.second;
         bx::debugPrintf("Texture removed with ID: %llu\n", texture.first);
     }
+    for (auto& material : instance->materials) {
+        delete material.second;
+        bx::debugPrintf("Material removed with ID: %llu\n", material.first);
+    }
     for (auto& mesh : instance->meshes) {
         delete mesh.second;
         bx::debugPrintf("MeshContainer removed with ID: %llu\n", mesh.first);
     }
+    for (auto& collider : instance->colliders) {
+        delete collider.second;
+        bx::debugPrintf("Collider removed with ID: %llu\n", collider.first);
+    }
     instance->entities.clear();
     instance->textures.clear();
+    instance->materials.clear();
     instance->meshes.clear();
+    instance->colliders.clear();
 
     delete instance;
     instance = nullptr;
@@ -202,6 +217,16 @@ void SceneManager::RemoveEntity(const uint64_t id) {
     } else {
         bx::debugPrintf("Entity not found with ID: %llu\n", id);
     }
+}
+
+std::vector<SceneRef<Entity>> SceneManager::AddScene(const std::string& path) {
+    // Import the scene using the SceneImporter
+    std::vector<SceneRef<Entity>> sceneRefs = sceneImporter->ImportScene(path);
+    if (sceneRefs.empty()) {
+        bx::debugPrintf("Failed to import scene from path: %s\n", path.c_str());
+        return {};
+    }
+    return sceneRefs;
 }
 
 SceneRef<Texture> SceneManager::AddTexture(Texture texture) {
@@ -382,6 +407,28 @@ SceneManager::AddMeshContainer(const std::string& path) {
     // Create a new mesh container and add it to the map
     uint64_t id = meshes.size();
     auto meshPtr = new MeshContainer(path);
+    meshes.emplace(id, meshPtr);
+    SceneRef<MeshContainer> ref;
+    ref.id = id;
+    ref.data = meshes.at(id);
+    bx::debugPrintf("MeshContainer added with ID: %llu\n", id);
+    return ref;
+}
+
+SceneRef<MeshContainer>
+SceneManager::AddMeshContainer(std::string path, std::vector<Vertex> vertices,
+                               std::vector<uint32_t> indices) {
+    // Check if the mesh container path already exists in the map
+    auto it = loadedURIs.find(path);
+    if (it != loadedURIs.end()) {
+        bx::debugPrintf("MeshContainer already loaded with path: %s\n",
+                        path.c_str());
+        return {it->second, meshes.at(it->second)};
+    }
+    // Create a new mesh container and add it to the map
+    uint64_t id = meshes.size();
+    auto meshPtr = new MeshContainer(std::move(path), std::move(vertices),
+                                     std::move(indices));
     meshes.emplace(id, meshPtr);
     SceneRef<MeshContainer> ref;
     ref.id = id;

@@ -13,6 +13,10 @@ class MeshContainer {
     std::vector<uint32_t> indices;
 
   public:
+    MeshContainer(std::string path, std::vector<Vertex> vertices,
+                  std::vector<uint32_t> indices)
+        : path(std::move(path)), vertices(std::move(vertices)),
+          indices(std::move(indices)) {}
     MeshContainer(const std::string& path);
     MeshContainer(MeshContainer&& other) noexcept;
     MeshContainer& operator=(MeshContainer&& other) noexcept;

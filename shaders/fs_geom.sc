@@ -8,6 +8,10 @@ SAMPLER2D(s_texNormal, 1);
 void main() {
     vec4 color = texture2D(s_texColor, v_texcoord0);
 
+    if (color.a < 0.5) {
+        discard; // Discard transparent pixels
+    }
+
     // Sample and unpack normal map
     vec3 normalMap = texture2D(s_texNormal, v_texcoord0).xyz;
     normalMap = normalMap * 2.0 - 1.0; // unpack from [0,1] to [-1,1]
