@@ -74,6 +74,19 @@ if(NOT lua_POPULATED)
   endif()
 endif()
 
+# Fetch sol2
+FetchContent_Declare(
+  sol2
+  GIT_REPOSITORY https://github.com/ThePhD/sol2.git
+  GIT_TAG v3.5.0
+)
+# Configure sol2 options
+set(SOL2_ENABLE_INSTALL OFF CACHE BOOL "Enable installation for sol2" FORCE)
+set(SOL2_SINGLE OFF CACHE BOOL "Use single header for sol2" FORCE)
+set(SOL2_BUILD_LUA OFF CACHE BOOL "Build Lua for sol2" FORCE)
+add_compile_definitions(SOL_USE_STD_OPTIONAL=1)
+FetchContent_MakeAvailable(sol2)
+
 # Fetch assimp
 FetchContent_Declare(
     assimp
@@ -94,6 +107,7 @@ include_directories(${bgfx_SOURCE_DIR}/bgfx/include)
 include_directories(${SDL_SOURCE_DIR}/include)
 include_directories(${JoltPhysics_SOURCE_DIR})
 include_directories(${lua_SOURCE_DIR})
+include_directories(${sol2_SOURCE_DIR}/include)
 include_directories(${ASSIMP_SOURCE_DIR}/include)
 include_directories(${EXTERNAL_DIR})
 
@@ -136,7 +150,7 @@ elseif(UNIX)
 endif()
 
 target_include_directories(Loonar PUBLIC ${INCLUDE_DIR})
-target_link_libraries(Loonar PRIVATE bgfx glm SDL2main SDL2-static Jolt assimp lua_static)
+target_link_libraries(Loonar PRIVATE bgfx glm SDL2main SDL2-static Jolt assimp lua_static sol2)
 set_target_properties(Loonar PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
 # Set output directories
