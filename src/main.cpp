@@ -88,7 +88,6 @@ int main(int argc, char** argv) {
             core.SetKeyEventCallback(std::bind(KeyEvent, std::placeholders::_1,
                                                std::placeholders::_2,
                                                scene.GetEntities()));
-            lua.Run("scripts/test.lua");
         }
 
         auto& scene = SceneManager::Get();
