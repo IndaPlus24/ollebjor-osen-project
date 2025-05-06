@@ -167,20 +167,25 @@ bool Renderer::Init() {
 #if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
     geometryProgram = bgfx::createProgram(
         bgfx::createShader(bgfx::makeRef(vs_geom_spv, sizeof(vs_geom_spv))),
-        bgfx::createShader(bgfx::makeRef(fs_geom_spv, sizeof(vs_geom_spv))), true);
+        bgfx::createShader(bgfx::makeRef(fs_geom_spv, sizeof(vs_geom_spv))),
+        true);
     lightingProgram = bgfx::createProgram(
         bgfx::createShader(bgfx::makeRef(vs_light_spv, sizeof(vs_light_spv))),
         bgfx::createShader(bgfx::makeRef(fs_light_spv, sizeof(fs_light_spv))),
         true);
     combineProgram = bgfx::createProgram(
-        bgfx::createShader(bgfx::makeRef(vs_combine_spv, sizeof(vs_combine_spv))),
-        bgfx::createShader(bgfx::makeRef(fs_combine_spv, sizeof(fs_combine_spv))),
+        bgfx::createShader(
+            bgfx::makeRef(vs_combine_spv, sizeof(vs_combine_spv))),
+        bgfx::createShader(
+            bgfx::makeRef(fs_combine_spv, sizeof(fs_combine_spv))),
         true);
 #elif BX_PLATFORM_WINDOWS
     if (bgfx::getRendererType() == bgfx::RendererType::Direct3D11) {
         geometryProgram = bgfx::createProgram(
-            bgfx::createShader(bgfx::makeRef(vs_geom_dx11, sizeof(vs_geom_dx11))),
-            bgfx::createShader(bgfx::makeRef(fs_geom_dx11, sizeof(fs_geom_dx11))),
+            bgfx::createShader(
+                bgfx::makeRef(vs_geom_dx11, sizeof(vs_geom_dx11))),
+            bgfx::createShader(
+                bgfx::makeRef(fs_geom_dx11, sizeof(fs_geom_dx11))),
             true);
         lightingProgram = bgfx::createProgram(
             bgfx::createShader(
@@ -200,8 +205,10 @@ bool Renderer::Init() {
             bgfx::createShader(bgfx::makeRef(fs_geom_spv, sizeof(vs_geom_spv))),
             true);
         lightingProgram = bgfx::createProgram(
-            bgfx::createShader(bgfx::makeRef(vs_light_spv, sizeof(vs_light_spv))),
-            bgfx::createShader(bgfx::makeRef(fs_light_spv, sizeof(fs_light_spv))),
+            bgfx::createShader(
+                bgfx::makeRef(vs_light_spv, sizeof(vs_light_spv))),
+            bgfx::createShader(
+                bgfx::makeRef(fs_light_spv, sizeof(fs_light_spv))),
             true);
         combineProgram = bgfx::createProgram(
             bgfx::createShader(
@@ -211,8 +218,10 @@ bool Renderer::Init() {
             true);
     } else {
         geometryProgram = bgfx::createProgram(
-            bgfx::createShader(bgfx::makeRef(vs_geom_glsl, sizeof(vs_geom_glsl))),
-            bgfx::createShader(bgfx::makeRef(fs_geom_glsl, sizeof(fs_geom_glsl))),
+            bgfx::createShader(
+                bgfx::makeRef(vs_geom_glsl, sizeof(vs_geom_glsl))),
+            bgfx::createShader(
+                bgfx::makeRef(fs_geom_glsl, sizeof(fs_geom_glsl))),
             true);
         lightingProgram = bgfx::createProgram(
             bgfx::createShader(
@@ -230,14 +239,17 @@ bool Renderer::Init() {
 #elif BX_PLATFORM_OSX
     geometryProgram = bgfx::createProgram(
         bgfx::createShader(bgfx::makeRef(vs_geom_mtl, sizeof(vs_geom_mtl))),
-        bgfx::createShader(bgfx::makeRef(fs_geom_mtl, sizeof(vs_geom_mtl))), true);
+        bgfx::createShader(bgfx::makeRef(fs_geom_mtl, sizeof(vs_geom_mtl))),
+        true);
     lightingProgram = bgfx::createProgram(
         bgfx::createShader(bgfx::makeRef(vs_light_mtl, sizeof(vs_light_mtl))),
         bgfx::createShader(bgfx::makeRef(fs_light_mtl, sizeof(fs_light_mtl))),
         true);
     combineProgram = bgfx::createProgram(
-        bgfx::createShader(bgfx::makeRef(vs_combine_mtl, sizeof(vs_combine_mtl))),
-        bgfx::createShader(bgfx::makeRef(fs_combine_mtl, sizeof(fs_combine_mtl))),
+        bgfx::createShader(
+            bgfx::makeRef(vs_combine_mtl, sizeof(vs_combine_mtl))),
+        bgfx::createShader(
+            bgfx::makeRef(fs_combine_mtl, sizeof(fs_combine_mtl))),
         true);
 #endif
 

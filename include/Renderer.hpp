@@ -72,7 +72,6 @@ class Renderer {
     void SetTextureUniforms(bgfx::TextureHandle albedo,
                             bgfx::TextureHandle normal);
 
-
     void BeginPass(bgfx::ViewId view);
     void EndPass();
 

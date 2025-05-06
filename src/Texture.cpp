@@ -14,10 +14,10 @@ Texture::Texture(const std::string& filePath, uint32_t flags)
     unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &BPP, 4);
 
     if (!data) {
-        bx::debugPrintf("Failed to load texture: %s", filePath.c_str());
+        bx::debugPrintf("Failed to load texture: %s\n", filePath.c_str());
         return;
     } else {
-        bx::debugPrintf("Loaded texture: %s (%dx%d), BPP: %d", filePath.c_str(),
+        bx::debugPrintf("Loaded texture: %s (%dx%d), BPP: %d\n", filePath.c_str(),
                         width, height, BPP);
     }
     mem = bgfx::copy(data, width * height * 4);
@@ -25,7 +25,7 @@ Texture::Texture(const std::string& filePath, uint32_t flags)
 
     textureHandle = bgfx::createTexture2D(
         width, height, false, 1, bgfx::TextureFormat::RGBA8,
-        flags | BGFX_TEXTURE_RT | BGFX_SAMPLER_UVW_CLAMP |
+        flags | BGFX_TEXTURE_RT | BGFX_SAMPLER_NONE |
             BGFX_SAMPLER_MAG_ANISOTROPIC | BGFX_SAMPLER_MIN_ANISOTROPIC);
 
     if (bgfx::isValid(textureHandle)) {
@@ -70,6 +70,6 @@ Texture& Texture::operator=(Texture&& other) noexcept {
 Texture::~Texture() {
     if (bgfx::isValid(textureHandle)) {
         bgfx::destroy(textureHandle);
-        bx::debugPrintf("Texture destroyed: %s", filePath.c_str());
+        bx::debugPrintf("Texture destroyed: %s\n", filePath.c_str());
     }
 }
