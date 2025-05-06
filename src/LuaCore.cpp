@@ -1,10 +1,11 @@
 #include <lua.hpp>
 #include <iostream>
-#include "LuaExporter.hpp"
-#include "LuaVector3.hpp"
 #include "LuaCore.hpp"
+#include "LuaVector3.hpp"
 #include "LuaPrimitive.hpp"
-#include "LuaGame.hpp"
+#include "LuaSignal.hpp"
+#include "LuaType.hpp"
+#include "LuaWindowService.hpp"
 
 namespace {
 int luaGetVersion(lua_State* L) {
@@ -66,38 +67,52 @@ std::string LuaCore::GetGlobal(std::string name) const {
     lua_pop(L, 1);
     return global;
 }
+// Sends a LuaSignal without any arguments to the Lua function
+void LuaCore::FireSignal(LuaSignal* signal) const {
+    LuaUtil::Get().WrapAndPush(L, signal);
+    LuaSignal::luaSend(L);
+    lua_pop(L, 1); // Pop the signal from the stack
+};
 
 void LuaCore::Init() {
     luaL_openlibs(L);
     registerGlobalFunction(luaGetVersion, "Version");
     overrideLuaLibFunctions();
-    
-    LuaExporter<LuaVector3> vector3(L, "Vector3", true, true);
-    vector3.Constructor(LuaVector3::luaNew, 3)
-        .Method("Dot", LuaVector3::luaDot, 1)
-        .Method("Cross", LuaVector3::luaCross, 1)
-        .Method("GetLength", LuaVector3::luaGetLength, 0)
-        .Getter("X", LuaVector3::luaGetX)
-        .Getter("Y", LuaVector3::luaGetY)
-        .Getter("Z", LuaVector3::luaGetZ)
-        .Getter("len", LuaVector3::luaGetLength)
-        .Getter("normalized", LuaVector3::luaNormalize)
-        .Meta("__add", LuaVector3::lua__add)
-        .Meta("__sub", LuaVector3::lua__sub)
-        .Meta("__mul", LuaVector3::lua__mul)
-        .Meta("__div", LuaVector3::lua__div)
-        .Meta("__eq", LuaVector3::lua__eq)
-        .Meta("__tostring", LuaVector3::lua__tostring)
-        .Export();
 
-    LuaExporter<LuaPrimitive> primitive(L, "Primitive", true, true);
-    primitive.Constructor(LuaPrimitive::luaNew, 1)
-        .Method("SetPosition", LuaPrimitive::luaSetPosition, 1)
-        .Method("GetPosition", LuaPrimitive::luaGetPosition, 0)
-        .Method("SetType", LuaPrimitive::luaSetType, 1)
-        .Method("GetType", LuaPrimitive::luaGetType, 0)
-        .Method("Destroy", LuaPrimitive::luaDestroy, 0)
-        .Export();
+    LuaType<LuaSignal> signalType(L, "Signal", true);
+    signalType.AddMethod("Send", LuaSignal::luaSend)
+        .AddMethod("OnReceive", LuaSignal::luaOnReceive)
+        .MakeClass(LuaSignal::luaNew);
+
+    LuaType<LuaWindowService> window(L, "Window", true, false);
+    window.AddMethod("SetTitle", LuaWindowService::luaSetTitle)
+        .AddProperty("Minimized", LuaWindowService::luaMinimized, nullptr)
+        .MakeSingleton(&WindowService);
+
+    LuaType<LuaVector3> vector3(L, "Vector3", true);
+    vector3.AddMethod("Dot", LuaVector3::luaDot)
+        .AddMethod("Cross", LuaVector3::luaCross)
+        .AddMethod("GetLength", LuaVector3::luaGetLength)
+        .AddProperty("X", LuaVector3::luaGetX, nullptr)
+        .AddProperty("Y", LuaVector3::luaGetY, nullptr)
+        .AddProperty("Z", LuaVector3::luaGetZ, nullptr)
+        .AddProperty("len", LuaVector3::luaGetLength, nullptr)
+        .AddProperty("normalized", LuaVector3::luaNormalize, nullptr)
+        .AddMetaMethod("__add", LuaVector3::lua__add)
+        .AddMetaMethod("__sub", LuaVector3::lua__sub)
+        .AddMetaMethod("__mul", LuaVector3::lua__mul)
+        .AddMetaMethod("__div", LuaVector3::lua__div)
+        .AddMetaMethod("__eq", LuaVector3::lua__eq)
+        .AddMetaMethod("__tostring", LuaVector3::lua__tostring)
+        .MakeClass(LuaVector3::luaNew);
+
+    LuaType<LuaPrimitive> primitive(L, "Primitive", true);
+    primitive.AddMethod("SetPosition", LuaPrimitive::luaSetPosition)
+        .AddMethod("GetPosition", LuaPrimitive::luaGetPosition)
+        .AddMethod("SetType", LuaPrimitive::luaSetType)
+        .AddMethod("GetType", LuaPrimitive::luaGetType)
+        .AddMethod("Destroy", LuaPrimitive::luaDestroy)
+        .MakeClass(LuaPrimitive::luaNew);
 }
 
 void LuaCore::pcall(int nargs, int nresults, int errfunc) const {
@@ -115,7 +130,7 @@ void LuaCore::pcall(int nargs, int nresults, int errfunc) const {
 //     return 0;
 // }
 
-LuaCore::LuaCore() { L = luaL_newstate(); }
+LuaCore::LuaCore() : L(luaL_newstate()), WindowService() {}
 LuaCore::~LuaCore() {
     if (L) {
         lua_close(L);

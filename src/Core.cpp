@@ -1,8 +1,12 @@
 #include "Core.hpp"
 
+#include "EventDispatcher.hpp"
 #include <SDL2/SDL.h>
 #include "Enums.hpp"
 #include "SDL_keyboard.h"
+#include "SDL_video.h"
+#include "bx/debug.h"
+#include <cstddef>
 #include <iostream>
 
 Core::Core() {}
@@ -69,11 +73,26 @@ void Core::EventLoop() {
         case SDL_EventType::SDL_QUIT:
             quit = true;
             break;
+        case SDL_EventType::SDL_WINDOWEVENT:
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                renderer->RecreateFrameBuffers(event.window.data1,
+                                               event.window.data2);
+            } else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED) {
+                bx::debugPrintf("Window minimized\n");
+                WindowMinimized();
+                bx::debugPrintf("Minimized event sent\n");
+            }
+            break;
         default:
             break;
         }
     }
 }
+
+struct KeyEvent {
+    Keycode keycode;
+    KeyState state;
+};
 
 void Core::CallKeyboardEvent() {
     if (keyboardState == nullptr || keyEventCallback == nullptr ||
@@ -82,7 +101,9 @@ void Core::CallKeyboardEvent() {
     }
     for (int i = 0; i < SDL_NUM_SCANCODES; ++i) {
         if (keyboardState[i] == 1 && lastKeyboardState[i] == 0) {
-            keyEventCallback((Keycode)i, KeyState::Pressed);
+            // keyEventCallback((Keycode)i, KeyState::Pressed); LEGACY CODE
+            EventDispatcher::Get().DispatchEvent(
+                "KeyDown", KeyEvent{(Keycode)i, KeyState::Pressed});
         }
     }
 }

@@ -1,4 +1,5 @@
 #include "Entity.hpp"
+#include <cstdint>
 #include <glm/fwd.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -6,10 +7,10 @@
 #include "utils.hpp"
 
 Entity::Entity(RigidBodyType bodyType, PhysicsCore& physicsCore,
-               bgfx::VertexLayout& layout, Texture& texture, glm::vec3 position,
-               glm::vec3 rotation, glm::vec3 size)
+               bgfx::VertexLayout& layout, uint64_t materialId,
+               glm::vec3 position, glm::vec3 rotation, glm::vec3 size)
     : bodyType(bodyType), position(position), rotation(rotation), size(size),
-      textureHandle(texture.GetTextureHandle()) {}
+      materialId(materialId) {}
 
 Entity::Entity(Entity&& other) noexcept {
     bodyType = other.bodyType;
@@ -17,7 +18,7 @@ Entity::Entity(Entity&& other) noexcept {
     rotation = other.rotation;
     size = other.size;
     transform = other.transform;
-    textureHandle = other.textureHandle;
+    materialId = other.materialId;
     vbh = other.vbh;
     ibh = other.ibh;
     bodyID = other.bodyID;
@@ -27,7 +28,7 @@ Entity::Entity(Entity&& other) noexcept {
     other.bodyID = JPH::BodyID();
     other.vbh.idx = bgfx::kInvalidHandle;
     other.ibh.idx = bgfx::kInvalidHandle;
-    other.textureHandle.idx = bgfx::kInvalidHandle;
+    other.materialId = 0;
 }
 
 Entity& Entity::operator=(Entity&& other) noexcept {
@@ -37,7 +38,7 @@ Entity& Entity::operator=(Entity&& other) noexcept {
         rotation = other.rotation;
         size = other.size;
         transform = other.transform;
-        textureHandle = other.textureHandle;
+        materialId = other.materialId;
         vbh = other.vbh;
         ibh = other.ibh;
         bodyID = other.bodyID;
@@ -51,19 +52,21 @@ Entity& Entity::operator=(Entity&& other) noexcept {
     return *this;
 }
 
-Entity::~Entity() {
-    bool isInvalidVBH = vbh.idx == bgfx::kInvalidHandle;
-    bool isInvalidIBH = ibh.idx == bgfx::kInvalidHandle;
-    bool isInvalidBodyID = bodyID == JPH::BodyID();
-    if (!isInvalidVBH) {
-        bgfx::destroy(vbh);
-    }
-    if (!isInvalidIBH) {
-        bgfx::destroy(ibh);
-    }
-    if (!isInvalidBodyID) {
+Entity::~Entity() { Delete(); }
+
+void Entity::Delete() {
+    if (bodyInterface) {
         bodyInterface->RemoveBody(bodyID);
         bodyInterface->DestroyBody(bodyID);
+        bodyInterface = nullptr;
+    }
+    if (vbh.idx != bgfx::kInvalidHandle) {
+        bgfx::destroy(vbh);
+        vbh.idx = bgfx::kInvalidHandle;
+    }
+    if (ibh.idx != bgfx::kInvalidHandle) {
+        bgfx::destroy(ibh);
+        ibh.idx = bgfx::kInvalidHandle;
     }
 }
 
@@ -82,12 +85,6 @@ void Entity::QuaternionRotate(glm::mat4& result, const glm::vec3& axis,
     glm::quat quaternion = glm::quat(w, qv);
     glm::mat4 quatTransform = glm::mat4_cast(quaternion);
     result *= quatTransform;
-}
-
-bgfx::TextureHandle Entity::SetTexture() { return textureHandle; }
-
-void Entity::UpdateTexture(Texture& texture) {
-    this->textureHandle = texture.GetTextureHandle();
 }
 
 void Entity::SetPhysicsPosition(glm::vec3 position,

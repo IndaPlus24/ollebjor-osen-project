@@ -1,3 +1,4 @@
+#include <iostream>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <Jolt/Jolt.h>
 #include <bgfx/bgfx.h>
@@ -18,21 +19,18 @@
 #include "Collider.hpp"
 #include "Camera.hpp"
 #include "SceneManager.hpp"
+#include "SceneImporter.hpp"
 
 void KeyEvent(Keycode key, KeyState state,
               std::unordered_map<uint64_t, Entity*>& entities) {
     bx::debugPrintf("Key event: %d, %d\n", key, state);
-    if (state == KeyState::Release && key == Keycode::SPACE) {
-        // entities[0].SetPhysicsPosition(glm::vec3{1.0f, 4.1f, 0.0f});
-        // entities[1].SetPhysicsPosition(glm::vec3{0.0f, 2.0f, 0.0f});
-        // entities[3].SetPhysicsPosition(glm::vec3{0.0f, 7.0f, 0.0f});
-    } else if (state == KeyState::Release && key == Keycode::W) {
+    if (state == KeyState::Release && key == Keycode::W) {
         for (auto& entity : entities) {
             if (entity.second->GetBodyType() == RigidBodyType::Dynamic) {
                 entity.second->AddImpulse(glm::vec3{0.0f, 10.0f, 0.0f});
+                bx::debugPrintf("Added impules\n");
             }
         }
-        bx::debugPrintf("Added impules\n");
     }
 }
 
@@ -46,75 +44,57 @@ int main(int argc, char** argv) {
     lua.Init();
 
     PhysicsCore physicsCore = PhysicsCore();
-    physicsCore.Initialize();
+    physicsCore.Init();
 
     Core core = Core();
     core.Init();
+    core.SetWindowMinimizedCallback(
+        [&]() { lua.FireSignal(lua.WindowService.Minimized); });
 
     Renderer renderer = Renderer("Hello World", 1280, 720);
     renderer.Init();
+    core.SetRenderer(&renderer);
+    SceneImporter sceneImporter;
 
-    SceneManager::Initialize(physicsCore, renderer.GetVertexLayout(), renderer);
+    SceneManager::Initialize(physicsCore, renderer.GetVertexLayout(), renderer,
+                             sceneImporter);
 
     uint32_t frame = 0;
-    renderer.SetViewClear();
+    bgfx::frame();
     {
 
         {
-            auto& scene = SceneManager::GetInstance();
-            Camera camera(renderer, glm::vec3(-6.0f, 3.0f, -6.0f),
+            auto& scene = SceneManager::Get();
+            Camera camera(renderer, glm::vec3(3.0f, 2.0f, 0.0f),
                           glm::vec3(0.0f, 1.0f, 0.0f), 60.0f, 1.0f, 100.0f);
+            camera.LookAt(glm::vec3(0.0f, 0.5f, 0.0f));
             auto cam = scene.AddCamera(std::move(camera));
             scene.SetActiveCamera(cam.id);
-            auto textureRef = scene.AddTexture("assets/amongus.jpg",
-                                               bgfx::TextureFormat::RGB8);
-            auto meshRef =
-                scene.AddMeshContainer(MeshContainer("assets/Suzane.obj"));
-            auto mesh2Ref =
-                scene.AddMeshContainer(MeshContainer("assets/Holder.obj"));
-            auto colliderRef = scene.AddCollider(
-                Collider(ColliderType::Box, glm::vec3(0.0f), glm::vec3(0.0f),
-                         glm::vec3(1.0f, 1.0f, 1.2f)));
-            auto collider2Ref = scene.AddCollider(Collider(
-                ColliderType::Mesh, glm::vec3(0.0f), glm::vec3(0.0f),
-                glm::vec3(1.0f, 1.0f, 1.0f), mesh2Ref.data->GetVertices(),
-                mesh2Ref.data->GetIndices()));
-
+            auto materialRef =
+                scene.AddMaterial("assets/wood_planks_diff_2k.jpg",
+                                  "assets/wood_planks_nor_dx_2k.jpg");
             scene.AddEntity(PrimitiveType::Cube, RigidBodyType::Dynamic,
-                            textureRef.id, glm::vec3{0.7f, 2.1f, 0.0f});
+                            materialRef.id, glm::vec3{0.7f, 7.1f, 0.0f});
             scene.AddEntity(
                 Primitive(PrimitiveType::Sphere, RigidBodyType::Dynamic,
                           physicsCore, renderer.GetVertexLayout(),
-                          *textureRef.data, glm::vec3{0.0f, 0.0f, 0.0f}));
-            scene.AddEntity(Primitive(
-                PrimitiveType::Plane, RigidBodyType::Static, physicsCore,
-                renderer.GetVertexLayout(), *textureRef.data,
-                glm::vec3{0.0f, -2.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
-                glm::vec3{10.0f, 1.0f, 10.0f}));
-            scene.AddEntity(MeshEntity(
-                *meshRef.data, colliderRef.data, RigidBodyType::Dynamic,
-                physicsCore, renderer.GetVertexLayout(), *textureRef.data,
-                glm::vec3{0.0f, 7.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
-                glm::vec3{1.0f, 1.0f, 1.0f}));
-            scene.AddEntity(MeshEntity(
-                *mesh2Ref.data, collider2Ref.data, RigidBodyType::Static,
-                physicsCore, renderer.GetVertexLayout(), *textureRef.data,
-                glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
-                glm::vec3{1.0f, 1.0f, 1.0f}));
+                          materialRef.id, glm::vec3{0.0f, 5.0f, 2.0f}));
+            scene.AddEntity(PrimitiveType::Plane, RigidBodyType::Static,
+                            materialRef.id, glm::vec3{0.0f});
 
+            scene.AddScene("assets/test/loonar-test-scene.gltf");
+
+            lua.Run("scripts/test.lua");
             core.SetKeyEventCallback(std::bind(KeyEvent, std::placeholders::_1,
                                                std::placeholders::_2,
                                                scene.GetEntities()));
-            lua.Run("scripts/test.lua");
         }
 
-        auto& scene = SceneManager::GetInstance();
+        auto& scene = SceneManager::Get();
         bx::debugPrintf("Main loop started\n");
         while (!core.IsQuit()) {
             core.EventLoop();
             core.CallKeyboardEvent();
-
-            renderer.UpdateWindowSize();
 
             accumulator += core.GetDeltaTime();
 
@@ -142,26 +122,37 @@ int main(int argc, char** argv) {
 
             // Update the camera position to follow a cricle around {0, 0, 0}
             auto cam = scene.GetActiveCamera();
-            cam.data->SetPosition(glm::vec3(10.0f * cos(frame * 0.01f), 5.0f,
-                                            10.0f * sin(frame * 0.01f)));
-
+            cam.data->SetPosition(glm::vec3(10.0f * cos(frame * 0.003f),
+                                            4.5f + 2.0f * sin(frame * 0.008f),
+                                            10.0f * sin(frame * 0.003f)));
             cam.data->SetProjection();
-            cam.data->SetViewTransform(0);
 
             for (auto& entity : scene.GetEntities()) {
+                // Start a rendering pass for every entity
+                renderer.BeginPass(0);
+                cam.data->SetViewTransform(0);
                 entity.second->SetVertexBuffer();
                 entity.second->SetIndexBuffer();
                 entity.second->ApplyTransform();
-                renderer.SetTextureUniform(entity.second->SetTexture());
-                bgfx::submit(0, renderer.GetProgramHandle());
+                auto matId = entity.second->GetMaterialId();
+                auto mat = scene.GetMaterial(matId);
+                auto albedo = scene.GetTexture(mat.data->GetAlbedoId());
+                auto normal = scene.GetTexture(mat.data->GetNormalId());
+                renderer.SetTextureUniforms(albedo.data->GetTextureHandle(),
+                                            normal.data->GetTextureHandle());
+                renderer.EndPass();
             }
 
+            // Start the lighting pass
+            renderer.BeginPass(1);
+            renderer.EndPass();
+
+            // Start the combine pass
+            renderer.BeginPass(2);
+            renderer.EndPass();
+
             // Advance to next frame. Process submitted rendering primitives.
-            bgfx::frame();
-            frame++;
-            if (frame > 628) {
-                frame = 0;
-            }
+            frame = bgfx::frame();
         }
     }
 

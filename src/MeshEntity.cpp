@@ -9,9 +9,9 @@
 
 MeshEntity::MeshEntity(MeshContainer& mesh, Collider* collider,
                        const RigidBodyType bodyType, PhysicsCore& physicsCore,
-                       bgfx::VertexLayout& layout, Texture& texture,
+                       bgfx::VertexLayout& layout, uint64_t materialId,
                        glm::vec3 position, glm::vec3 rotation, glm::vec3 size)
-    : Entity(bodyType, physicsCore, layout, texture, position, rotation, size),
+    : Entity(bodyType, physicsCore, layout, materialId, position, rotation, size),
       collider(collider) {
     const bgfx::Memory* verticesMem = nullptr;
     const bgfx::Memory* indicesMem = nullptr;
@@ -94,7 +94,7 @@ void MeshEntity::UpdateMesh(PhysicsCore& physicsCore,
         bgfx::destroy(ibh);
     }
     vbh = bgfx::createDynamicVertexBuffer(verticesMem, layout);
-    ibh = bgfx::createIndexBuffer(indicesMem);
+    ibh = bgfx::createIndexBuffer(indicesMem, BGFX_BUFFER_INDEX32);
 
     // Update the physics body with the new mesh
     physicsCore.RemoveBody(bodyID);

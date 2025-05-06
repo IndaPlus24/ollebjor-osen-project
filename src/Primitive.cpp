@@ -5,20 +5,18 @@
 #include "PhysicsCore.hpp"
 #include "PrimitiveDefinitions.hpp"
 #include "Enums.hpp"
-#include "Texture.hpp"
 #include "bgfx/bgfx.h"
 #include "bx/bx.h"
 #include "bx/debug.h"
 #include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
 #include "utils.hpp"
-#include <cstddef>
 
 Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
                      PhysicsCore& physicsCore, bgfx::VertexLayout& layout,
-                     Texture& texture, glm::vec3 position, glm::vec3 rotation,
+                     uint64_t materialId, glm::vec3 position, glm::vec3 rotation,
                      glm::vec3 size)
-    : Entity(bodyType, physicsCore, layout, texture, position, rotation, size) {
+    : Entity(bodyType, physicsCore, layout, materialId, position, rotation, size) {
     const bgfx::Memory* verticesMem = nullptr;
     const bgfx::Memory* indicesMem = nullptr;
     GetPrimitiveTypeData(verticesMem, indicesMem, type);
@@ -26,10 +24,10 @@ Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
     vbh = bgfx::createDynamicVertexBuffer(verticesMem, layout);
     ibh = bgfx::createIndexBuffer(indicesMem);
     if (vbh.idx == bgfx::kInvalidHandle || ibh.idx == bgfx::kInvalidHandle) {
-        bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %x",
+        bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %x\n",
                         type, vbh.idx, ibh.idx);
     } else {
-        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d", type,
+        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d\n", type,
                         vbh.idx, ibh.idx);
     }
 
@@ -55,7 +53,7 @@ Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
             glm::vec4(normal, 1.0f);
         JPH::Vec3 joltNormal(rotatedNormal.x, rotatedNormal.y, rotatedNormal.z);
         bodyID = physicsCore.AddStaticPlane(joltPosition, joltNormal);
-        bx::debugPrintf("Static Plane created: Type: %d vbh: %d ibh: %d", type,
+        bx::debugPrintf("Static Plane created: Type: %d vbh: %d ibh: %d\n", type,
                         vbh.idx, ibh.idx);
 
     } break;
@@ -63,12 +61,12 @@ Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
         switch (type) {
         case PrimitiveType::Cube: {
             bodyID = physicsCore.AddDynamicBox(joltPosition, joltSize, 1.0f);
-            bx::debugPrintf("Dynamic Cube created: Type: %d vbh: %d ibh: %d",
+            bx::debugPrintf("Dynamic Cube created: Type: %d vbh: %d ibh: %d\n",
                             type, vbh.idx, ibh.idx);
         } break;
         case PrimitiveType::Sphere: {
             bodyID = physicsCore.AddDynamicSphere(size.x, joltPosition, 1.0f);
-            bx::debugPrintf("Dynamic Sphere created: Type: %d vbh: %d ibh: %d",
+            bx::debugPrintf("Dynamic Sphere created: Type: %d vbh: %d ibh: %d\n",
                             type, vbh.idx, ibh.idx);
         } break;
         }
@@ -78,7 +76,7 @@ Primitive::Primitive(PrimitiveType type, RigidBodyType bodyType,
 
 Primitive::Primitive(Primitive&& other) noexcept : Entity(std::move(other)) {
     type = other.type;
-    bx::debugPrintf("Primitive moved: Type: %d vbh: %d ibh: %d", type, vbh.idx,
+    bx::debugPrintf("Primitive moved: Type: %d vbh: %d ibh: %d\n", type, vbh.idx,
                     ibh.idx);
 }
 
@@ -86,14 +84,14 @@ Primitive& Primitive::operator=(Primitive&& other) noexcept {
     if (this != &other) {
         Entity::operator=(std::move(other));
         type = other.type;
-        bx::debugPrintf("Primitive moved: Type: %d vbh: %d ibh: %d", type,
+        bx::debugPrintf("Primitive moved: Type: %d vbh: %d ibh: %d\n", type,
                         vbh.idx, ibh.idx);
     }
     return *this;
 }
 
 Primitive::~Primitive() {
-    bx::debugPrintf("Primitive destroyed: Type: %d vbh: %d ibh: %d", type,
+    bx::debugPrintf("Primitive destroyed: Type: %d vbh: %d ibh: %d\n", type,
                     vbh.idx, ibh.idx);
 }
 
@@ -116,10 +114,10 @@ void Primitive::UpdateMesh(PhysicsCore& physicsCore,
     vbh = bgfx::createDynamicVertexBuffer(verticesMem, layout);
     ibh = bgfx::createIndexBuffer(indicesMem);
     if (vbh.idx == bgfx::kInvalidHandle || ibh.idx == bgfx::kInvalidHandle) {
-        bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %x",
+        bx::debugPrintf("Failed to create primitive: Type: %d vbh: %d ibh: %x\n",
                         type, vbh.idx, ibh.idx);
     } else {
-        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d", type,
+        bx::debugPrintf("Primitive created: Type: %d vbh: %d ibh: %d\n", type,
                         vbh.idx, ibh.idx);
     }
 
@@ -142,7 +140,7 @@ void Primitive::UpdateMesh(PhysicsCore& physicsCore,
             glm::vec4(normal, 1.0f);
         JPH::Vec3 joltNormal(rotatedNormal.x, rotatedNormal.y, rotatedNormal.z);
         bodyID = physicsCore.AddStaticPlane(joltPosition, joltNormal);
-        bx::debugPrintf("Static Plane created: Type: %d vbh: %d ibh: %d", type,
+        bx::debugPrintf("Static Plane created: Type: %d vbh: %d ibh: %d\n", type,
                         vbh.idx, ibh.idx);
 
     } break;
@@ -150,12 +148,12 @@ void Primitive::UpdateMesh(PhysicsCore& physicsCore,
         switch (type) {
         case PrimitiveType::Cube: {
             bodyID = physicsCore.AddDynamicBox(joltPosition, joltSize, 1.0f);
-            bx::debugPrintf("Dynamic Cube created: Type: %d vbh: %d ibh: %d",
+            bx::debugPrintf("Dynamic Cube created: Type: %d vbh: %d ibh: %d\n",
                             type, vbh.idx, ibh.idx);
         } break;
         case PrimitiveType::Sphere: {
             bodyID = physicsCore.AddDynamicSphere(size.x, joltPosition, 1.0f);
-            bx::debugPrintf("Dynamic Sphere created: Type: %d vbh: %d ibh: %d",
+            bx::debugPrintf("Dynamic Sphere created: Type: %d vbh: %d ibh: %d\n",
                             type, vbh.idx, ibh.idx);
         } break;
         }

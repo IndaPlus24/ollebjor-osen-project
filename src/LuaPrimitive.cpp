@@ -1,6 +1,5 @@
-#include "LuaExporter.hpp"
-
 #include "LuaPrimitive.hpp"
+#include "LuaType.hpp"
 #include "LuaVector3.hpp"
 
 #include "Primitive.hpp"
@@ -13,13 +12,13 @@
 LuaPrimitive::LuaPrimitive(PrimitiveType type) {
     std::cout << "LuaPrimitive constructor called for primitive" << std::endl;
     this->m_ref =
-        SceneManager::GetInstance().AddEntity(type, RigidBodyType::Dynamic, 0);
+        SceneManager::Get().AddEntity(type, RigidBodyType::Dynamic, 0);
     std::cout << "LuaPrimitive created" << std::endl;
 }
 
 LuaPrimitive::LuaPrimitive(PrimitiveType type, LuaVector3& position) {
-    this->m_ref = SceneManager::GetInstance().AddEntity(
-        type, RigidBodyType::Dynamic, 0, position.Get());
+    this->m_ref = SceneManager::Get().AddEntity(type, RigidBodyType::Dynamic, 0,
+                                                position.Get());
 }
 
 LuaPrimitive::~LuaPrimitive() {
@@ -39,7 +38,7 @@ PrimitiveType LuaPrimitive::GetType() {
     return p->GetType();
 }
 void LuaPrimitive::SetType(PrimitiveType type) {
-    SceneManager::GetInstance().UpdateEntity(m_ref.id, type);
+    SceneManager::Get().UpdateEntity(m_ref.id, type);
 }
 
 int PrimitiveTypeToInt(PrimitiveType type) {
@@ -68,8 +67,7 @@ PrimitiveType IntToPrimitiveType(int type) {
 }
 
 int LuaPrimitive::luaGetType(lua_State* L) {
-    LuaPrimitive* self =
-        MetatableRegistry::instance().check_userdata<LuaPrimitive>(L, 1);
+    LuaPrimitive* self = LuaUtil::Get().CheckUserdata<LuaPrimitive>(L, 1);
     PrimitiveType type = self->GetType();
     int typeInt = PrimitiveTypeToInt(type);
     lua_pushinteger(L, typeInt);
@@ -77,8 +75,7 @@ int LuaPrimitive::luaGetType(lua_State* L) {
 }
 
 int LuaPrimitive::luaSetType(lua_State* L) {
-    LuaPrimitive* self =
-        MetatableRegistry::instance().check_userdata<LuaPrimitive>(L, 1);
+    LuaPrimitive* self = LuaUtil::Get().CheckUserdata<LuaPrimitive>(L, 1);
     int typeInt = luaL_checkinteger(L, 2);
     PrimitiveType type = IntToPrimitiveType(typeInt);
     self->SetType(type);
@@ -87,19 +84,16 @@ int LuaPrimitive::luaSetType(lua_State* L) {
 
 // Returns a copy of the position vector
 int LuaPrimitive::luaGetPosition(lua_State* L) {
-    LuaPrimitive* self =
-        MetatableRegistry::instance().check_userdata<LuaPrimitive>(L, 1);
+    LuaPrimitive* self = LuaUtil::Get().CheckUserdata<LuaPrimitive>(L, 1);
     LuaVector3 pos = self->GetPosition();
-    MetatableRegistry::instance().create_and_push<LuaVector3>(
-        L, pos.GetX(), pos.GetY(), pos.GetZ());
+    LuaUtil::Get().CreateAndPush<LuaVector3>(L, pos.GetX(), pos.GetY(),
+                                             pos.GetZ());
     return 1;
 }
 
 int LuaPrimitive::luaSetPosition(lua_State* L) {
-    LuaPrimitive* self =
-        MetatableRegistry::instance().check_userdata<LuaPrimitive>(L, 1);
-    LuaVector3* position =
-        MetatableRegistry::instance().check_userdata<LuaVector3>(L, 2);
+    LuaPrimitive* self = LuaUtil::Get().CheckUserdata<LuaPrimitive>(L, 1);
+    LuaVector3* position = LuaUtil::Get().CheckUserdata<LuaVector3>(L, 2);
 
     if (position) {
         self->SetPosition(*position);
@@ -111,9 +105,8 @@ int LuaPrimitive::luaSetPosition(lua_State* L) {
 }
 
 int LuaPrimitive::luaDestroy(lua_State* L) {
-    LuaPrimitive* self =
-        MetatableRegistry::instance().check_userdata<LuaPrimitive>(L, 1);
-    SceneManager::GetInstance().RemoveEntity(self->m_ref.id);
+    LuaPrimitive* self = LuaUtil::Get().CheckUserdata<LuaPrimitive>(L, 1);
+    SceneManager::Get().RemoveEntity(self->m_ref.id);
     return 0;
 }
 
@@ -122,10 +115,9 @@ int LuaPrimitive::luaNew(lua_State* L) {
     if (lua_isnumber(L, 1)) {
         int typeInt = luaL_checkinteger(L, 1);
         PrimitiveType type = IntToPrimitiveType(typeInt);
-        MetatableRegistry::instance().create_and_push<LuaPrimitive>(L, type);
+        LuaUtil::Get().CreateAndPush<LuaPrimitive>(L, type);
         return 1;
     }
-    MetatableRegistry::instance().create_and_push<LuaPrimitive>(
-        L, PrimitiveType::Cube);
+    LuaUtil::Get().CreateAndPush<LuaPrimitive>(L, PrimitiveType::Cube);
     return 1;
 }
