@@ -5,6 +5,7 @@
 #include "Enums.hpp"
 #include "SDL_keyboard.h"
 #include "SDL_video.h"
+#include "bx/debug.h"
 #include <cstddef>
 #include <iostream>
 
@@ -73,8 +74,13 @@ void Core::EventLoop() {
             quit = true;
             break;
         case SDL_EventType::SDL_WINDOWEVENT:
-            if (event.window.event == SDL_WINDOWEVENT_MINIMIZED) {
-                EventDispatcher::Get().DispatchEvent("WindowMinimized");
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                renderer->RecreateFrameBuffers(event.window.data1,
+                                               event.window.data2);
+            } else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED) {
+                bx::debugPrintf("Window minimized\n");
+                WindowMinimized();
+                bx::debugPrintf("Minimized event sent\n");
             }
             break;
         default:
@@ -95,9 +101,7 @@ void Core::CallKeyboardEvent() {
     }
     for (int i = 0; i < SDL_NUM_SCANCODES; ++i) {
         if (keyboardState[i] == 1 && lastKeyboardState[i] == 0) {
-            // keyEventCallback((Keycode)i, KeyState::Pressed); LEGACY CODE
-            EventDispatcher::Get().DispatchEvent(
-                "KeyDown", KeyEvent{(Keycode)i, KeyState::Pressed});
+            keyEventCallback((Keycode)i, KeyState::Pressed);
         }
     }
 }

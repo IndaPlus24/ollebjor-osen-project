@@ -8,7 +8,7 @@
 class LuaWindowService {
 
   public:
-    LuaWindowService(lua_State* L) { this->Minimized = new LuaSignal(); };
+    LuaWindowService() { this->Minimized = new LuaSignal(); };
     ~LuaWindowService() = default;
 
     static int luaSetTitle(lua_State* L) {

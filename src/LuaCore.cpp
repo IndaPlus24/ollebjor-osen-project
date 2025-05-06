@@ -5,9 +5,10 @@
 // #include "LuaExporter.hpp"
 // #include "LuaVector3.hpp"
 // #include "LuaPrimitive.hpp"
-#include "LuaWindowService.hpp"
 #include "LuaSignal.hpp"
 #include "LuaType.hpp"
+#include "LuaWindowService.hpp"
+#include "lua.h"
 
 namespace {
 int luaGetVersion(lua_State* L) {
@@ -69,6 +70,12 @@ std::string LuaCore::GetGlobal(std::string name) const {
     lua_pop(L, 1);
     return global;
 }
+// Sends a LuaSignal without any arguments to the Lua function
+void LuaCore::FireSignal(LuaSignal* signal) const {
+    LuaUtil::Get().WrapAndPush(L, signal);
+    LuaSignal::luaSend(L);
+    lua_pop(L, 1); // Pop the signal from the stack
+};
 
 void LuaCore::Init() {
     luaL_openlibs(L);
@@ -80,11 +87,10 @@ void LuaCore::Init() {
         .AddMethod("OnReceive", LuaSignal::luaOnReceive)
         .MakeClass(LuaSignal::luaNew);
 
-    LuaWindowService* windowService = new LuaWindowService(L);
     LuaType<LuaWindowService> window(L, "Window", true, false);
     window.AddMethod("SetTitle", LuaWindowService::luaSetTitle)
         .AddProperty("Minimized", LuaWindowService::luaMinimized, NO_SETTER)
-        .MakeSingleton(windowService);
+        .MakeSingleton(&WindowService);
 
     // LuaExporter<LuaSignal> signal(L, "Signal");
     // signal.Constructor(LuaSignal::luaNew, 0)
@@ -147,7 +153,7 @@ void LuaCore::pcall(int nargs, int nresults, int errfunc) const {
 //     return 0;
 // }
 
-LuaCore::LuaCore() { L = luaL_newstate(); }
+LuaCore::LuaCore() : L(luaL_newstate()), WindowService() {}
 LuaCore::~LuaCore() {
     if (L) {
         lua_close(L);

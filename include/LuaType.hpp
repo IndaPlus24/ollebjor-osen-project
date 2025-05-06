@@ -12,7 +12,9 @@
 
 template <typename T> class LuaType {
   public:
-    LuaType(lua_State* L, std::string name, bool is_reference_type = false, bool auto_gc = true) : L(L) {
+    LuaType(lua_State* L, std::string name, bool is_reference_type = false,
+            bool auto_gc = true)
+        : L(L) {
         LuaUtil::Get().NewType<T>(L, name, is_reference_type, auto_gc);
         this->metatable_name = LuaUtil::Get().GetTypeName<T>();
     };
@@ -68,10 +70,8 @@ template <typename T> class LuaType {
     void MakeSingleton(T* instance) {
         allow_getters();
         allow_setters();
-        std::cout << "allowing complete!" << std::endl;
         LuaUtil::Get().WrapAndPush(
             L, instance); // Wrap the instance and push it to the stack
-        std::cout << "pushed!" << std::endl;
         lua_setglobal(L, metatable_name);
     };
 
@@ -123,7 +123,9 @@ template <typename T> class LuaType {
             // We have the getter function on the top of the stack, we need to
             // call it with self as the first argument and no other arguments
             auto getter = lua_tocfunction(L, -1);
-            lua_pop(L, 3); // Pop the function, __get and the metatable off the stack
+            lua_pop(
+                L,
+                3); // Pop the function, __get and the metatable off the stack
             lua_pushcfunction(L, getter);
             lua_insert(L, -2); // Move the getter one step down
             if (lua_pcall(L, 1, 1, 0) != LUA_OK) {
@@ -152,7 +154,9 @@ template <typename T> class LuaType {
             }
 
             auto setter = lua_tocfunction(L, -1);
-            lua_pop(L, 3); // Pop the function, __set and the metatable off the stack
+            lua_pop(
+                L,
+                3); // Pop the function, __set and the metatable off the stack
             lua_pushcfunction(L, setter);
             lua_insert(L, -2); // Move the setter one step down
             if (lua_pcall(L, 1, 0, 0) != LUA_OK) {

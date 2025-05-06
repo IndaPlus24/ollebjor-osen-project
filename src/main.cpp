@@ -1,3 +1,4 @@
+#include <iostream>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <Jolt/Jolt.h>
 #include <bgfx/bgfx.h>
@@ -50,6 +51,8 @@ int main(int argc, char** argv) {
 
     Core core = Core();
     core.Init();
+    core.SetWindowMinimizedCallback(
+        [&]() { lua.FireSignal(lua.WindowService.Minimized); });
 
     Renderer renderer = Renderer("Hello World", 1280, 720);
     renderer.Init();
@@ -105,6 +108,7 @@ int main(int argc, char** argv) {
             core.SetKeyEventCallback(std::bind(KeyEvent, std::placeholders::_1,
                                                std::placeholders::_2,
                                                scene.GetEntities()));
+
             lua.Run("scripts/test.lua");
         }
 
@@ -142,8 +146,10 @@ int main(int argc, char** argv) {
 
             // Update the camera position to follow a cricle around {0, 0, 0}
             auto cam = scene.GetActiveCamera();
-            cam.data->SetPosition(glm::vec3(10.0f * cos(frame * 0.01f), 5.0f,
-                                            10.0f * sin(frame * 0.01f)));
+            cam.data->SetPosition(glm::vec3(10.0f * cos(frame * 0.003f),
+                                            3.3f + 2.0f * sin(frame * 0.008f),
+                                            10.0f * sin(frame * 0.003f)));
+            cam.data->SetProjection();
 
             cam.data->SetProjection();
             cam.data->SetViewTransform(0);

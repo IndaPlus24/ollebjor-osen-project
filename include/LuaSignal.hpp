@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <iostream>
 #include <lua.hpp>
 #include "LuaDebug.hpp"
@@ -6,13 +7,12 @@
 #include <set>
 
 class LuaSignal {
-
   public:
     LuaSignal() = default;
     static int luaOnReceive(lua_State* L) {
         LuaSignal* self = LuaUtil::Get().CheckUserdata<LuaSignal>(L, 1);
-
         luaL_checktype(L, 2, LUA_TFUNCTION);
+
         // Store the function in the registry (it pops it from the stack)
         size_t ref = luaL_ref(L, LUA_REGISTRYINDEX);
 

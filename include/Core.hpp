@@ -23,8 +23,9 @@ private:
     std::function<void(int, int)> mouseWheelEventCallback;
     std::function<void(double)> physicsStepCallback;
     std::function<void(double)> updateCallback;
-    
-public:
+    std::function<void()> WindowMinimized;
+
+  public:
     Core();
     Core(Core &&) = default;
     Core(const Core &) = default;
@@ -44,6 +45,9 @@ public:
     void SetMouseWheelEventCallback(std::function<void(int, int)> callback);
     void SetPhysicsStepCallback(std::function<void(double)> callback);
     void SetUpdateCallback(std::function<void(double)> callback);
+    void SetWindowMinimizedCallback(std::function<void()> callback) {
+        WindowMinimized = callback;
+    }
 
     void EventLoop();
     double GetDeltaTime();
