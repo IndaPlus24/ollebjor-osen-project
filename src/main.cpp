@@ -56,11 +56,12 @@ int main(int argc, char** argv) {
 
     Renderer renderer = Renderer("Hello World", 1280, 720);
     renderer.Init();
+    core.SetRenderer(&renderer);
 
     SceneManager::Initialize(physicsCore, renderer.GetVertexLayout(), renderer);
 
     uint32_t frame = 0;
-    renderer.SetViewClear();
+    bgfx::frame();
     {
 
         {
@@ -69,8 +70,10 @@ int main(int argc, char** argv) {
                           glm::vec3(0.0f, 1.0f, 0.0f), 60.0f, 1.0f, 100.0f);
             auto cam = scene.AddCamera(std::move(camera));
             scene.SetActiveCamera(cam.id);
-            auto textureRef = scene.AddTexture("assets/amongus.jpg",
+            auto textureRef = scene.AddTexture("assets/wood_planks_diff_2k.jpg",
                                                bgfx::TextureFormat::RGB8);
+            auto texture2Ref = scene.AddTexture(
+                "assets/wood_planks_nor_dx_2k.jpg", bgfx::TextureFormat::RGBA8);
             auto meshRef =
                 scene.AddMeshContainer(MeshContainer("assets/Suzane.obj"));
             auto mesh2Ref =
@@ -118,8 +121,6 @@ int main(int argc, char** argv) {
             core.EventLoop();
             core.CallKeyboardEvent();
 
-            renderer.UpdateWindowSize();
-
             accumulator += core.GetDeltaTime();
 
             while (accumulator >= FIXED_TIMESTEP) {
@@ -151,23 +152,31 @@ int main(int argc, char** argv) {
                                             10.0f * sin(frame * 0.003f)));
             cam.data->SetProjection();
 
-            cam.data->SetProjection();
-            cam.data->SetViewTransform(0);
+            auto albedo = scene.GetTexture(0);
+            auto normal = scene.GetTexture(1);
 
             for (auto& entity : scene.GetEntities()) {
+                // Start a rendering pass for every entity
+                renderer.BeginPass(0);
+                cam.data->SetViewTransform(0);
                 entity.second->SetVertexBuffer();
                 entity.second->SetIndexBuffer();
                 entity.second->ApplyTransform();
-                renderer.SetTextureUniform(entity.second->SetTexture());
-                bgfx::submit(0, renderer.GetProgramHandle());
+                renderer.SetTextureUniforms(albedo.data->GetTextureHandle(),
+                                            normal.data->GetTextureHandle());
+                renderer.EndPass();
             }
 
+            // Start the lighting pass
+            renderer.BeginPass(1);
+            renderer.EndPass();
+
+            // Start the combine pass
+            renderer.BeginPass(2);
+            renderer.EndPass();
+
             // Advance to next frame. Process submitted rendering primitives.
-            bgfx::frame();
-            frame++;
-            if (frame > 628) {
-                frame = 0;
-            }
+            frame = bgfx::frame();
         }
     }
 

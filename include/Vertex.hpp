@@ -7,10 +7,11 @@
 struct Vertex {
     glm::vec3 pos;
     glm::vec3 normal;
+    glm::vec3 tangent;
     glm::vec2 texCoord;
 
     inline bool operator==(const Vertex& other) const {
         return pos == other.pos && normal == other.normal &&
-               texCoord == other.texCoord;
+               texCoord == other.texCoord && tangent == other.tangent;
     }
 };

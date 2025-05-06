@@ -52,18 +52,22 @@ Entity& Entity::operator=(Entity&& other) noexcept {
 }
 
 Entity::~Entity() {
-    bool isInvalidVBH = vbh.idx == bgfx::kInvalidHandle;
-    bool isInvalidIBH = ibh.idx == bgfx::kInvalidHandle;
-    bool isInvalidBodyID = bodyID == JPH::BodyID();
-    if (!isInvalidVBH) {
-        bgfx::destroy(vbh);
-    }
-    if (!isInvalidIBH) {
-        bgfx::destroy(ibh);
-    }
-    if (!isInvalidBodyID) {
+    Delete();
+}
+
+void Entity::Delete() {
+    if (bodyInterface) {
         bodyInterface->RemoveBody(bodyID);
         bodyInterface->DestroyBody(bodyID);
+        bodyInterface = nullptr;
+    }
+    if (vbh.idx != bgfx::kInvalidHandle) {
+        bgfx::destroy(vbh);
+        vbh.idx = bgfx::kInvalidHandle;
+    }
+    if (ibh.idx != bgfx::kInvalidHandle) {
+        bgfx::destroy(ibh);
+        ibh.idx = bgfx::kInvalidHandle;
     }
 }
 

@@ -27,6 +27,7 @@ class Entity {
 
     void QuaternionRotate(glm::mat4& result, const glm::vec3& axis,
                           float angle);
+    void Delete();
 
   public:
     Entity(RigidBodyType bodyType, PhysicsCore& physicsCore,
@@ -38,7 +39,7 @@ class Entity {
     Entity& operator=(Entity&& other) noexcept;
     Entity(const Entity&) = delete;
     Entity& operator=(const Entity&) = delete;
-    ~Entity();
+    virtual ~Entity();
 
     inline void SetVertexBuffer() { bgfx::setVertexBuffer(0, vbh); }
     inline void SetIndexBuffer() { bgfx::setIndexBuffer(ibh); }
