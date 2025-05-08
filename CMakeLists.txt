@@ -14,6 +14,18 @@ set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 set(SHADER_DIR ${CMAKE_SOURCE_DIR}/shaders)
 set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
 
+if(MSVC)
+    foreach(flag_var
+    CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_DEBUG
+    CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_DEBUG)
+        string (REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+    endforeach()
+endif()
+if(MSVC)
+    add_compile_options("/Zc:__cplusplus" "/permissive-" "/Zc:preprocessor" "/EHsc")
+    add_compile_definitions("_CRT_SECURE_NO_WARNINGS")
+endif()
+
 # Fetch SDL
 FetchContent_Declare(
   SDL
@@ -53,26 +65,10 @@ FetchContent_MakeAvailable(glm)
 # Fetch Lua
 FetchContent_Declare(
   lua
-  GIT_REPOSITORY https://github.com/lua/lua.git
-  GIT_TAG v5.4.7
+  GIT_REPOSITORY https://github.com/walterschell/Lua.git
+  GIT_TAG v5.4.5
 )
-
-# Special handling for Lua as it doesn't have CMake support by default
-FetchContent_GetProperties(lua)
-if(NOT lua_POPULATED)
-    FetchContent_MakeAvailable(lua)
-  
-  # Create a custom target for Lua
-  file(GLOB LUA_SOURCES ${lua_SOURCE_DIR}/*.c)
-  list(REMOVE_ITEM LUA_SOURCES "${lua_SOURCE_DIR}/lua.c" "${lua_SOURCE_DIR}/luac.c")
-  
-  add_library(lua_static STATIC ${LUA_SOURCES})
-  target_include_directories(lua_static PUBLIC ${lua_SOURCE_DIR})
-  
-  if(UNIX AND NOT APPLE)
-    target_link_libraries(lua_static PRIVATE m dl)
-  endif()
-endif()
+FetchContent_MakeAvailable(lua)
 
 # Fetch sol2
 FetchContent_Declare(
@@ -137,7 +133,6 @@ file(GLOB_RECURSE SRC_FILES ${SRC_DIR}/*.cpp)
 # Platform-specific settings
 if(WIN32)
     add_executable(Loonar ${SRC_FILES} ${SHADER_FILES_VS} ${SHADER_FILES_FS})
-    target_compile_definitions(Loonar PRIVATE "_CRT_SECURE_NO_WARNINGS")
 elseif(APPLE)
     add_executable(Loonar ${SRC_FILES} ${SHADER_FILES_VS} ${SHADER_FILES_FS})
     find_library(COCOA_FRAMEWORK Cocoa)
