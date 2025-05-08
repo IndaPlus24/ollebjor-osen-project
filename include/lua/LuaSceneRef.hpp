@@ -1,20 +1,23 @@
 #pragma once
-#include "Entity.hpp"
 #include "SceneManager.hpp"
 #include <cstdint>
 
-template <typename T> class LuaSceneRef {
+class LuaSceneRef {
   public:
-    LuaSceneRef(SceneRef<T> sceneRef) : m_sceneRef(sceneRef) {}
-    ~LuaSceneRef() {}
-
-    uint64_t GetId() const { return m_sceneRef.id; }
-    T* Get() const { return m_sceneRef.data; }
-    void Destroy() {
-        SceneManager::Get().RemoveEntity(GetId());
-        m_sceneRef = SceneRef<T>();
+    template <typename T> LuaSceneRef(SceneRef<T> sceneRef) {
+        m_id = sceneRef.id;
+        m_data = sceneRef.data;
+    };
+    ~LuaSceneRef() = default;
+    uint64_t GetId() const { return m_id; }
+    template <typename T> T* Get() { return static_cast<T*>(m_data); }
+    template <typename T> void Destroy() {
+        SceneManager::Get().RemoveSceneRef<T>(m_id);
+        m_data = nullptr;
+        m_id = -1;
     }
 
   private:
-    SceneRef<T> m_sceneRef;
+    uint64_t m_id;
+    void* m_data;
 };

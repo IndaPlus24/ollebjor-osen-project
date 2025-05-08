@@ -4,7 +4,7 @@ local material = Material.new("assets/test/Brick_Wall_014_COLOR.jpg", "assets/te
 -- Test constructors
 local p = Primitive.new(PrimitiveType.Cube)
 local p2 = Primitive.new(PrimitiveType.Sphere, material)
-local p3 = Primitive.new(PrimitiveType.Cube, material, Vector3.new(10, 10, 10))
+local p3 = Primitive.new(PrimitiveType.Cube, material, RigidBodyType.Static)
 
 -- Test properties
 local pos = Vector3.new(1, 2, 3)

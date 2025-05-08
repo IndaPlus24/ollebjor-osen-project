@@ -112,6 +112,22 @@ class SceneManager {
               const float farPlane = 100.0f);
     SceneRef<Camera> GetCamera(const uint64_t id);
 
+    template <typename T> void RemoveSceneRef(const uint64_t id) {
+        if constexpr (std::is_same_v<T, Entity>) {
+            RemoveEntity(id);
+        } else if constexpr (std::is_same_v<T, Texture>) {
+            RemoveTexture(id);
+        } else if constexpr (std::is_same_v<T, MeshContainer>) {
+            RemoveMeshContainer(id);
+        } else if constexpr (std::is_same_v<T, Collider>) {
+            RemoveCollider(id);
+        } else if constexpr (std::is_same_v<T, Material>) {
+            RemoveMaterial(id);
+        } else if constexpr (std::is_same_v<T, Camera>) {
+            RemoveCamera(id);
+        }
+    }
+
     void RemoveCamera(const uint64_t id);
     SceneRef<Camera> GetActiveCamera();
 

@@ -10,15 +10,19 @@
 #include <sol/types.hpp>
 #include <string>
 
+#include "Entity.hpp"
 #include "bx/debug.h"
 #include "glm/fwd.hpp"
-#include "Entity.hpp"
 #include "Enums.hpp"
 
+#include "lua/LuaEvent.hpp"
 #include "lua/LuaPrimitive.hpp"
 #include "lua/LuaVector3.hpp"
 #include "lua/LuaSceneRef.hpp"
 #include "lua/LuaMaterial.hpp"
+#include "lua/LuaCamera.hpp"
+#include "lua/LuaCollider.hpp"
+#include "lua/LuaMeshContainer.hpp"
 #include "lua/singletons/LuaWindow.hpp"
 
 namespace {
@@ -118,26 +122,57 @@ void LuaCore::Init() {
         "Material",
         sol::constructors<Material(const std::string&, const std::string&)>());
 
-    lua.new_usertype<LuaSceneRef<Entity>>(
-        "EntitySceneRef", "Id", sol::readonly(&LuaSceneRef<Entity>::GetId),
-        "Destroy", &LuaSceneRef<Entity>::Destroy);
+    lua.new_usertype<LuaCollider>(
+        "Collider",
+        sol::constructors<LuaCollider(), LuaCollider(ColliderType),
+                          LuaCollider(ColliderType, glm::vec3),
+                          LuaCollider(ColliderType, glm::vec3, glm::vec3),
+                          LuaCollider(ColliderType, glm::vec3, glm::vec3,
+                                      glm::vec3)>());
+    lua.new_usertype<LuaMeshContainer>(
+        "MeshContainer", sol::constructors<LuaMeshContainer(std::string)>());
+
+    lua.new_usertype<LuaSceneRef>("SceneRef", sol::no_constructor, "Id",
+                                  sol::readonly(&LuaSceneRef::GetId));
 
     lua.new_enum("PrimitiveType", "Cube", PrimitiveType::Cube, "Sphere",
                  PrimitiveType::Sphere, "Plane", PrimitiveType::Plane);
 
+    lua.new_enum("RigidBodyType", "Static", RigidBodyType::Static, "Dynamic",
+                 RigidBodyType::Dynamic, "Kinematic", RigidBodyType::Kinematic);
+
+    lua.new_enum("ColliderType", "Box", ColliderType::Box, "Sphere",
+                 ColliderType::Sphere, "Capsule", ColliderType::Capsule,
+                 "Plane", ColliderType::Plane, "Mesh", ColliderType::Mesh);
+
+    lua.new_usertype<LuaCamera>("Camera",
+                                sol::constructors<LuaCamera(), LuaCamera()>(),
+                                "SetCurrent", &LuaCamera::SetCurrent);
+
     lua.new_usertype<LuaPrimitive>(
         "Primitive",
-        sol::constructors<
-            LuaPrimitive(PrimitiveType), LuaPrimitive(PrimitiveType, glm::vec3),
-            LuaPrimitive(PrimitiveType, LuaMaterial),
-            LuaPrimitive(PrimitiveType, LuaMaterial, glm::vec3)>(),
+        sol::constructors<LuaPrimitive(), LuaPrimitive(PrimitiveType),
+                          LuaPrimitive(PrimitiveType, RigidBodyType),
+                          LuaPrimitive(PrimitiveType, LuaMaterial&),
+                          LuaPrimitive(PrimitiveType, LuaMaterial&,
+                                       RigidBodyType)>(),
         "Position",
         sol::property(&LuaPrimitive::GetPosition, &LuaPrimitive::SetPosition),
         "Type", sol::property(&LuaPrimitive::GetType, &LuaPrimitive::SetType),
-        sol::base_classes, sol::bases<LuaSceneRef<Entity>>());
+        "RigidBodyType",
+        sol::property(&LuaPrimitive::GetRigidBodyType,
+                      &LuaPrimitive::SetRigidBodyType),
+        "Destroy", &LuaSceneRef::Destroy<Entity>, sol::base_classes,
+        sol::bases<LuaSceneRef>());
 
     lua.new_usertype<LuaWindow>("Window", "SetTitle", &LuaWindow::SetTitle);
     lua["Window"] = &LuaWindow::Get();
+
+    lua.new_usertype<LuaConnection>("Connection", "Disconnect",
+                                    &LuaConnection::Disconnect);
+    lua.new_usertype<LuaEvent>("Event", sol::constructors<LuaEvent()>(),
+                               "Connect", &LuaEvent::Connect, "Fire",
+                               &LuaEvent::Fire);
 }
 
 LuaCore::LuaCore() : m_solState() {}

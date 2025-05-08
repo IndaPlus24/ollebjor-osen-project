@@ -3,6 +3,7 @@
 #include <bgfx/bgfx.h>
 #include <utility>
 #include <vector>
+#include <filesystem>
 #include "Entity.hpp"
 #include "MeshEntity.hpp"
 #include "Primitive.hpp"
@@ -251,6 +252,11 @@ SceneRef<Texture> SceneManager::AddTexture(Texture texture) {
 
 SceneRef<Texture> SceneManager::AddTexture(const std::string& filePath,
                                            uint32_t flags) {
+    if (!std::filesystem::exists(filePath)) {
+        throw std::invalid_argument("Invalid diffuse texture path: " +
+                                    filePath);
+    }
+
     // Check if the texture path already exists in the map
     auto it = loadedURIs.find(filePath);
     if (it != loadedURIs.end()) {
@@ -397,6 +403,9 @@ SceneManager::AddMeshContainer(MeshContainer meshContainer) {
 
 SceneRef<MeshContainer>
 SceneManager::AddMeshContainer(const std::string& path) {
+    if (!std::filesystem::exists(path)) {
+        throw std::invalid_argument("Invalid mesh container path: " + path);
+    }
     // Check if the mesh container path already exists in the map
     auto it = loadedURIs.find(path);
     if (it != loadedURIs.end()) {

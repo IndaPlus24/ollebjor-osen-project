@@ -84,6 +84,9 @@ class Entity {
         this->size = size;
         transform = glm::scale(transform, size);
     }
+    inline void SetBodyType(RigidBodyType bodyType) {
+        this->bodyType = bodyType;
+    }
 
     inline JPH::BodyID GetBodyID() const { return bodyID; }
     inline RigidBodyType GetBodyType() const { return bodyType; }
