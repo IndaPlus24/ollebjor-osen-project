@@ -1,7 +1,6 @@
 #include "LuaCore.hpp"
 
 #include <filesystem>
-#include <lua.hpp>
 #include <sol/property.hpp>
 #include <sol/raii.hpp>
 #include <sol/sol.hpp>
@@ -20,6 +19,7 @@
 #include "lua/LuaVector3.hpp"
 #include "lua/LuaSceneRef.hpp"
 #include "lua/LuaMaterial.hpp"
+#include "lua/singletons/LuaWindow.hpp"
 
 namespace {
 int luaPrintOverride(lua_State* L) {
@@ -89,7 +89,6 @@ void LuaCore::Init() {
     sol::state& lua = m_solState;
 
     bx::debugPrintf("Opening default libraries\n");
-
     lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::string,
                        sol::lib::math, sol::lib::table, sol::lib::debug);
 
@@ -136,6 +135,9 @@ void LuaCore::Init() {
         sol::property(&LuaPrimitive::GetPosition, &LuaPrimitive::SetPosition),
         "Type", sol::property(&LuaPrimitive::GetType, &LuaPrimitive::SetType),
         sol::base_classes, sol::bases<LuaSceneRef<Entity>>());
+
+    lua.new_usertype<LuaWindow>("Window", "SetTitle", &LuaWindow::SetTitle);
+    lua["Window"] = &LuaWindow::Get();
 }
 
 LuaCore::LuaCore() : m_solState() {}
