@@ -1,7 +1,6 @@
 #pragma once
 #include <lua.hpp>
 #include <string>
-#include "LuaWindowService.hpp"
 #include <sol/sol.hpp>
 #include <filesystem>
 

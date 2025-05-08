@@ -1,6 +1,5 @@
 #include "Core.hpp"
 
-#include "EventDispatcher.hpp"
 #include <SDL2/SDL.h>
 #include "Enums.hpp"
 #include "SDL_keyboard.h"
@@ -101,9 +100,7 @@ void Core::CallKeyboardEvent() {
     }
     for (int i = 0; i < SDL_NUM_SCANCODES; ++i) {
         if (keyboardState[i] == 1 && lastKeyboardState[i] == 0) {
-            // keyEventCallback((Keycode)i, KeyState::Pressed); LEGACY CODE
-            EventDispatcher::Get().DispatchEvent(
-                "KeyDown", KeyEvent{(Keycode)i, KeyState::Pressed});
+            keyEventCallback((Keycode)i, KeyState::Pressed);
         }
     }
 }
