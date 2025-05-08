@@ -5,8 +5,9 @@
 #include "bx/debug.h"
 #include <functional>
 #include <glm/glm.hpp>
-#include "Enums.hpp"
+#include <filesystem>
 
+#include "Enums.hpp"
 #include "Entity.hpp"
 #include "Core.hpp"
 #include "Renderer.hpp"
@@ -84,10 +85,25 @@ int main(int argc, char** argv) {
 
             scene.AddScene("assets/test/loonar-test-scene.gltf");
 
-            lua.Run("scripts/test.lua");
             core.SetKeyEventCallback(std::bind(KeyEvent, std::placeholders::_1,
                                                std::placeholders::_2,
                                                scene.GetEntities()));
+        }
+
+        // Run lua Scripts
+        for (int i = 0; i < argc; i++) {
+
+            if (std::filesystem::is_directory(argv[i])) {
+                for (const auto& entry :
+                     std::filesystem::directory_iterator(argv[i])) {
+                    if (entry.path().extension() == ".lua") {
+                        lua.Run(entry.path().string());
+                    }
+                }
+            } else if (std::filesystem::is_regular_file(argv[i]) &&
+                       std::filesystem::path(argv[i]).extension() == ".lua") {
+                lua.Run(argv[i]);
+            }
         }
 
         auto& scene = SceneManager::Get();
@@ -104,8 +120,8 @@ int main(int argc, char** argv) {
                     if (entity.second->GetBodyType() == RigidBodyType::Static) {
                         continue;
                     }
-                    // Update the position of the primitive based on the physics
-                    // simulation
+                    // Update the position of the primitive based on the
+                    // physics simulation
                     auto transform =
                         physicsCore.GetBodyInterface().GetWorldTransform(
                             entity.second->GetBodyID());
@@ -116,11 +132,12 @@ int main(int argc, char** argv) {
             }
             core.CallUpdate(core.GetDeltaTime());
 
-            // This dummy draw call is here to make sure that view 0 is cleared
-            // if no other draw calls are submitted to view 0.
+            // This dummy draw call is here to make sure that view 0 is
+            // cleared if no other draw calls are submitted to view 0.
             bgfx::touch(0);
 
-            // Update the camera position to follow a cricle around {0, 0, 0}
+            // Update the camera position to follow a cricle around {0, 0,
+            // 0}
             auto cam = scene.GetActiveCamera();
             cam.data->SetPosition(glm::vec3(10.0f * cos(frame * 0.003f),
                                             4.5f + 2.0f * sin(frame * 0.008f),
@@ -151,7 +168,8 @@ int main(int argc, char** argv) {
             renderer.BeginPass(2);
             renderer.EndPass();
 
-            // Advance to next frame. Process submitted rendering primitives.
+            // Advance to next frame. Process submitted rendering
+            // primitives.
             frame = bgfx::frame();
         }
     }

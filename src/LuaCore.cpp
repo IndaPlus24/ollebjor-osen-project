@@ -1,10 +1,14 @@
-#include <lua.hpp>
-#include <iostream>
 #include "LuaCore.hpp"
+
+#include <lua.hpp>
+#include <sol/sol.hpp>
+#include <iostream>
+
+#include "LuaType.hpp"
 #include "LuaVector3.hpp"
 #include "LuaPrimitive.hpp"
 #include "LuaSignal.hpp"
-#include "LuaType.hpp"
+#include "LuaMaterial.hpp"
 #include "LuaWindowService.hpp"
 
 namespace {
@@ -113,6 +117,11 @@ void LuaCore::Init() {
         .AddMethod("GetType", LuaPrimitive::luaGetType)
         .AddMethod("Destroy", LuaPrimitive::luaDestroy)
         .MakeClass(LuaPrimitive::luaNew);
+
+    sol::state_view lua(L);
+    lua.new_usertype<LuaMaterial>(
+        "Material",
+        sol::constructors<Material(const std::string&, const std::string&)>());
 }
 
 void LuaCore::pcall(int nargs, int nresults, int errfunc) const {

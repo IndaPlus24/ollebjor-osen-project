@@ -10,15 +10,13 @@
 #include <glm/glm.hpp>
 
 LuaPrimitive::LuaPrimitive(PrimitiveType type) {
-    std::cout << "LuaPrimitive constructor called for primitive" << std::endl;
     this->m_ref =
         SceneManager::Get().AddEntity(type, RigidBodyType::Dynamic, 0);
-    std::cout << "LuaPrimitive created" << std::endl;
 }
 
-LuaPrimitive::LuaPrimitive(PrimitiveType type, LuaVector3& position) {
-    this->m_ref = SceneManager::Get().AddEntity(type, RigidBodyType::Dynamic, 0,
-                                                position.Get());
+LuaPrimitive::LuaPrimitive(PrimitiveType type, LuaMaterial* material) {
+    this->m_ref = SceneManager::Get().AddEntity(type, RigidBodyType::Dynamic,
+                                                material->GetID());
 }
 
 LuaPrimitive::~LuaPrimitive() {
@@ -112,12 +110,16 @@ int LuaPrimitive::luaDestroy(lua_State* L) {
 
 int LuaPrimitive::luaNew(lua_State* L) {
     // Get possible argument that is an int
+    int type = 0;
     if (lua_isnumber(L, 1)) {
-        int typeInt = luaL_checkinteger(L, 1);
-        PrimitiveType type = IntToPrimitiveType(typeInt);
-        LuaUtil::Get().CreateAndPush<LuaPrimitive>(L, type);
-        return 1;
+        type = luaL_checkinteger(L, 1);
+        std::cout << "LuaPrimitive type: " << type << std::endl;
     }
-    LuaUtil::Get().CreateAndPush<LuaPrimitive>(L, PrimitiveType::Cube);
+    // LuaMaterial* material = LuaUtil::Get().CheckUserdata<LuaMaterial>(L, 2);
+    // if (material) {
+    //     LuaUtil::Get().CreateAndPush<LuaPrimitive>(L, IntToPrimitiveType(type), material);
+    //     return 1;
+    // }
+    LuaUtil::Get().CreateAndPush<LuaPrimitive>(L, IntToPrimitiveType(type));
     return 1;
 }

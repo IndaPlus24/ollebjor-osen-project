@@ -55,7 +55,11 @@ print("Cross product: ", cross)
 print("u: ", u.X, u.Y, u.Z)
 print("v: ", v.X, v.Y, v.Z)
 
-local p = Primitive.new()
+
+local mat = Material.new("assets/test/Brick_Wall_014_COLOR.jpg", "assets/test/Brick_Wall_014_NORM.jpg")
+print("Material created: ")
+
+local p = Primitive.new(0, mat)
 print("Primitive created: ")
 p:SetPosition(Vector3.new(0, 100, 0))
 print("Primitive position: ")

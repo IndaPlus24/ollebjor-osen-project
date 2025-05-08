@@ -5,11 +5,12 @@
 #include <glm/glm.hpp>
 #include <lua.hpp>
 #include "SceneManager.hpp"
+#include "LuaMaterial.hpp"
 
 class LuaPrimitive {
   public:
     LuaPrimitive(PrimitiveType type);
-    LuaPrimitive(PrimitiveType type, LuaVector3& position);
+    LuaPrimitive(PrimitiveType type, LuaMaterial* material);
     ~LuaPrimitive();
 
     PrimitiveType GetType();

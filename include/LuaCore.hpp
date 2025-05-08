@@ -2,6 +2,7 @@
 #include <lua.hpp>
 #include <string>
 #include "LuaWindowService.hpp"
+#include <sol/sol.hpp>
 
 // The Lua core helps with functions and utility surrounding lua.
 class LuaCore {
