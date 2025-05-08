@@ -32,7 +32,6 @@ class SceneManager {
     std::unordered_map<uint64_t, Material*> materials;
     std::unordered_map<std::string, uint32_t> loadedURIs;
 
-
     SceneImporter* sceneImporter;
     PhysicsCore* physicsCore;
     bgfx::VertexLayout* layout;
@@ -81,8 +80,9 @@ class SceneManager {
 
     SceneRef<MeshContainer> AddMeshContainer(MeshContainer meshContainer);
     SceneRef<MeshContainer> AddMeshContainer(const std::string& path);
-    SceneRef<MeshContainer> AddMeshContainer(std::string path, std::vector<Vertex> vertices,
-                                            std::vector<uint32_t> indices);
+    SceneRef<MeshContainer> AddMeshContainer(std::string path,
+                                             std::vector<Vertex> vertices,
+                                             std::vector<uint32_t> indices);
 
     SceneRef<MeshContainer> GetMeshContainer(const uint64_t id);
     void RemoveMeshContainer(const uint64_t id);

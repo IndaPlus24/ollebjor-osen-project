@@ -1,23 +1,26 @@
 #include "LuaCore.hpp"
 
+#include <filesystem>
 #include <lua.hpp>
+#include <sol/property.hpp>
+#include <sol/raii.hpp>
 #include <sol/sol.hpp>
 #include <iostream>
+#include <sol/state_handling.hpp>
+#include <sol/state_view.hpp>
+#include <sol/types.hpp>
+#include <string>
 
-#include "LuaType.hpp"
-#include "LuaVector3.hpp"
-#include "LuaPrimitive.hpp"
-#include "LuaSignal.hpp"
-#include "LuaMaterial.hpp"
-#include "LuaWindowService.hpp"
+#include "bx/debug.h"
+#include "glm/fwd.hpp"
+#include "Entity.hpp"
+#include "Enums.hpp"
 
-namespace {
-int luaGetVersion(lua_State* L) {
-    lua_pushstring(L, LuaCore::Version.c_str());
-    return 1;
-}
+#include "lua/LuaPrimitive.hpp"
+#include "lua/LuaVector3.hpp"
+#include "lua/LuaSceneRef.hpp"
+#include "lua/LuaMaterial.hpp"
 
-} // namespace
 namespace {
 int luaPrintOverride(lua_State* L) {
     int n = lua_gettop(L); // number of arguments
@@ -31,117 +34,109 @@ int luaPrintOverride(lua_State* L) {
 
 } // namespace
 
-const luaL_Reg LuaCore::overrides[] = {{"print", luaPrintOverride},
-                                       {nullptr, nullptr}};
+void LuaCore::RunFile(std::string file) {
+    auto path = std::filesystem::path(file);
 
-void LuaCore::overrideLuaLibFunctions() const {
-    lua_getglobal(L, "_G");
-    luaL_setfuncs(L, overrides, 0);
-    lua_pop(L, 1);
-}
-
-void LuaCore::registerGlobalFunction(lua_CFunction func,
-                                     std::string luaFName) const {
-    lua_pushcfunction(L, func);
-    lua_setglobal(L, luaFName.c_str());
-}
-
-void LuaCore::Run(std::string script) const {
-    prepare(script);
-    pcall(0, 0, 0);
-}
-
-void LuaCore::prepare(std::string script) const {
-    if (luaL_loadfile(L, script.c_str())) {
-        std::cerr << "Failed to prepare file: " << lua_tostring(L, -1)
+    if (!std::filesystem::exists(path)) {
+        std::cerr << "LuaCore::Run: File or directory does not exist: " << file
                   << std::endl;
-        lua_pop(L, 1);
         return;
+    }
+
+    if (path.extension() != ".lua") {
+        std::cerr << "LuaCore::Run: File or directory does not exist: " << file
+                  << std::endl;
+        return;
+    }
+
+    if (std::filesystem::is_directory(path)) {
+        std::cerr << "LuaCore::Run: File is a directory: " << file << std::endl;
+        return;
+    }
+
+    auto result = m_solState.safe_script_file(path.string());
+    if (!result.valid()) {
+        sol::error err = result;
+        std::cerr << "LuaCore::Run: Error running script: " << file << "\n"
+                  << err.what() << std::endl;
     }
 }
 
-void LuaCore::SetGlobal(const std::string name, const std::string value) const {
-    lua_pushstring(L, value.c_str());
-    lua_setglobal(L, name.c_str());
-}
+void LuaCore::Run(std::string path, bool recursive) {
 
-std::string LuaCore::GetGlobal(std::string name) const {
-    lua_getglobal(L, name.c_str());
-    std::string global = lua_tostring(L, -1);
-    lua_pop(L, 1);
-    return global;
+    std::function<void(const std::filesystem::path&)> run_children;
+    run_children = [&](const std::filesystem::path& _path) {
+        for (const auto& entry : std::filesystem::directory_iterator(_path)) {
+            if (entry.path().extension() == ".lua") {
+                RunFile(entry.path().string());
+            } else if (std::filesystem::is_directory(entry.path())) {
+                run_children(entry.path());
+            }
+        }
+    };
+
+    if (std::filesystem::is_directory(path)) {
+        if (recursive) {
+            run_children(path);
+        }
+    } else {
+        RunFile(path);
+    }
 }
-// Sends a LuaSignal without any arguments to the Lua function
-void LuaCore::FireSignal(LuaSignal* signal) const {
-    LuaUtil::Get().WrapAndPush(L, signal);
-    LuaSignal::luaSend(L);
-    lua_pop(L, 1); // Pop the signal from the stack
-};
 
 void LuaCore::Init() {
-    luaL_openlibs(L);
-    registerGlobalFunction(luaGetVersion, "Version");
-    overrideLuaLibFunctions();
+    // Ref for ease of use
+    sol::state& lua = m_solState;
 
-    LuaType<LuaSignal> signalType(L, "Signal", true);
-    signalType.AddMethod("Send", LuaSignal::luaSend)
-        .AddMethod("OnReceive", LuaSignal::luaOnReceive)
-        .MakeClass(LuaSignal::luaNew);
+    bx::debugPrintf("Opening default libraries\n");
 
-    LuaType<LuaWindowService> window(L, "Window", true, false);
-    window.AddMethod("SetTitle", LuaWindowService::luaSetTitle)
-        .AddProperty("Minimized", LuaWindowService::luaMinimized, nullptr)
-        .MakeSingleton(&WindowService);
+    lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::string,
+                       sol::lib::math, sol::lib::table, sol::lib::debug);
 
-    LuaType<LuaVector3> vector3(L, "Vector3", true);
-    vector3.AddMethod("Dot", LuaVector3::luaDot)
-        .AddMethod("Cross", LuaVector3::luaCross)
-        .AddMethod("GetLength", LuaVector3::luaGetLength)
-        .AddProperty("X", LuaVector3::luaGetX, nullptr)
-        .AddProperty("Y", LuaVector3::luaGetY, nullptr)
-        .AddProperty("Z", LuaVector3::luaGetZ, nullptr)
-        .AddProperty("len", LuaVector3::luaGetLength, nullptr)
-        .AddProperty("normalized", LuaVector3::luaNormalize, nullptr)
-        .AddMetaMethod("__add", LuaVector3::lua__add)
-        .AddMetaMethod("__sub", LuaVector3::lua__sub)
-        .AddMetaMethod("__mul", LuaVector3::lua__mul)
-        .AddMetaMethod("__div", LuaVector3::lua__div)
-        .AddMetaMethod("__eq", LuaVector3::lua__eq)
-        .AddMetaMethod("__tostring", LuaVector3::lua__tostring)
-        .MakeClass(LuaVector3::luaNew);
+    lua["print"] = luaPrintOverride;
+    lua["Version"] = LuaCore::Version;
 
-    LuaType<LuaPrimitive> primitive(L, "Primitive", true);
-    primitive.AddMethod("SetPosition", LuaPrimitive::luaSetPosition)
-        .AddMethod("GetPosition", LuaPrimitive::luaGetPosition)
-        .AddMethod("SetType", LuaPrimitive::luaSetType)
-        .AddMethod("GetType", LuaPrimitive::luaGetType)
-        .AddMethod("Destroy", LuaPrimitive::luaDestroy)
-        .MakeClass(LuaPrimitive::luaNew);
+    sol::usertype<glm::vec3> vec3 = lua.new_usertype<glm::vec3>(
+        "Vector3",
+        sol::constructors<glm::vec3(float, float, float), glm::vec3(float),
+                          glm::vec3()>(),
+        sol::meta_function::addition, &LuaVector3::__add,
+        sol::meta_function::subtraction, &LuaVector3::__sub,
+        sol::meta_function::multiplication, &LuaVector3::__mul,
+        sol::meta_function::division, &LuaVector3::__div,
+        sol::meta_function::equal_to, &LuaVector3::__eq,
+        sol::meta_function::unary_minus, &LuaVector3::__unm);
 
-    sol::state_view lua(L);
+    vec3["X"] = &glm::vec3::x;
+    vec3["Y"] = &glm::vec3::y;
+    vec3["Z"] = &glm::vec3::z;
+    vec3["Length"] = &LuaVector3::length;
+    vec3["Normalize"] = &LuaVector3::normalize;
+    vec3["Dot"] = &LuaVector3::dot;
+    vec3["Cross"] = &LuaVector3::cross;
+
     lua.new_usertype<LuaMaterial>(
         "Material",
         sol::constructors<Material(const std::string&, const std::string&)>());
+
+    lua.new_usertype<LuaSceneRef<Entity>>(
+        "EntitySceneRef", "Id", sol::readonly(&LuaSceneRef<Entity>::GetId),
+        "Destroy", &LuaSceneRef<Entity>::Destroy);
+
+    lua.new_enum("PrimitiveType", "Cube", PrimitiveType::Cube, "Sphere",
+                 PrimitiveType::Sphere, "Plane", PrimitiveType::Plane);
+
+    lua.new_usertype<LuaPrimitive>(
+        "Primitive",
+        sol::constructors<
+            LuaPrimitive(PrimitiveType), LuaPrimitive(PrimitiveType, glm::vec3),
+            LuaPrimitive(PrimitiveType, LuaMaterial),
+            LuaPrimitive(PrimitiveType, LuaMaterial, glm::vec3)>(),
+        "Position",
+        sol::property(&LuaPrimitive::GetPosition, &LuaPrimitive::SetPosition),
+        "Type", sol::property(&LuaPrimitive::GetType, &LuaPrimitive::SetType),
+        sol::base_classes, sol::bases<LuaSceneRef<Entity>>());
 }
 
-void LuaCore::pcall(int nargs, int nresults, int errfunc) const {
-    if (lua_pcall(L, nargs, nresults, errfunc)) {
-        std::cerr << "Error: " << lua_tostring(L, -1) << std::endl;
-        lua_pop(L, 1);
-    }
-}
-
-// int print(lua_State* L) {
-//     LuaPrimitive* i = (LuaPrimitive*)luaL_checkudata(
-//         L, 1, LuaPrimitive::metatableName.c_str());
-//     luaL_argcheck(L, L != nullptr, 1, "'Primitive' expected in gc");
-//     std::cout << "Garbage collection" << std::endl;
-//     return 0;
-// }
-
-LuaCore::LuaCore() : L(luaL_newstate()), WindowService() {}
-LuaCore::~LuaCore() {
-    if (L) {
-        lua_close(L);
-    }
-}
+LuaCore::LuaCore() : m_solState() {}
+LuaCore::~LuaCore() {}

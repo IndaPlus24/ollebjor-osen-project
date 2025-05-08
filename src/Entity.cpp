@@ -4,6 +4,8 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include <bgfx/bgfx.h>
+#include <iostream>
+#include "bx/debug.h"
 #include "utils.hpp"
 
 Entity::Entity(RigidBodyType bodyType, PhysicsCore& physicsCore,
@@ -90,6 +92,7 @@ void Entity::QuaternionRotate(glm::mat4& result, const glm::vec3& axis,
 void Entity::SetPhysicsPosition(glm::vec3 position,
                                 JPH::EActivation activation) {
     if (this->position == position) {
+        bx::debugPrintf("Position is the same, not updating\n");
         return;
     }
     this->position = position;

@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 
     const double FIXED_TIMESTEP = 1.0f / 60.0f;
     double accumulator = 0;
-    bx::debugPrintf("Starting application\n");
+    bx::debugPrintf("Starting application!\n");
 
     LuaCore lua;
     lua.Init();
@@ -49,8 +49,6 @@ int main(int argc, char** argv) {
 
     Core core = Core();
     core.Init();
-    core.SetWindowMinimizedCallback(
-        [&]() { lua.FireSignal(lua.WindowService.Minimized); });
 
     Renderer renderer = Renderer("Hello World", 1280, 720);
     renderer.Init();
@@ -91,19 +89,8 @@ int main(int argc, char** argv) {
         }
 
         // Run lua Scripts
-        for (int i = 0; i < argc; i++) {
-
-            if (std::filesystem::is_directory(argv[i])) {
-                for (const auto& entry :
-                     std::filesystem::directory_iterator(argv[i])) {
-                    if (entry.path().extension() == ".lua") {
-                        lua.Run(entry.path().string());
-                    }
-                }
-            } else if (std::filesystem::is_regular_file(argv[i]) &&
-                       std::filesystem::path(argv[i]).extension() == ".lua") {
-                lua.Run(argv[i]);
-            }
+        for (int i = 1; i < argc; i++) {
+            lua.Run(argv[i], true);
         }
 
         auto& scene = SceneManager::Get();

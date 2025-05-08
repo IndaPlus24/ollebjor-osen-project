@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <lua.hpp>
 #include "SceneManager.hpp"
-#include "LuaMaterial.hpp"
+#include "lua/LuaMaterial.hpp"
 
 class LuaPrimitive {
   public:
