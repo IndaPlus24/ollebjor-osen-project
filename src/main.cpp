@@ -1,11 +1,10 @@
-#include <iostream>
+#include "Observers.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <Jolt/Jolt.h>
 #include <bgfx/bgfx.h>
 #include "bx/debug.h"
 #include <functional>
 #include <glm/glm.hpp>
-#include <filesystem>
 
 #include "Enums.hpp"
 #include "Entity.hpp"
@@ -15,9 +14,6 @@
 #include "LuaCore.hpp"
 #include "PhysicsCore.hpp"
 #include "utils.hpp"
-#include "MeshContainer.hpp"
-#include "MeshEntity.hpp"
-#include "Collider.hpp"
 #include "Camera.hpp"
 #include "SceneManager.hpp"
 #include "SceneImporter.hpp"

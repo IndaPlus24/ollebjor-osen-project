@@ -5,7 +5,7 @@
 #include "SDL_keyboard.h"
 #include "SDL_video.h"
 #include "bx/debug.h"
-#include <cstddef>
+#include "SystemEvents.hpp"
 #include <iostream>
 
 Core::Core() {}
@@ -77,9 +77,7 @@ void Core::EventLoop() {
                 renderer->RecreateFrameBuffers(event.window.data1,
                                                event.window.data2);
             } else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED) {
-                bx::debugPrintf("Window minimized\n");
-                WindowMinimized();
-                bx::debugPrintf("Minimized event sent\n");
+                SystemEvents::Get().WindowMinimized.notify();
             }
             break;
         default:
@@ -106,17 +104,11 @@ void Core::CallKeyboardEvent() {
 }
 
 void Core::CallPhysicsStep(double deltaTime) {
-    if (physicsStepCallback == nullptr) {
-        return;
-    }
-    physicsStepCallback(deltaTime);
+    // SystemEvents::Get().PhysicsStep.setState(deltaTime);
 }
 
 void Core::CallUpdate(double deltaTime) {
-    if (updateCallback == nullptr) {
-        return;
-    }
-    updateCallback(deltaTime);
+    // SystemEvents::Get().Update.setState(deltaTime);
 }
 
 void Core::SetKeyEventCallback(

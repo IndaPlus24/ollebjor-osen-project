@@ -1,49 +1,40 @@
 #pragma once
-#include <functional>
-#include <vector>
-#include <memory>
+#include "bx/debug.h"
+#include <iostream>
+#include <optional>
+#include <sol/forward.hpp>
 #include <sol/sol.hpp>
-
-class LuaConnection {
-  public:
-    LuaConnection(std::function<void()> disconnectFunc)
-        : disconnectFunc(disconnectFunc) {}
-
-    void Disconnect() {
-        if (disconnectFunc)
-            disconnectFunc();
-        disconnectFunc = nullptr;
-    }
-
-  private:
-    std::function<void()> disconnectFunc;
-};
+#include <sol/state_handling.hpp>
+#include <sol/state_view.hpp>
+#include <sol/types.hpp>
 
 class LuaEvent {
+  private:
+    std::optional<sol::protected_function> m_callback;
+
   public:
     LuaEvent() = default;
     ~LuaEvent() = default;
-    using Handler = std::function<void(sol::variadic_args)>;
+    bool hasCallback() const { return m_callback.has_value(); }
 
-    std::shared_ptr<LuaConnection> Connect(sol::function func) {
-        auto handler = std::make_shared<Handler>(
-            [func](sol::variadic_args args) { func(sol::as_args(args)); });
-        handlers.push_back(handler);
+    sol::protected_function getCallback() const { return m_callback.value(); }
 
-        return std::make_shared<LuaConnection>([this, handler]() {
-            auto it = std::find(handlers.begin(), handlers.end(), handler);
-            if (it != handlers.end())
-                handlers.erase(it);
-        });
-    }
+    void setCallback(sol::protected_function fn) { m_callback = std::move(fn); }
 
-    void Fire(sol::variadic_args args) {
-        for (auto& handler : handlers) {
-            if (handler)
-                (*handler)(args);
+    void clearCallback() {
+        if (hasCallback()) {
+            m_callback->reset();
         }
     }
 
-  private:
-    std::vector<std::shared_ptr<Handler>> handlers;
+    template <typename... Args> void runCallback(Args... args) {
+        if (hasCallback()) {
+            auto result = getCallback()(args...);
+            if (!result.valid()) {
+                sol::error err = result;
+                std::cerr << "LuaCore::Run: Error running callback2: "
+                          << err.what() << "\n";
+            }
+        }
+    }
 };

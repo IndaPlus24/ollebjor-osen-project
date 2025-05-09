@@ -1,6 +1,8 @@
 #include "LuaCore.hpp"
 
 #include <filesystem>
+#include <memory>
+#include <sol/forward.hpp>
 #include <sol/property.hpp>
 #include <sol/raii.hpp>
 #include <sol/sol.hpp>
@@ -11,6 +13,8 @@
 #include <string>
 
 #include "Entity.hpp"
+#include "Observers.hpp"
+#include "SystemEvents.hpp"
 #include "bx/debug.h"
 #include "glm/fwd.hpp"
 #include "Enums.hpp"
@@ -165,14 +169,18 @@ void LuaCore::Init() {
         "Destroy", &LuaSceneRef::Destroy<Entity>, sol::base_classes,
         sol::bases<LuaSceneRef>());
 
-    lua.new_usertype<LuaWindow>("Window", "SetTitle", &LuaWindow::SetTitle);
-    lua["Window"] = &LuaWindow::Get();
+    lua.new_usertype<LuaEvent>("Event", "Connect", &LuaEvent::setCallback,
+                               "Disconnect", &LuaEvent::clearCallback,
+                               "Connected",
+                               sol::readonly(&LuaEvent::hasCallback));
 
-    lua.new_usertype<LuaConnection>("Connection", "Disconnect",
-                                    &LuaConnection::Disconnect);
-    lua.new_usertype<LuaEvent>("Event", sol::constructors<LuaEvent()>(),
-                               "Connect", &LuaEvent::Connect, "Fire",
-                               &LuaEvent::Fire);
+    lua.new_usertype<LuaWindow>("Window", "SetTitle", &LuaWindow::SetTitle,
+                                "Minimized", &LuaWindow::Minimized);
+    LuaWindow* window = new LuaWindow();
+    lua["Window"] = window;
+
+    LuaObserver<>* myObs = new LuaObserver(window->Minimized);
+    SystemEvents::Get().WindowMinimized.addObserver(myObs);
 }
 
 LuaCore::LuaCore() : m_solState() {}

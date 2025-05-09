@@ -3,7 +3,7 @@
 #include <string>
 #include <sol/sol.hpp>
 #include <filesystem>
-
+#include <vector>
 
 // The Lua core helps with functions and utility surrounding lua.
 class LuaCore {
