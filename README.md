@@ -1,3 +1,4 @@
+![Loonar logo](LoonarLogo.png)
 # Loonar engine
 Loonar is a game engine written in C++. It uses sol2 behind the scenes to provide a Lua interface. It is a feat of engineering that is rarely seen these days. 
 
