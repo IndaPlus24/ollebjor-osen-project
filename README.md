@@ -1,6 +1,32 @@
 # Loonar engine
+Loonar is a game engine written in C++. It uses sol2 behind the scenes to provide a Lua interface. It is a feat of engineering that is rarely seen these days. 
 
-very good game enginge many such featurse such as make game button and add mutliplayer button. Rarely seen these days...
+# Features
+✅ - Implemented
+⬇️ - In progress
+❌ - Not implemented
+
+## Lua Features
+|Feature|Status|
+|-------|------|
+| Primitives | ✅ |
+| Camera | ⬇️ |
+| Material | ✅ |
+| Mesh | ✅ |
+| Events | ✅ |
+| Scene Importing | ❌ |
+| Hot Reload | ❌ |
+
+## C++ Features
+|Feature|Status|
+|-------|------|
+| Deferred rendering | ✅ |
+| Physics (Jolt) | ✅ |
+| Asset management | ✅ |
+| Scene management | ✅ |
+| Lua Scripts | ✅ |
+| UI | ❌ |
+
 
 # Specification
 
@@ -22,9 +48,9 @@ cmake --build build --config Release
 
 ```bash
 # Unix
-./build/Loonar
+./build/Loonar <scripts...>
 # Windows
-start build\Release\Loonar.exe
+start build\Release\Loonar.exe <scripts...>
 ```
 
 # Example
